@@ -1,0 +1,674 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CUSTOMER
+  ASTROLOGER
+  EDITOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ProductType {
+  PHYSICAL
+  DIGITAL_REPORT
+  CONSULTATION
+  PUJA
+  COURSE
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING_PAYMENT
+  CONFIRMED
+  PROCESSING
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum ReportStatus {
+  PENDING_PAYMENT
+  PAID
+  QUEUED
+  CALCULATING
+  INTERPRETING
+  RENDERING
+  READY
+  FAILED
+}
+
+enum ConsultationStatus {
+  REQUESTED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum InventoryStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+  PREORDER
+}
+
+enum BirthTimeAccuracy {
+  EXACT
+  APPROXIMATE
+  UNKNOWN
+}
+
+model User {
+  id                String             @id @default(cuid())
+  name              String             @default("")
+  email             String             @unique
+  emailVerified     Boolean            @default(false)
+  image             String?
+  phone             String?            @unique
+  role              UserRole           @default(CUSTOMER)
+  accounts          Account[]
+  sessions          Session[]
+  addresses         Address[]
+  birthProfiles     BirthProfile[]
+  carts             Cart[]
+  orders            Order[]
+  reportOrders      ReportOrder[]
+  consultations     Consultation[]
+  pujaBookings      PujaBooking[]
+  enrollments       Enrollment[]
+  reviews           Review[]
+  wishlistItems     Wishlist[]
+  savedKundlis      SavedKundli[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([role])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  issuer                String
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([issuer, accountId])
+  @@index([userId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@index([expiresAt])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  label      String?
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  postalCode String
+  country    String   @default("IN")
+  phone      String?
+  isDefault  Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model BirthProfile {
+  id            String                 @id @default(uuid())
+  userId        String?
+  name          String
+  placeId       String?
+  gender        String?
+  dateOfBirth   DateTime
+  timeOfBirth   String
+  timeAccuracy  BirthTimeAccuracy      @default(EXACT)
+  placeName     String
+  placeOfBirth  String
+  city          String
+  region        String?
+  country       String
+  latitude      Decimal                @db.Decimal(9, 6)
+  longitude     Decimal                @db.Decimal(9, 6)
+  timezone      String
+  user          User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calculations  AstrologyCalculation[]
+  savedKundlis  SavedKundli[]
+  reportOrders  ReportOrder[]
+  consultations Consultation[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([userId])
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  parentId  String?
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  products  Product[]
+  articles  Article[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([parentId])
+}
+
+model Product {
+  id               String           @id @default(cuid())
+  type             ProductType
+  title            String
+  slug             String           @unique
+  description      String
+  categoryId       String?
+  pricePaise       Int
+  salePricePaise   Int?
+  currency         String           @default("INR")
+  sku              String?          @unique
+  attributes       Json?
+  active           Boolean          @default(false)
+  category         Category?        @relation(fields: [categoryId], references: [id])
+  variants         ProductVariant[]
+  images           ProductImage[]
+  inventory        Inventory?
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+  reportDefinition ReportDefinition?
+  reviews          Review[]
+  wishlistItems    Wishlist[]
+  couponProducts   CouponProduct[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([type])
+  @@index([categoryId])
+  @@index([active])
+}
+
+model ProductVariant {
+  id             String       @id @default(cuid())
+  productId      String
+  title          String
+  sku            String       @unique
+  pricePaise     Int?
+  salePricePaise Int?
+  attributes     Json?
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventory      Inventory?
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([productId])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String
+  sortOrder Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([productId, sortOrder])
+}
+
+model Inventory {
+  id                String           @id @default(cuid())
+  productId         String?          @unique
+  productVariantId  String?          @unique
+  quantity          Int              @default(0)
+  status            InventoryStatus  @default(OUT_OF_STOCK)
+  product           Product?         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productVariant    ProductVariant?  @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  updatedAt         DateTime         @updatedAt
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?
+  sessionId String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model CartItem {
+  id               String          @id @default(cuid())
+  cartId           String
+  productId        String
+  productVariantId String?
+  quantity         Int             @default(1)
+  cart             Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product          Product         @relation(fields: [productId], references: [id])
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([cartId, productId, productVariantId])
+  @@index([productId])
+}
+
+model Order {
+  id              String       @id @default(cuid())
+  userId          String
+  status          OrderStatus  @default(DRAFT)
+  subtotalPaise   Int
+  discountPaise   Int          @default(0)
+  taxPaise        Int          @default(0)
+  shippingPaise   Int          @default(0)
+  totalPaise      Int
+  currency        String       @default("INR")
+  shippingAddress Json?
+  billingAddress  Json?
+  user            User         @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  payments        Payment[]
+  refunds         Refund[]
+  reportOrders    ReportOrder[]
+  pujaBookings    PujaBooking[]
+  enrollments     Enrollment[]
+  couponId        String?
+  coupon          Coupon?      @relation(fields: [couponId], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id               String          @id @default(cuid())
+  orderId          String
+  productId        String
+  productVariantId String?
+  title            String
+  quantity         Int             @default(1)
+  unitPricePaise   Int
+  totalPaise       Int
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product         @relation(fields: [productId], references: [id])
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  provider      String
+  providerRef   String?       @unique
+  status        PaymentStatus @default(PENDING)
+  amountPaise   Int
+  currency      String        @default("INR")
+  rawResponse   Json?
+  order         Order         @relation(fields: [orderId], references: [id])
+  refunds       Refund[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model Refund {
+  id          String        @id @default(cuid())
+  orderId     String
+  paymentId   String
+  amountPaise Int
+  reason      String?
+  status      PaymentStatus @default(PENDING)
+  order       Order         @relation(fields: [orderId], references: [id])
+  payment     Payment       @relation(fields: [paymentId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([paymentId])
+}
+
+model ReportDefinition {
+  id             String        @id @default(cuid())
+  productId      String        @unique
+  reportType     String
+  requiredFields Json
+  sections       Json
+  samplePages    Json?
+  product        Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reportOrders   ReportOrder[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model ReportOrder {
+  id                 String           @id @default(cuid())
+  userId             String
+  orderId            String?
+  reportDefinitionId String
+  birthProfileId     String?
+  status             ReportStatus     @default(PENDING_PAYMENT)
+  inputSnapshot      Json
+  user               User             @relation(fields: [userId], references: [id])
+  order              Order?           @relation(fields: [orderId], references: [id])
+  reportDefinition   ReportDefinition @relation(fields: [reportDefinitionId], references: [id])
+  birthProfile       BirthProfile?    @relation(fields: [birthProfileId], references: [id])
+  generatedReport    GeneratedReport?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model GeneratedReport {
+  id            String      @id @default(cuid())
+  reportOrderId String      @unique
+  storageKey    String
+  pageCount     Int?
+  chartJson     Json?
+  interpretation Json?
+  reportOrder   ReportOrder @relation(fields: [reportOrderId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Astrologer {
+  id            String             @id @default(cuid())
+  name          String
+  slug          String             @unique
+  bio           String?
+  specialties   String[]
+  languages     String[]
+  active        Boolean            @default(false)
+  slots         ConsultationSlot[]
+  consultations Consultation[]
+  reviews       Review[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model ConsultationSlot {
+  id           String         @id @default(cuid())
+  astrologerId String
+  startsAt     DateTime
+  endsAt       DateTime
+  isBooked     Boolean        @default(false)
+  astrologer   Astrologer     @relation(fields: [astrologerId], references: [id], onDelete: Cascade)
+  consultation Consultation?
+
+  @@index([astrologerId, startsAt])
+}
+
+model Consultation {
+  id             String             @id @default(cuid())
+  userId         String
+  astrologerId   String
+  slotId         String?            @unique
+  birthProfileId String?
+  status         ConsultationStatus @default(REQUESTED)
+  mode           String
+  notes          String?
+  user           User               @relation(fields: [userId], references: [id])
+  astrologer     Astrologer         @relation(fields: [astrologerId], references: [id])
+  slot           ConsultationSlot?  @relation(fields: [slotId], references: [id])
+  birthProfile   BirthProfile?      @relation(fields: [birthProfileId], references: [id])
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([astrologerId])
+  @@index([status])
+}
+
+model Puja {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  pricePaise  Int
+  active      Boolean       @default(false)
+  bookings    PujaBooking[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model PujaBooking {
+  id        String   @id @default(cuid())
+  userId    String
+  orderId   String?
+  pujaId    String
+  date      DateTime?
+  status    String   @default("REQUESTED")
+  user      User     @relation(fields: [userId], references: [id])
+  order     Order?   @relation(fields: [orderId], references: [id])
+  puja      Puja     @relation(fields: [pujaId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([pujaId])
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  description String
+  pricePaise  Int
+  active      Boolean      @default(false)
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  orderId   String?
+  user      User     @relation(fields: [userId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+  order     Order?   @relation(fields: [orderId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([orderId])
+}
+
+model ArticleCategory {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  articles  Article[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Article {
+  id                String           @id @default(cuid())
+  title             String
+  slug              String           @unique
+  excerpt           String?
+  content           String
+  publishedAt       DateTime?
+  categoryId        String?
+  articleCategoryId String?
+  category          Category?        @relation(fields: [categoryId], references: [id])
+  articleCategory   ArticleCategory? @relation(fields: [articleCategoryId], references: [id])
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@index([articleCategoryId])
+}
+
+model Review {
+  id           String      @id @default(cuid())
+  userId       String
+  productId    String?
+  astrologerId String?
+  rating       Int
+  title        String?
+  body         String?
+  published    Boolean     @default(false)
+  user         User        @relation(fields: [userId], references: [id])
+  product      Product?    @relation(fields: [productId], references: [id])
+  astrologer   Astrologer? @relation(fields: [astrologerId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([productId])
+  @@index([astrologerId])
+  @@index([published])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([productId])
+}
+
+model Coupon {
+  id             String          @id @default(cuid())
+  code           String          @unique
+  description    String?
+  percentOff     Int?
+  amountOffPaise Int?
+  startsAt       DateTime?
+  endsAt         DateTime?
+  active         Boolean         @default(false)
+  orders         Order[]
+  products       CouponProduct[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model CouponProduct {
+  couponId  String
+  productId String
+  coupon    Coupon  @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([couponId, productId])
+}
+
+model AstrologyCalculation {
+  id             String        @id @default(uuid())
+  birthProfileId String?
+  calculationType String
+  provider       String
+  providerVersion String
+  calculationVersion String
+  ayanamsa       String?
+  houseSystem    String?
+  calculatedAt   DateTime?
+  inputHash      String
+  input          Json
+  result         Json?
+  status         String        @default("PENDING")
+  birthProfile   BirthProfile? @relation(fields: [birthProfileId], references: [id], onDelete: SetNull)
+  savedKundlis   SavedKundli[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([birthProfileId])
+  @@index([calculationType])
+  @@index([inputHash])
+  @@index([status])
+  @@unique([calculationType, inputHash, provider, calculationVersion])
+}
+
+/// A user's explicit save of a Kundli result.
+///
+/// AstrologyCalculation rows are globally deduplicated by inputHash, so a single
+/// calculation can be reached by several people who entered identical birth
+/// details. Ownership therefore lives here rather than on the calculation: each
+/// saving user gets their own BirthProfile copy and their own SavedKundli row,
+/// and no user's save can ever mutate or re-point another user's profile.
+model SavedKundli {
+  id             String               @id @default(cuid())
+  userId         String
+  birthProfileId String
+  calculationId  String
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  birthProfile   BirthProfile         @relation(fields: [birthProfileId], references: [id], onDelete: Cascade)
+  calculation    AstrologyCalculation @relation(fields: [calculationId], references: [id], onDelete: Restrict)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@unique([userId, calculationId])
+  @@index([userId])
+  @@index([birthProfileId])
+  @@index([calculationId])
+}
