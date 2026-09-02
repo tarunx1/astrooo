@@ -20,7 +20,7 @@ export type ProfileKundliOutcome =
   | { ok: true; calculationId: string }
   | { ok: false; reason: "not_found" | "provider_error"; message?: string };
 
-function toNormalized(profile: {
+export function birthProfileToNormalized(profile: {
   name: string;
   gender: string | null;
   dateOfBirth: string;
@@ -61,7 +61,7 @@ export async function generateKundliForOwnedProfile(
   const profile = await getOwnedBirthProfile(userId, profileId);
   if (!profile) return { ok: false, reason: "not_found" };
 
-  const normalized = toNormalized(profile);
+  const normalized = birthProfileToNormalized(profile);
   const inputHash = createKundliInputHash(normalized);
 
   const existing = await prisma.astrologyCalculation.findFirst({

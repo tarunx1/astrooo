@@ -36,3 +36,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Server Actions are public endpoints: authenticate, validate with Zod, authorize, then execute.
 - Proxy (formerly Middleware) is not an authorization boundary; enforce access in server components and server actions.
 - Only one auth framework is installed. It is Better Auth. See `docs/authentication-decision.md`.
+
+## Payments and Paid Reports
+
+- Only one payment provider is wired for this phase: Razorpay in test mode. See `docs/payment-provider-decision.md`.
+- Report checkout remains off unless `REPORT_CHECKOUT_ENABLED=true`.
+- Never create a paid report order without an authenticated user, an owned birth profile and an immutable `AstrologyCalculation` snapshot.
+- Use DB-backed `ReportDefinition` pricing as the source of truth. Never trust browser-supplied prices, report names or currency.
+- Razorpay key secret and webhook secret are server-only. Only `RAZORPAY_KEY_ID` may reach the checkout client.
+- Validate Razorpay Checkout signatures server-side before marking an order paid.
+- Razorpay webhook routes must verify the raw request body and use idempotent event handling.
+- Handle duplicate and out-of-order payment webhooks without creating duplicate fulfilment.
+- Payment/provider response shapes must map into internal payment domain types before reaching account UI.
+- Do not generate astrology report content, PDFs, shop checkout or admin fulfilment in the payment foundation phase.

@@ -49,7 +49,7 @@ export const accountNavigation: readonly AccountNavItem[] = [
     href: "/account/reports",
     icon: ScrollText,
     description: "Purchased astrology reports",
-    status: "planned",
+    status: "available",
   },
   {
     label: "Consultations",

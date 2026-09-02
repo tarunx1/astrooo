@@ -9,6 +9,9 @@ const serverEnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  PAYMENT_PROVIDER: z.literal("razorpay").optional(),
+  REPORT_CHECKOUT_ENABLED: z.enum(["true", "false"]).optional(),
   AI_PROVIDER_API_KEY: z.string().optional(),
   STORAGE_ENDPOINT: z.string().optional(),
   STORAGE_REGION: z.string().optional(),
@@ -53,6 +56,13 @@ export function assertProductionAuthEnv(env: NodeJS.ProcessEnv = process.env): v
   const hasId = Boolean(env.GOOGLE_CLIENT_ID);
   const hasSecret = Boolean(env.GOOGLE_CLIENT_SECRET);
   if (hasId !== hasSecret) missing.push("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together");
+
+  if (env.REPORT_CHECKOUT_ENABLED === "true") {
+    if (env.PAYMENT_PROVIDER && env.PAYMENT_PROVIDER !== "razorpay") missing.push("PAYMENT_PROVIDER=razorpay");
+    if (!env.RAZORPAY_KEY_ID) missing.push("RAZORPAY_KEY_ID");
+    if (!env.RAZORPAY_KEY_SECRET) missing.push("RAZORPAY_KEY_SECRET");
+    if (!env.RAZORPAY_WEBHOOK_SECRET) missing.push("RAZORPAY_WEBHOOK_SECRET");
+  }
 
   if (missing.length > 0) {
     throw new Error(`Missing required production environment configuration: ${missing.join(", ")}`);

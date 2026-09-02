@@ -31,8 +31,9 @@ export function SaveKundliCard({
   isSaved,
   hasPendingContinuation,
 }: SaveKundliCardProps) {
+  const saveAction = isAuthenticated && hasPendingContinuation ? confirmKundliSaveAction : startKundliSaveAction;
   const [state, formAction, pending] = useActionState<SaveKundliState, FormData>(
-    isAuthenticated ? confirmKundliSaveAction : startKundliSaveAction,
+    saveAction,
     INITIAL_SAVE_STATE,
   );
 

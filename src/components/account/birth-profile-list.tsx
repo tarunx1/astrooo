@@ -27,7 +27,7 @@ export function BirthProfileCard({ profile }: { profile: BirthProfileSummary }) 
 
   return (
     <Card className="p-5" variant="interactive">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
         <div className="min-w-0">
           <h3 className="heading-sm truncate">{profile.name}</h3>
           <dl className="mt-3 grid gap-1.5">
@@ -44,11 +44,11 @@ export function BirthProfileCard({ profile }: { profile: BirthProfileSummary }) 
           </dl>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1">
-          <form action={formAction}>
+        <div className="flex w-full flex-wrap items-center gap-1 sm:w-auto sm:justify-end">
+          <form action={formAction} className="w-full sm:w-auto">
             <input name="profileId" type="hidden" value={profile.id} />
             <button
-              className="min-h-9 rounded-md border border-border-strong bg-surface px-3 py-2 text-xs font-semibold transition hover:bg-surface-hover disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+              className="min-h-9 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-xs font-semibold transition hover:bg-surface-hover disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan sm:w-auto"
               disabled={pending}
               type="submit"
             >

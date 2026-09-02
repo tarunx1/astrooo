@@ -49,6 +49,8 @@ enum ReportStatus {
   RENDERING
   READY
   FAILED
+  CANCELLED
+  REFUNDED
 }
 
 enum ConsultationStatus {
@@ -87,6 +89,7 @@ model User {
   birthProfiles     BirthProfile[]
   carts             Cart[]
   orders            Order[]
+  payments          Payment[]
   reportOrders      ReportOrder[]
   consultations     Consultation[]
   pujaBookings      PujaBooking[]
@@ -357,20 +360,30 @@ model OrderItem {
 }
 
 model Payment {
-  id            String        @id @default(cuid())
-  orderId       String
-  provider      String
-  providerRef   String?       @unique
-  status        PaymentStatus @default(PENDING)
-  amountPaise   Int
-  currency      String        @default("INR")
-  rawResponse   Json?
-  order         Order         @relation(fields: [orderId], references: [id])
-  refunds       Refund[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  userId            String?
+  orderId           String?
+  reportOrderId     String?
+  provider          String
+  providerOrderId   String?
+  providerPaymentId String?       @unique
+  providerRef       String?       @unique
+  status            PaymentStatus @default(PENDING)
+  amountPaise       Int
+  currency          String        @default("INR")
+  rawResponse       Json?
+  capturedAt        DateTime?
+  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order             Order?        @relation(fields: [orderId], references: [id])
+  reportOrder       ReportOrder?  @relation(fields: [reportOrderId], references: [id])
+  refunds           Refund[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
+  @@index([userId])
   @@index([orderId])
+  @@index([reportOrderId])
+  @@index([providerOrderId])
   @@index([status])
 }
 
@@ -391,36 +404,64 @@ model Refund {
 }
 
 model ReportDefinition {
-  id             String        @id @default(cuid())
-  productId      String        @unique
-  reportType     String
-  requiredFields Json
-  sections       Json
-  samplePages    Json?
-  product        Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  reportOrders   ReportOrder[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id               String        @id @default(cuid())
+  productId        String?       @unique
+  slug             String        @unique
+  name             String
+  shortDescription String
+  description      String
+  priceMinor       Int
+  currency         String        @default("INR")
+  estimatedPages   Int
+  sectionsIncluded Json
+  requiredInputs   Json
+  isActive         Boolean       @default(true)
+  sortOrder        Int           @default(0)
+  reportType       String
+  requiredFields   Json
+  sections         Json
+  samplePages      Json?
+  product          Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  reportOrders     ReportOrder[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([slug])
 }
 
 model ReportOrder {
-  id                 String           @id @default(cuid())
-  userId             String
-  orderId            String?
-  reportDefinitionId String
-  birthProfileId     String?
-  status             ReportStatus     @default(PENDING_PAYMENT)
-  inputSnapshot      Json
-  user               User             @relation(fields: [userId], references: [id])
-  order              Order?           @relation(fields: [orderId], references: [id])
-  reportDefinition   ReportDefinition @relation(fields: [reportDefinitionId], references: [id])
-  birthProfile       BirthProfile?    @relation(fields: [birthProfileId], references: [id])
-  generatedReport    GeneratedReport?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
+  id                     String               @id @default(cuid())
+  userId                 String
+  orderId                String?
+  reportDefinitionId     String
+  birthProfileId         String?
+  astrologyCalculationId String?
+  status                 ReportStatus         @default(PENDING_PAYMENT)
+  priceMinor             Int
+  currency               String               @default("INR")
+  reportNameSnapshot     String
+  reportSlugSnapshot     String
+  priceSnapshot          Int
+  currencySnapshot       String
+  providerOrderId        String?              @unique
+  inputSnapshot          Json
+  paidAt                 DateTime?
+  user                   User                 @relation(fields: [userId], references: [id])
+  order                  Order?               @relation(fields: [orderId], references: [id])
+  reportDefinition       ReportDefinition     @relation(fields: [reportDefinitionId], references: [id])
+  birthProfile           BirthProfile?        @relation(fields: [birthProfileId], references: [id], onDelete: SetNull)
+  astrologyCalculation   AstrologyCalculation? @relation(fields: [astrologyCalculationId], references: [id], onDelete: Restrict)
+  payments               Payment[]
+  generatedReport        GeneratedReport?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([reportDefinitionId])
+  @@index([birthProfileId])
+  @@index([astrologyCalculationId])
 }
 
 model GeneratedReport {
@@ -639,6 +680,7 @@ model AstrologyCalculation {
   status         String        @default("PENDING")
   birthProfile   BirthProfile? @relation(fields: [birthProfileId], references: [id], onDelete: SetNull)
   savedKundlis   SavedKundli[]
+  reportOrders   ReportOrder[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -647,6 +689,20 @@ model AstrologyCalculation {
   @@index([inputHash])
   @@index([status])
   @@unique([calculationType, inputHash, provider, calculationVersion])
+}
+
+model PaymentWebhookEvent {
+  id              String    @id @default(cuid())
+  provider        String
+  providerEventId String    @unique
+  eventType       String
+  payload         Json?
+  createdAt       DateTime  @default(now())
+  processedAt     DateTime?
+
+  @@index([provider])
+  @@index([eventType])
+  @@index([processedAt])
 }
 
 /// A user's explicit save of a Kundli result.

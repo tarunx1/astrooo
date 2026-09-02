@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang={brand.business.locale} className="h-full antialiased" data-scroll-behavior="smooth">
-      <body className="min-h-full">
+      <body className="min-h-full" suppressHydrationWarning>
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />

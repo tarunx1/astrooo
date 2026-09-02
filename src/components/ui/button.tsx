@@ -8,6 +8,8 @@ type ButtonProps = {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   type?: "button" | "submit";
+  disabled?: boolean;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 const variants = {
@@ -26,10 +28,21 @@ const sizes = {
   xl: "min-h-14 px-7 py-4 text-base",
 };
 
-export function Button({ children, href, variant = "primary", size = "md", className, type = "button" }: ButtonProps) {
+export function Button({
+  children,
+  href,
+  variant = "primary",
+  size = "md",
+  className,
+  type = "button",
+  disabled,
+  onClick,
+}: ButtonProps) {
   const classes = cn(
     "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition duration-[var(--motion-fast)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
     variants[variant],
+    disabled && !href ? "cursor-not-allowed opacity-60" : null,
+    disabled && href ? "pointer-events-none opacity-60" : null,
     sizes[size],
     className,
   );
@@ -43,7 +56,7 @@ export function Button({ children, href, variant = "primary", size = "md", class
   }
 
   return (
-    <button className={classes} type={type}>
+    <button className={classes} disabled={disabled} onClick={onClick} type={type}>
       {children}
     </button>
   );

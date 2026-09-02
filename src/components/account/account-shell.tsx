@@ -70,7 +70,7 @@ export function AccountMobileNav({ currentPath }: { currentPath: string }) {
   const items = accountNavigation.filter((item) => item.status === "available");
 
   return (
-    <nav aria-label="Account navigation" className="lg:hidden">
+    <nav aria-label="Account navigation" className="overflow-hidden lg:hidden">
       <ul className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) => {
           const active = currentPath === item.href;
