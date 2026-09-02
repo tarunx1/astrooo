@@ -16,7 +16,9 @@ import type { KundliResult } from "@/lib/kundli/types";
 /**
  * Report generation pipeline.
  *
- *   PAID -> QUEUED -> INTERPRETING -> (RENDERING) -> READY
+ * GeneratedReport.status moves QUEUED -> INTERPRETING -> RENDERING -> READY.
+ * ReportOrder.status stays PAID throughout and only changes at a terminal state
+ * (READY or FAILED), so a pipeline stage never overwrites the payment signal.
  *
  * A paid order is required before anything runs. The interpretation step is a
  * long model call, so it is never performed inside a customer request: callers
@@ -42,28 +44,22 @@ export async function enqueueReportGeneration(reportOrderId: string): Promise<Ge
 
   if (!order) return { ok: false, reason: "not_found" };
 
-  // Only a paid order may enter the pipeline.
-  if (order.status !== ReportStatus.PAID && order.status !== ReportStatus.QUEUED) {
-    const alreadyRunning =
-      order.status === ReportStatus.INTERPRETING ||
-      order.status === ReportStatus.RENDERING ||
-      order.status === ReportStatus.READY;
-
-    if (!alreadyRunning) return { ok: false, reason: "not_paid" };
+  // Only a paid order may enter the pipeline. READY is allowed through so a
+  // repeat webhook on a finished order is a no-op rather than an error.
+  if (order.status !== ReportStatus.PAID && order.status !== ReportStatus.READY) {
+    return { ok: false, reason: "not_paid" };
   }
 
   if (order.generatedReport) {
     return { ok: true, generatedReportId: order.generatedReport.id, alreadyComplete: order.generatedReport.status === ReportStatus.READY };
   }
 
+  // Generation state lives on GeneratedReport. ReportOrder stays PAID until the
+  // report actually reaches a terminal state, so the payment signal is never
+  // overwritten by a pipeline stage.
   const created = await prisma.generatedReport.create({
     data: { reportOrderId: order.id, status: ReportStatus.QUEUED },
     select: { id: true },
-  });
-
-  await prisma.reportOrder.update({
-    where: { id: order.id },
-    data: { status: ReportStatus.QUEUED },
   });
 
   return { ok: true, generatedReportId: created.id, alreadyComplete: false };
@@ -215,24 +211,23 @@ export async function runGenerationJob(
       disclaimers: [...STANDARD_DISCLAIMERS],
     });
 
-    await prisma.$transaction([
-      prisma.generatedReport.update({
-        where: { id: job.id },
-        data: {
-          status: ReportStatus.RENDERING,
-          document: document as unknown as Prisma.InputJsonValue,
-          schemaVersion: REPORT_SCHEMA_VERSION,
-          promptVersion: PROMPT_VERSION,
-          aiProvider: providerName,
-          aiModel: model,
-          astrologyCalculationId: calculation.id,
-          generatedAt,
-          lastError: null,
-          lastErrorCategory: null,
-        },
-      }),
-      prisma.reportOrder.update({ where: { id: order.id }, data: { status: ReportStatus.RENDERING } }),
-    ]);
+    // Only the generated report advances. The order keeps its PAID status
+    // until the report reaches a terminal state.
+    await prisma.generatedReport.update({
+      where: { id: job.id },
+      data: {
+        status: ReportStatus.RENDERING,
+        document: document as unknown as Prisma.InputJsonValue,
+        schemaVersion: REPORT_SCHEMA_VERSION,
+        promptVersion: PROMPT_VERSION,
+        aiProvider: providerName,
+        aiModel: model,
+        astrologyCalculationId: calculation.id,
+        generatedAt,
+        lastError: null,
+        lastErrorCategory: null,
+      },
+    });
 
     console.info("report_interpretation_complete", {
       generatedReportId: job.id,

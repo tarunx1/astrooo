@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatMoneyMinor } from "@/lib/reports/catalog";
 import type { AccountReportSummary } from "@/lib/reports/orders";

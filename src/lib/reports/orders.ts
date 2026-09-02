@@ -319,27 +319,42 @@ export async function applyVerifiedProviderPayment(reportOrderId: string, paymen
 
   const status = toPaymentStatus(payment.status);
   await prisma.$transaction(async (tx) => {
-    await tx.payment.upsert({
-      where: { providerPaymentId: payment.id },
-      create: {
-        userId: order.userId,
+    const existingPayment = await tx.payment.findFirst({
+      where: {
         reportOrderId: order.id,
-        provider: payment.provider,
         providerOrderId: payment.orderId,
-        providerPaymentId: payment.id,
-        providerRef: payment.id,
-        status,
-        amountPaise: payment.amountMinor,
-        currency: payment.currency,
-        capturedAt: status === PaymentStatus.CAPTURED ? payment.capturedAt ?? new Date() : null,
-        rawResponse: payment as unknown as Prisma.InputJsonValue,
-      },
-      update: {
-        status,
-        capturedAt: status === PaymentStatus.CAPTURED ? payment.capturedAt ?? new Date() : undefined,
-        rawResponse: payment as unknown as Prisma.InputJsonValue,
+        OR: [{ providerPaymentId: payment.id }, { providerPaymentId: null }],
       },
     });
+
+    if (existingPayment) {
+      await tx.payment.update({
+        where: { id: existingPayment.id },
+        data: {
+          providerPaymentId: payment.id,
+          providerRef: payment.id,
+          status,
+          capturedAt: status === PaymentStatus.CAPTURED ? payment.capturedAt ?? new Date() : undefined,
+          rawResponse: payment as unknown as Prisma.InputJsonValue,
+        },
+      });
+    } else {
+      await tx.payment.create({
+        data: {
+          userId: order.userId,
+          reportOrderId: order.id,
+          provider: payment.provider,
+          providerOrderId: payment.orderId,
+          providerPaymentId: payment.id,
+          providerRef: payment.id,
+          status,
+          amountPaise: payment.amountMinor,
+          currency: payment.currency,
+          capturedAt: status === PaymentStatus.CAPTURED ? payment.capturedAt ?? new Date() : null,
+          rawResponse: payment as unknown as Prisma.InputJsonValue,
+        },
+      });
+    }
 
     if (status === PaymentStatus.CAPTURED) {
       await tx.reportOrder.update({
