@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { processGenerationQueue } from "@/lib/reports/generation";
+import { processRenderQueue } from "@/lib/reports/delivery";
 
 /**
  * Report generation worker.
@@ -33,8 +34,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await processGenerationQueue(5);
-    return NextResponse.json({ ok: true, processed: result.processed });
+    // Interpretation first, then rendering: a job interpreted in this pass can
+    // be rendered in the same invocation.
+    const interpreted = await processGenerationQueue(5);
+    const rendered = await processRenderQueue(5);
+
+    return NextResponse.json({ ok: true, interpreted: interpreted.processed, rendered: rendered.rendered });
   } catch (error) {
     console.error("report_worker_failed", { message: error instanceof Error ? error.message : "unknown" });
     return NextResponse.json({ ok: false }, { status: 500 });

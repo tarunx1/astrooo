@@ -47,6 +47,11 @@ export type AccountReportSummary = {
   currency: string;
   createdAt: Date;
   paidAt: Date | null;
+  /** Delivery state, derived from the generated report rather than guessed. */
+  isDownloadable: boolean;
+  readyAt: Date | null;
+  pageCount: number | null;
+  hasFailed: boolean;
 };
 
 function toPaymentStatus(status: ProviderPayment["status"]): PaymentStatus {
@@ -246,6 +251,7 @@ export async function listAccountReports(userId: string): Promise<AccountReportS
       createdAt: true,
       paidAt: true,
       birthProfile: { select: { name: true } },
+      generatedReport: { select: { status: true, storageKey: true, readyAt: true, pageCount: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -260,6 +266,11 @@ export async function listAccountReports(userId: string): Promise<AccountReportS
     currency: row.currency,
     createdAt: row.createdAt,
     paidAt: row.paidAt,
+    isDownloadable:
+      row.generatedReport?.status === ReportStatus.READY && Boolean(row.generatedReport?.storageKey),
+    readyAt: row.generatedReport?.readyAt ?? null,
+    pageCount: row.generatedReport?.pageCount ?? null,
+    hasFailed: row.status === ReportStatus.FAILED || row.generatedReport?.status === ReportStatus.FAILED,
   }));
 }
 
