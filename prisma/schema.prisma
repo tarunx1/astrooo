@@ -467,13 +467,41 @@ model ReportOrder {
 model GeneratedReport {
   id            String      @id @default(cuid())
   reportOrderId String      @unique
-  storageKey    String
-  pageCount     Int?
-  chartJson     Json?
+  status        ReportStatus @default(QUEUED)
+
+  /// Validated ReportDocument. Never a raw unvalidated prose blob.
+  document      Json?
   interpretation Json?
-  reportOrder   ReportOrder @relation(fields: [reportOrderId], references: [id], onDelete: Cascade)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  chartJson     Json?
+
+  /// Reproducibility / audit: what produced this document.
+  schemaVersion          String?
+  promptVersion          String?
+  aiProvider             String?
+  aiModel                String?
+  astrologyCalculationId String?
+  generatedAt            DateTime?
+
+  /// Bounded retry bookkeeping.
+  attemptCount      Int       @default(0)
+  lastErrorCategory String?
+  lastError         String?
+  lastErrorAt       DateTime?
+
+  /// Rendered artefact (Phase 3). Null until RENDERING completes.
+  storageKey String?
+  checksum   String?
+  fileSize   Int?
+  mimeType   String?
+  pageCount  Int?
+  readyAt    DateTime?
+
+  reportOrder ReportOrder @relation(fields: [reportOrderId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status])
+  @@index([astrologyCalculationId])
 }
 
 model Astrologer {

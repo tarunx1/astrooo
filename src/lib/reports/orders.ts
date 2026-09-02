@@ -7,6 +7,7 @@ import { birthProfileToNormalized } from "@/lib/account/profile-kundli";
 import { getAstrologyProvider } from "@/lib/astrology/provider";
 import { isAstrologyProviderError } from "@/lib/astrology/errors";
 import { prisma } from "@/lib/db/prisma";
+import { enqueueReportGeneration } from "@/lib/reports/generation";
 import { isReportCheckoutEnabled, getPaymentProvider, getRazorpayPublicKey } from "@/lib/payments/config";
 import { PaymentSignatureError, PaymentUnavailableError, PaymentValidationError } from "@/lib/payments/errors";
 import type { PaymentProvider, ProviderPayment } from "@/lib/payments/provider";
@@ -339,6 +340,12 @@ export async function applyVerifiedProviderPayment(reportOrderId: string, paymen
       });
     }
   });
+
+  // Queue generation only after the payment transaction has committed.
+  // enqueueReportGeneration is idempotent, so repeated webhooks are harmless.
+  if (status === PaymentStatus.CAPTURED) {
+    await enqueueReportGeneration(order.id);
+  }
 }
 
 export async function markProviderOrderPaid(providerOrderId: string): Promise<void> {
@@ -358,6 +365,8 @@ export async function markProviderOrderPaid(providerOrderId: string): Promise<vo
     where: { id: order.id },
     data: { status: ReportStatus.PAID, paidAt: order.paidAt ?? new Date() },
   });
+
+  await enqueueReportGeneration(order.id);
 }
 
 export function assertCheckoutPossible(order: CheckoutReportOrder): void {
