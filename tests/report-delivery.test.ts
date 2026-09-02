@@ -19,7 +19,7 @@ const storage = new LocalStorageProvider(STORAGE_ROOT);
 
 function documentFor(subject: string) {
   return {
-    schemaVersion: REPORT_SCHEMA_VERSION,
+    schemaVersion: REPORT_SCHEMA_VERSION as typeof REPORT_SCHEMA_VERSION,
     reportType: "CAREER",
     metadata: {
       subjectName: subject,
@@ -232,7 +232,7 @@ describe("email delivery", () => {
   it("reports honestly that nothing was sent when no provider is configured", async () => {
     const result = await notifyReportReady(
       { to: "someone@example.test", customerName: "Ravish", reportName: "Career Report", reportUrl: "https://example.test/r" },
-      { EMAIL_PROVIDER_API_KEY: "", EMAIL_FROM: "" } as NodeJS.ProcessEnv,
+      { EMAIL_PROVIDER_API_KEY: "", EMAIL_FROM: "" } as unknown as NodeJS.ProcessEnv,
     );
 
     expect(result).toEqual({ sent: false, reason: "not_configured" });
