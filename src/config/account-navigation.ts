@@ -1,4 +1,4 @@
-import { CalendarHeart, LayoutDashboard, ScrollText, Settings, Star, Users } from "lucide-react";
+import { CalendarHeart, LayoutDashboard, Package, ScrollText, Settings, Star, Users } from "lucide-react";
 
 /**
  * Single source of truth for customer account navigation.
@@ -42,6 +42,13 @@ export const accountNavigation: readonly AccountNavItem[] = [
     href: "/account/settings",
     icon: Settings,
     description: "Profile and account preferences",
+    status: "available",
+  },
+  {
+    label: "Orders",
+    href: "/account/orders",
+    icon: Package,
+    description: "Store orders and their delivery status",
     status: "available",
   },
   {

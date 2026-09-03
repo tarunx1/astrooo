@@ -3,12 +3,8 @@
 import { useActionState } from "react";
 import { BookmarkCheck, BookmarkPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import {
-  confirmKundliSaveAction,
-  startKundliSaveAction,
-  INITIAL_SAVE_STATE,
-  type SaveKundliState,
-} from "@/app/kundli/result/[id]/actions";
+import { confirmKundliSaveAction, startKundliSaveAction } from "@/app/kundli/result/[id]/actions";
+import { INITIAL_SAVE_STATE, type SaveKundliState } from "@/lib/shop/action-state";
 
 /**
  * "Save this Kundli" affordance on a result page.

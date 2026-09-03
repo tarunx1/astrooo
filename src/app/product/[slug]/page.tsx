@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageContainer, Section } from "@/components/layout/primitives";
+import { AddToCart } from "@/components/shop/add-to-cart";
 import { ProductGallery } from "@/components/shop/product-gallery";
 import {
   CertificationPanel,
@@ -135,13 +136,17 @@ export default async function ProductPage({ params }: Params) {
 
             <p className="body-md text-foreground-secondary">{product.description}</p>
 
-            {/* Add to cart arrives with the cart phase. */}
-            <Card className="p-4">
-              <p className="body-sm text-foreground-secondary">
-                Online ordering for store items is being finalised. Specifications and certification for this item are
-                shown below.
-              </p>
-            </Card>
+            <AddToCart
+              availableQuantity={product.quantityAvailable}
+              inStock={product.inStock}
+              productId={product.id}
+              variants={product.variants.map((variant) => ({
+                id: variant.id,
+                title: variant.title,
+                priceMinor: variant.priceMinor,
+                inStock: variant.inStock,
+              }))}
+            />
 
             <CertificationPanel certification={product.certification} traditionalUse={product.traditionalUse} />
           </div>

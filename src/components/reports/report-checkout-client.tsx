@@ -6,53 +6,8 @@ import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { verifyReportPaymentAction } from "@/app/checkout/report/[orderId]/actions";
 import type { CheckoutReportOrder } from "@/lib/reports/orders";
+import { loadRazorpayCheckout } from "@/lib/payments/razorpay-checkout";
 
-type RazorpayCheckoutResponse = {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-};
-
-type RazorpayCheckoutOptions = {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  prefill: { name: string; email: string };
-  notes: { reportOrderId: string };
-  theme?: { color: string };
-  handler: (response: RazorpayCheckoutResponse) => void;
-  modal: { ondismiss: () => void };
-};
-
-type RazorpayConstructor = new (options: RazorpayCheckoutOptions) => { open: () => void };
-
-declare global {
-  interface Window {
-    Razorpay?: RazorpayConstructor;
-  }
-}
-
-let checkoutScriptPromise: Promise<void> | null = null;
-
-function loadRazorpayCheckout(): Promise<void> {
-  if (typeof window === "undefined") return Promise.reject(new Error("Checkout is not available."));
-  if (window.Razorpay) return Promise.resolve();
-  if (checkoutScriptPromise) return checkoutScriptPromise;
-
-  checkoutScriptPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Razorpay Checkout could not be loaded."));
-    document.body.append(script);
-  });
-
-  return checkoutScriptPromise;
-}
 
 export function ReportCheckoutClient({ order }: { order: CheckoutReportOrder }) {
   const router = useRouter();

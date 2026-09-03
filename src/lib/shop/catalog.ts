@@ -274,12 +274,5 @@ export async function listRelatedProducts(
   return rows.map(toCard);
 }
 
-/** Money is always integer minor units; formatting happens only at the edge. */
-export function formatMoneyMinor(amountMinor: number, currency = "INR"): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(amountMinor / 100);
-}
+/** Re-exported from the client-safe pricing module so both sides share one implementation. */
+export { formatMoneyMinor } from "@/lib/shop/pricing";

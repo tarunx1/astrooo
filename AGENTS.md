@@ -49,3 +49,23 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Handle duplicate and out-of-order payment webhooks without creating duplicate fulfilment.
 - Payment/provider response shapes must map into internal payment domain types before reaching account UI.
 - Do not generate astrology report content, PDFs, shop checkout or admin fulfilment in the payment foundation phase.
+
+## Physical Commerce, Cart and Orders
+
+- Cart and browser values are never authoritative for price. Every total is recomputed from the database at read time and again at order creation.
+- A CartItem stores a product reference and a quantity only. It never stores a price.
+- `OrderItem` values are immutable purchase snapshots: title, SKU, variant and unit price are frozen at purchase and must never be rewritten when the catalogue changes.
+- The shipping address must be snapshotted on the Order. Editing a saved Address later must not change a past order.
+- Inventory must be concurrency-safe. Decrement with a guarded update requiring `quantity >= requested`; never read-then-write.
+- Duplicate payment events must never decrement inventory twice. `Order.inventoryCommittedAt` is the idempotency guard.
+- Physical checkout reuses the existing `PaymentProvider` and `RazorpayPaymentProvider`. Never add a second payment implementation or reimplement signature verification.
+- One webhook endpoint serves both report and physical orders; it routes on the provider order id.
+- An order is never marked paid on a browser callback alone. The webhook is authoritative.
+- Cross-user cart, address, order and payment access is prohibited. Scope ownership inside the query.
+- The cart is cleared (marked CONVERTED) only after a confirmed successful payment, never when checkout merely opens.
+- A failed payment leaves the Order recoverable and preserves the failed Payment record. Never delete an order to let a customer retry.
+- Money uses integer minor units everywhere. No floating point in any price, discount, shipping, tax or total.
+- Coupons are validated server-side only and can never produce a negative total.
+- `/cart`, `/checkout` and `/account/orders` are `noindex` and listed in `robots.ts` disallow.
+- SHIPPED and DELIVERED are set by an operator, never automatically.
+- Approved existing UI remains frozen unless a redesign is explicitly requested.

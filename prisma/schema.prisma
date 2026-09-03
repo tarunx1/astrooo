@@ -25,11 +25,20 @@ enum ProductType {
 enum OrderStatus {
   DRAFT
   PENDING_PAYMENT
+  PAID
   CONFIRMED
   PROCESSING
+  SHIPPED
+  DELIVERED
   FULFILLED
   CANCELLED
   REFUNDED
+}
+
+enum CartStatus {
+  ACTIVE
+  CONVERTED
+  ABANDONED
 }
 
 enum PaymentStatus {
@@ -288,7 +297,9 @@ model Inventory {
 model Cart {
   id        String     @id @default(cuid())
   userId    String?
+  /// SHA-256 of the opaque anonymous cart cookie. The raw token is never stored.
   sessionId String?
+  status    CartStatus @default(ACTIVE)
   user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
   createdAt DateTime   @default(now())
@@ -296,6 +307,7 @@ model Cart {
 
   @@index([userId])
   @@index([sessionId])
+  @@index([status])
 }
 
 model CartItem {
@@ -316,8 +328,11 @@ model CartItem {
 
 model Order {
   id              String       @id @default(cuid())
+  /// Human-facing reference shown to the customer and support.
+  orderNumber     String       @unique
   userId          String
-  status          OrderStatus  @default(DRAFT)
+  cartId          String?
+  status          OrderStatus  @default(PENDING_PAYMENT)
   subtotalPaise   Int
   discountPaise   Int          @default(0)
   taxPaise        Int          @default(0)
@@ -334,26 +349,44 @@ model Order {
   pujaBookings    PujaBooking[]
   enrollments     Enrollment[]
   couponId        String?
-  coupon          Coupon?      @relation(fields: [couponId], references: [id])
+  /// Snapshot so a renamed or deleted coupon never rewrites order history.
+  couponCodeSnapshot String?
+  coupon          Coupon?      @relation(fields: [couponId], references: [id], onDelete: SetNull)
+
+  /// Razorpay order id. Unique so one provider order maps to one internal order.
+  providerOrderId String?      @unique
+  paidAt          DateTime?
+
+  /// Set exactly once when stock is decremented, making commitment idempotent
+  /// against duplicate payment events.
+  inventoryCommittedAt DateTime?
+  /// Records any line that could not be fulfilled from stock after payment.
+  inventoryShortfall   Json?
+
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([providerOrderId])
 }
 
+/// A purchased line. Every displayed value is a snapshot taken at purchase time,
+/// so later edits to a product's title, SKU or price never rewrite history.
 model OrderItem {
   id               String          @id @default(cuid())
   orderId          String
   productId        String
   productVariantId String?
   title            String
+  skuSnapshot      String?
+  variantSnapshot  Json?
   quantity         Int             @default(1)
   unitPricePaise   Int
   totalPaise       Int
   order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product          Product         @relation(fields: [productId], references: [id])
-  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([productId])
@@ -669,18 +702,40 @@ model Wishlist {
 }
 
 model Coupon {
-  id             String          @id @default(cuid())
-  code           String          @unique
-  description    String?
-  percentOff     Int?
-  amountOffPaise Int?
-  startsAt       DateTime?
-  endsAt         DateTime?
-  active         Boolean         @default(false)
-  orders         Order[]
-  products       CouponProduct[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id               String          @id @default(cuid())
+  code             String          @unique
+  description      String?
+  percentOff       Int?
+  amountOffPaise   Int?
+  minOrderPaise    Int?
+  maxDiscountPaise Int?
+  usageLimit       Int?
+  perUserLimit     Int?
+  timesRedeemed    Int             @default(0)
+  startsAt         DateTime?
+  endsAt           DateTime?
+  active           Boolean         @default(false)
+  orders           Order[]
+  products         CouponProduct[]
+  redemptions      CouponRedemption[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([active])
+}
+
+/// One row per user per redeemed order, so perUserLimit is enforced against
+/// facts rather than a counter that can drift.
+model CouponRedemption {
+  id        String   @id @default(cuid())
+  couponId  String
+  userId    String
+  orderId   String
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([couponId, orderId])
+  @@index([couponId, userId])
 }
 
 model CouponProduct {

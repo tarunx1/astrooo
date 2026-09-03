@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getPaymentProvider } from "@/lib/payments/config";
 import { PaymentSignatureError } from "@/lib/payments/errors";
 import { applyVerifiedProviderPayment, markProviderOrderPaid } from "@/lib/reports/orders";
+import { applyVerifiedOrderPayment, findOrderByProviderOrderId } from "@/lib/shop/orders";
 import type { PaymentProvider, ProviderPayment } from "@/lib/payments/provider";
 
 type RazorpayWebhookPayload = {
@@ -81,6 +82,45 @@ export async function processRazorpayWebhook(
 
   if (eventType === "payment.captured" || eventType === "payment.failed") {
     const payment = providerPaymentFromPayload(payload);
+
+    // One endpoint serves both purchase kinds. The provider order id decides
+    // which internal order owns this payment; a physical order is handled by the
+    // shop pipeline and a report order by the report pipeline.
+    const physicalOrder = payment ? await findOrderByProviderOrderId(payment.orderId) : null;
+
+    if (payment && physicalOrder) {
+      if (eventType === "payment.failed") {
+        await prisma.payment.upsert({
+          where: { providerPaymentId: payment.id },
+          create: {
+            provider: payment.provider,
+            providerOrderId: payment.orderId,
+            providerPaymentId: payment.id,
+            providerRef: payment.id,
+            orderId: physicalOrder.id,
+            status: PaymentStatus.FAILED,
+            amountPaise: payment.amountMinor,
+            currency: payment.currency,
+            rawResponse: payment as unknown as Prisma.InputJsonValue,
+          },
+          update: {
+            status: PaymentStatus.FAILED,
+            rawResponse: payment as unknown as Prisma.InputJsonValue,
+          },
+        });
+      } else {
+        await applyVerifiedOrderPayment(physicalOrder.id, payment);
+      }
+
+      await prisma.paymentWebhookEvent.update({
+        where: { providerEventId },
+        data: { processedAt: new Date() },
+      });
+
+      console.info("payment_webhook_processed", { provider: "razorpay", eventType, providerEventId, kind: "physical" });
+      return { ok: true, duplicate: false };
+    }
+
     const reportOrder = payment
       ? await prisma.reportOrder.findUnique({
           where: { providerOrderId: payment.orderId },
@@ -116,7 +156,13 @@ export async function processRazorpayWebhook(
 
   if (eventType === "order.paid") {
     const providerOrderId = payload.payload?.order?.entity?.id;
-    if (providerOrderId) await markProviderOrderPaid(providerOrderId);
+    if (providerOrderId) {
+      // order.paid carries no payment entity, so it can only confirm what a
+      // captured payment already recorded. Physical orders are already moved to
+      // PAID by payment.captured; nothing further is needed for them here.
+      const physical = await findOrderByProviderOrderId(providerOrderId);
+      if (!physical) await markProviderOrderPaid(providerOrderId);
+    }
   }
 
   await prisma.paymentWebhookEvent.update({

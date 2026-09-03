@@ -8,12 +8,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { buildSignInHref } from "@/lib/auth/return-url";
 import { saveKundliToAccount } from "@/lib/account/saved-kundlis";
 
-export type SaveKundliState = {
-  error: string | null;
-  saved: boolean;
-};
-
-export const INITIAL_SAVE_STATE: SaveKundliState = { error: null, saved: false };
+import type { SaveKundliState } from "@/lib/shop/action-state";
 
 const calculationIdSchema = z.string().uuid();
 
