@@ -69,3 +69,18 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - `/cart`, `/checkout` and `/account/orders` are `noindex` and listed in `robots.ts` disallow.
 - SHIPPED and DELIVERED are set by an operator, never automatically.
 - Approved existing UI remains frozen unless a redesign is explicitly requested.
+
+## Astrology Tools
+
+- Astrology tools must use deterministic calculations. An LLM never determines a sign, planet, house, nakshatra, guna score, Panchang value, Sade Sati phase or numerology number.
+- `BirthDetailsFields` is the single definition of birth inputs. Birth-based tools compose it; they never restate the fields.
+- `LocationProvider` is the only way a place becomes coordinates and a timezone.
+- Provider-specific values must normalize into domain types before reaching a component. VedAstro field names stop at the adapter.
+- VedAstro `Time` parameters must be sent as an object. A string is silently defaulted to 01/01/2000 at a placeholder location and returns `Status: Pass`, so responses must be checked against the requested date and place.
+- Calculator pages must not fabricate unsupported provider capabilities. A value the engine does not calculate is listed as unavailable, never estimated.
+- Koota sub-scores are shown only where the engine supplies a number. They are never inferred from a good/bad classification and never back-filled to reach 36.
+- Numerology rules are deterministic, Chaldean, and documented in `docs/numerology-methodology.md`. Master-number behaviour is explicit per number.
+- Private calculation results remain `noindex`, and birth data never appears in a URL or query parameter.
+- Public tools support SEO with one strong page each. Do not generate thin date or location permutation pages.
+- Reuse the cached Kundli calculation for birth-based tools rather than issuing separate provider requests; the free tier allows 5 requests a minute.
+- Approved existing UI remains visually frozen unless a redesign is explicitly requested.

@@ -20,7 +20,7 @@ export const navigation = [
       { label: "Panchang", href: "/panchang", description: "Daily tithi, nakshatra, yoga and muhurat" },
       { label: "Horoscope", href: "/horoscope", description: "Daily, weekly, monthly and yearly forecasts" },
       { label: "Transits", href: "/transits", description: "Planet movement and timing windows" },
-      { label: "Numerology", href: "/numerology", description: "Numbers, names and life patterns" },
+      { label: "Numerology", href: "/calculators/numerology", description: "Numbers, names and life patterns" },
     ],
   },
   {
@@ -33,7 +33,7 @@ export const navigation = [
       { label: "Nakshatra", href: "/calculators/nakshatra", description: "Find your birth star" },
       { label: "Lagna", href: "/calculators/lagna", description: "Know your ascendant" },
       { label: "Sade Sati", href: "/calculators/sade-sati", description: "Saturn period insights" },
-      { label: "Compatibility", href: "/calculators/compatibility", description: "Relationship compatibility score" },
+      { label: "Compatibility", href: "/kundli-matching", description: "Relationship compatibility score" },
     ],
   },
   {

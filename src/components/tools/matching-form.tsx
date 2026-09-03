@@ -1,0 +1,203 @@
+"use client";
+
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { BirthDetailsFields } from "@/components/kundli/birth-details-fields";
+import { calculateCompatibilityAction } from "@/app/calculators/actions";
+import { INITIAL_COMPATIBILITY_STATE, type CompatibilityState } from "@/lib/astrology/tool-action-state";
+import type { CompatibilityResult, KootaStatus } from "@/lib/astrology/tool-types";
+import { cn } from "@/lib/utils";
+
+/**
+ * Kundli matching.
+ *
+ * Two people, one submission, using the same canonical birth fields as every
+ * other birth tool. The two field sets stack vertically on small screens and sit
+ * side by side only from `lg`, so a phone never has to render two full forms
+ * across a row.
+ */
+export function MatchingForm() {
+  const [state, action] = useActionState<CompatibilityState, FormData>(
+    calculateCompatibilityAction,
+    INITIAL_COMPATIBILITY_STATE,
+  );
+
+  const fieldError = (field: string) => state.fieldErrors[field]?.[0];
+
+  return (
+    <form action={action} className="grid gap-6" noValidate>
+      {state.formErrors.length ? (
+        <div className="rounded-md border border-danger/50 bg-background p-4 body-sm text-danger" role="alert">
+          {state.formErrors.join(" ")}
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-5 sm:p-6">
+          <fieldset className="grid gap-5">
+            <legend className="heading-sm mb-1">Person A</legend>
+            <BirthDetailsFields fieldError={fieldError} nameLabel="Full name" prefix="a" />
+          </fieldset>
+        </Card>
+
+        <Card className="p-5 sm:p-6">
+          <fieldset className="grid gap-5">
+            <legend className="heading-sm mb-1">Person B</legend>
+            <BirthDetailsFields fieldError={fieldError} nameLabel="Full name" prefix="b" />
+          </fieldset>
+        </Card>
+      </div>
+
+      <Submit />
+
+      {state.result ? <CompatibilityReport result={state.result} /> : null}
+    </form>
+  );
+}
+
+function Submit() {
+  const status = useFormStatus();
+  return (
+    <Button className="w-full" size="lg" type="submit" variant="premium">
+      {status.pending ? "Calculating compatibility..." : "Check Compatibility"}
+    </Button>
+  );
+}
+
+const STATUS_LABEL: Record<KootaStatus, string> = {
+  favourable: "Favourable",
+  unfavourable: "Unfavourable",
+  neutral: "Neutral",
+  unknown: "Not reported",
+};
+
+const STATUS_CLASS: Record<KootaStatus, string> = {
+  favourable: "border-success/50 text-success",
+  unfavourable: "border-danger/50 text-danger",
+  neutral: "border-border-strong text-foreground-secondary",
+  unknown: "border-border text-foreground-muted",
+};
+
+/** Score bands, phrased as traditional assessment rather than a prediction. */
+function interpretation(score: number, max: number): string {
+  const ratio = score / max;
+  if (ratio >= 0.75) return "In traditional Ashtakoota terms this is a strong match.";
+  if (ratio >= 0.5) return "In traditional Ashtakoota terms this is considered an acceptable match.";
+  if (ratio >= 0.5 - 0.005) return "This sits on the traditional threshold and is usually reviewed in detail.";
+  return "This falls below the traditional threshold, which is where an astrologer would normally look at the charts in detail rather than at the score alone.";
+}
+
+function CompatibilityReport({ result }: { result: CompatibilityResult }) {
+  return (
+    <div aria-live="polite" className="grid gap-5">
+      <Card className="p-6" variant="premium">
+        <h2 className="heading-md">Traditional Vedic compatibility assessment</h2>
+
+        {result.score === null ? (
+          <p className="mt-3 body-sm text-foreground-secondary">
+            The calculation engine did not return an overall score for these details.
+          </p>
+        ) : (
+          <>
+            <p className="mt-4 flex items-baseline gap-2">
+              <span className="font-display text-5xl leading-none text-premium">{result.score}</span>
+              <span className="heading-sm text-foreground-muted">/ {result.maxScore} Gunas</span>
+            </p>
+            {/* Textual equivalent for the meter below. */}
+            <p className="sr-only">
+              Score {result.score} out of {result.maxScore}, which is {result.percentage} percent.
+            </p>
+            <div
+              aria-hidden="true"
+              className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-raised"
+            >
+              <div className="h-full rounded-full bg-premium" style={{ width: `${result.percentage ?? 0}%` }} />
+            </div>
+            <p className="mt-4 body-sm text-foreground-secondary">
+              {interpretation(result.score, result.maxScore)}
+            </p>
+          </>
+        )}
+
+        <p className="mt-4 caption text-foreground-muted">
+          This is a traditional compatibility assessment, not a prediction about whether a relationship will succeed.
+        </p>
+      </Card>
+
+      <section aria-labelledby="koota-heading">
+        <h3 className="heading-sm" id="koota-heading">
+          Ashtakoota breakdown
+        </h3>
+
+        {!result.summaryMetadata.allKootaScoresProvided ? (
+          <p className="mt-2 body-sm text-foreground-secondary">
+            The calculation engine reported a numeric score for {result.summaryMetadata.kootasWithScores} of the{" "}
+            {result.summaryMetadata.kootaCount} kootas. The others are shown with their favourable or unfavourable
+            classification only — we do not estimate a score the engine did not calculate.
+          </p>
+        ) : null}
+
+        <ul className="mt-4 grid gap-2">
+          {result.kootas.map((koota) => (
+            <li key={koota.key}>
+              <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <p className="body-sm font-semibold text-foreground">{koota.name}</p>
+                  {koota.details ? (
+                    <p className="mt-0.5 caption text-foreground-muted">{koota.details}</p>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className={cn("rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider", STATUS_CLASS[koota.status])}>
+                    {STATUS_LABEL[koota.status]}
+                  </span>
+                  <span className="body-sm text-foreground">
+                    {koota.score === null ? (
+                      <span className="text-foreground-muted">score not provided</span>
+                    ) : (
+                      `${koota.score} / ${koota.traditionalMaxScore}`
+                    )}
+                  </span>
+                </div>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {result.manglikComparison ? (
+        <Card className="p-5">
+          <h3 className="heading-sm">Manglik (Kuja Dosha) comparison</h3>
+          <p className="mt-2 body-sm text-foreground-secondary">{result.manglikComparison.summary}</p>
+        </Card>
+      ) : null}
+
+      {result.additionalFindings.length > 0 ? (
+        <section aria-labelledby="findings-heading">
+          <h3 className="heading-sm" id="findings-heading">
+            Other traditional checks
+          </h3>
+          <ul className="mt-3 grid gap-2">
+            {result.additionalFindings.map((finding) => (
+              <li key={finding.name}>
+                <Card className="flex flex-wrap items-start justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="body-sm font-semibold text-foreground">{finding.name}</p>
+                    {finding.summary ? (
+                      <p className="mt-0.5 caption text-foreground-muted">{finding.summary}</p>
+                    ) : null}
+                  </div>
+                  <span className={cn("shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider", STATUS_CLASS[finding.status])}>
+                    {STATUS_LABEL[finding.status]}
+                  </span>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}

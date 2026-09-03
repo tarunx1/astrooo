@@ -82,7 +82,14 @@ export function normalizePlanet(planet: PlanetName, record: unknown, houseRecord
   const source = record as PlanetRecord;
   const longitude = firstNumber(source, ["PlanetNirayanaLongitude", "NirayanaLongitude", "PlanetLongitude", "Longitude", "TotalDegrees"]) ?? 0;
   const sign = normalizeSign(firstString(source, ["PlanetRasiD1Sign", "PlanetSignName", "SignName", "Sign", "ZodiacSign"]) ?? signFromLongitude(longitude));
-  const nakshatraParts = parseNakshatra(firstString(source, ["PlanetConstellation", "Constellation", "Nakshatra"]) ?? nakshatraFromLongitude(longitude));
+  const longitudeNakshatra = nakshatraFromLongitude(longitude);
+  // nakshatraFromLongitude returns "Name - pada", so the name is split off
+  // before matching it against the canonical list.
+  const longitudeNakshatraName = longitudeNakshatra.split("-")[0].trim().toLowerCase();
+  const nakshatraParts = parseNakshatra(
+    firstString(source, ["PlanetConstellation", "Constellation", "Nakshatra"]) ?? longitudeNakshatra,
+    NAKSHATRAS.find((candidate) => candidate.toLowerCase() === longitudeNakshatraName),
+  );
   const house = normalizeHouse(firstString(source, ["HousePlanetOccupiesBasedOnSign", "HousePlanetOccupiesBasedOnLongitudes", "PlanetHouseName", "HouseName"])) ?? houseFromSign(sign, houseRecords);
 
   return {
@@ -199,12 +206,22 @@ function normalizeSign(value: string): ZodiacSign {
   return sign;
 }
 
-function parseNakshatra(value: string): { name: NakshatraName; pada: number } {
+function parseNakshatra(value: string, fallbackName?: NakshatraName): { name: NakshatraName; pada: number } {
   const [rawName, rawPada] = value.split("-").map((part) => part.trim());
   const canonicalRawName = nakshatraAliases[rawName.toLowerCase()] ?? rawName;
-  const name = NAKSHATRAS.find((candidate) => candidate.toLowerCase() === canonicalRawName.toLowerCase()) ?? NAKSHATRAS[0];
+  const matched = NAKSHATRAS.find((candidate) => candidate.toLowerCase() === canonicalRawName.toLowerCase());
+
+  if (!matched && rawName) {
+    // An unrecognised spelling must never silently become the first nakshatra.
+    // Fall back to the value derived from the longitude, which is always right.
+    console.warn("vedastro_unmapped_nakshatra", { received: rawName });
+  }
+
   const pada = Number(rawPada);
-  return { name, pada: Number.isInteger(pada) && pada >= 1 && pada <= 4 ? pada : 1 };
+  return {
+    name: matched ?? fallbackName ?? NAKSHATRAS[0],
+    pada: Number.isInteger(pada) && pada >= 1 && pada <= 4 ? pada : 1,
+  };
 }
 
 function normalizeHouse(value?: string) {
@@ -241,13 +258,46 @@ function roundDegree(value: number) {
   return Number(value.toFixed(2));
 }
 
+/**
+ * VedAstro nakshatra spellings mapped to our canonical names.
+ *
+ * The provider uses South-Indian transliterations that differ from ours for more
+ * than half the list. An unmapped name previously fell through to the first
+ * nakshatra, silently reporting Ashwini; it now falls back to the
+ * longitude-derived value instead and logs the unmapped spelling.
+ */
 const nakshatraAliases: Record<string, NakshatraName> = {
-  swathi: "Swati",
+  aswini: "Ashwini",
+  ashwini: "Ashwini",
+  krithika: "Krittika",
+  mrigasira: "Mrigashira",
+  aridra: "Ardra",
+  arudra: "Ardra",
+  pushyami: "Pushya",
+  aslesha: "Ashlesha",
+  makha: "Magha",
+  pubba: "Purva Phalguni",
+  "purva phalguni": "Purva Phalguni",
+  uttara: "Uttara Phalguni",
+  "uttara phalguni": "Uttara Phalguni",
   chitta: "Chitra",
+  swathi: "Swati",
   vishhaka: "Vishakha",
   vishakha: "Vishakha",
-  uttara: "Uttara Phalguni",
-  sravana: "Shravana",
+  jyesta: "Jyeshtha",
+  jyeshta: "Jyeshtha",
   moola: "Mula",
-  mrigasira: "Mrigashira",
+  poorvashada: "Purva Ashadha",
+  "purva ashada": "Purva Ashadha",
+  uttarashada: "Uttara Ashadha",
+  "uttara ashada": "Uttara Ashadha",
+  sravana: "Shravana",
+  dhanishta: "Dhanishta",
+  satabhisha: "Shatabhisha",
+  sathabhisha: "Shatabhisha",
+  poorvabhadra: "Purva Bhadrapada",
+  "purva bhadra": "Purva Bhadrapada",
+  uttarabhadra: "Uttara Bhadrapada",
+  "uttara bhadra": "Uttara Bhadrapada",
+  revathi: "Revati",
 };
