@@ -10,6 +10,7 @@ import type {
   PanchangResult,
   SadeSatiResult,
   TransitPlanetPosition,
+  TransitResult,
 } from "@/lib/astrology/tool-types";
 import { getAstrologyProvider } from "@/lib/astrology/provider";
 import { createKundliInputHash } from "@/lib/kundli/normalize";
@@ -198,5 +199,32 @@ export async function getCompatibility(
     return { ok: true, value: await getAstrologyToolsProvider().calculateCompatibility(a, b) };
   } catch (error) {
     return toFailure(error, "The compatibility service is temporarily unavailable. Please try again.");
+  }
+}
+
+/**
+ * Current planetary transits.
+ *
+ * Anchored to the top of the current UTC hour so the answer is stable and
+ * shareable rather than changing on every reload, and cached for that hour so a
+ * busy page costs one provider call rather than one per visitor.
+ */
+const TRANSIT_SNAPSHOT_TTL_MS = 60 * 60 * 1000;
+
+export function currentTransitAnchor(now: Date = new Date()): Date {
+  const anchored = new Date(now);
+  anchored.setUTCMinutes(0, 0, 0);
+  return anchored;
+}
+
+export async function getCurrentTransits(now: Date = new Date()): Promise<ToolOutcome<TransitResult>> {
+  const anchor = currentTransitAnchor(now);
+  const key = `transits:${anchor.toISOString()}:${astrologyCalculationConfig.version}`;
+
+  try {
+    const value = await cached(key, TRANSIT_SNAPSHOT_TTL_MS, () => getAstrologyToolsProvider().getAllTransits(anchor));
+    return { ok: true, value };
+  } catch (error) {
+    return toFailure(error, "The transit calculation is temporarily unavailable. Please try again.");
   }
 }

@@ -106,6 +106,8 @@ model User {
   reviews           Review[]
   wishlistItems     Wishlist[]
   savedKundlis      SavedKundli[]
+  auditLogs         AuditLog[]
+  inventoryAdjustments InventoryAdjustment[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -245,6 +247,7 @@ model Product {
   reviews          Review[]
   wishlistItems    Wishlist[]
   couponProducts   CouponProduct[]
+  inventoryAdjustments InventoryAdjustment[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -265,6 +268,7 @@ model ProductVariant {
   inventory      Inventory?
   cartItems      CartItem[]
   orderItems     OrderItem[]
+  inventoryAdjustments InventoryAdjustment[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -356,6 +360,16 @@ model Order {
   /// Razorpay order id. Unique so one provider order maps to one internal order.
   providerOrderId String?      @unique
   paidAt          DateTime?
+
+  /// Fulfilment metadata, entered manually by an operator. No carrier
+  /// integration exists, so none of this is verified against a carrier.
+  carrierName    String?
+  trackingNumber String?
+  trackingUrl    String?
+  processingAt   DateTime?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  cancelledAt    DateTime?
 
   /// Set exactly once when stock is decremented, making commitment idempotent
   /// against duplicate payment events.
@@ -810,4 +824,82 @@ model SavedKundli {
   @@index([userId])
   @@index([birthProfileId])
   @@index([calculationId])
+}
+
+enum InventoryAdjustmentReason {
+  RESTOCK
+  CORRECTION
+  DAMAGED
+  RETURN
+  MANUAL
+}
+
+/// Every deliberate stock change, with who made it and why.
+///
+/// Stock is never mutated without a row here: the adjustment and the write to
+/// Inventory happen in one transaction, so the running total is always
+/// explainable from history.
+model InventoryAdjustment {
+  id               String                    @id @default(cuid())
+  productId        String?
+  productVariantId String?
+  adminUserId      String
+  delta            Int
+  previousQuantity Int
+  newQuantity      Int
+  reason           InventoryAdjustmentReason @default(MANUAL)
+  note             String?
+  createdAt        DateTime                  @default(now())
+
+  product        Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productVariant ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
+  adminUser      User            @relation(fields: [adminUserId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+  @@index([productVariantId])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_PRICE_CHANGED
+  PRODUCT_ACTIVATED
+  PRODUCT_DEACTIVATED
+  PRODUCT_VARIANT_CREATED
+  PRODUCT_VARIANT_UPDATED
+  INVENTORY_ADJUSTED
+  ORDER_STATUS_CHANGED
+  ORDER_SHIPMENT_UPDATED
+  REPORT_DEFINITION_UPDATED
+  REPORT_DEFINITION_ACTIVATED
+  REPORT_DEFINITION_DEACTIVATED
+  REPORT_GENERATION_RETRIED
+  COUPON_CREATED
+  COUPON_UPDATED
+  COUPON_ACTIVATED
+  COUPON_DEACTIVATED
+  USER_ROLE_CHANGED
+}
+
+/// Append-only record of sensitive operator actions.
+///
+/// There is deliberately no update or delete path in the admin UI. `metadata`
+/// carries only safe descriptive values: never a secret, token, prompt or raw
+/// provider payload.
+model AuditLog {
+  id          String      @id @default(cuid())
+  actorUserId String
+  action      AuditAction
+  entityType  String
+  entityId    String
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  actor User @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
 }

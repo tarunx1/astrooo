@@ -9,6 +9,14 @@ import {
   Sparkles,
 } from "lucide-react";
 
+/**
+ * Global navigation.
+ *
+ * `planned: true` marks a destination that does not exist yet. Those entries
+ * render as disabled rather than linking to a 404 — the information
+ * architecture is preserved without shipping a dead link. Remove the flag when
+ * the route ships.
+ */
 export const navigation = [
   {
     label: "Astrology",
@@ -46,16 +54,17 @@ export const navigation = [
       { label: "Love & Marriage", href: "/reports/love-marriage", description: "Relationship patterns and remedies" },
       { label: "Finance", href: "/reports/finance", description: "Wealth potential and caution periods" },
       { label: "Year Forecast", href: "/reports/year-forecast", description: "A focused 12-month guide" },
-      { label: "Numerology", href: "/reports/numerology", description: "Name and number interpretation" },
+      { label: "Numerology", href: "/reports/numerology", description: "Name and number interpretation", planned: true },
     ],
   },
   {
     label: "Consult",
     href: "/consultations",
+    planned: true,
     icon: HeartHandshake,
     items: [
-      { label: "Astrologers", href: "/consultations", description: "Verified experts for life questions" },
-      { label: "Book Consultation", href: "/consultations/book", description: "Call, chat or video session" },
+      { label: "Astrologers", href: "/consultations", description: "Verified experts for life questions", planned: true },
+      { label: "Book Consultation", href: "/consultations/book", description: "Call, chat or video session", planned: true },
     ],
   },
   {
@@ -73,17 +82,19 @@ export const navigation = [
   {
     label: "Puja",
     href: "/puja",
+    planned: true,
     icon: Sparkles,
-    items: [{ label: "Online Puja", href: "/puja", description: "Book rituals with transparent details" }],
+    items: [{ label: "Online Puja", href: "/puja", description: "Book rituals with transparent details", planned: true }],
   },
   {
     label: "Learn",
     href: "/articles",
+    planned: true,
     icon: BookOpen,
     items: [
-      { label: "Courses", href: "/courses", description: "Guided astrology learning" },
-      { label: "Articles", href: "/articles", description: "Practical Vedic astrology guides" },
-      { label: "Astrology Guides", href: "/category/guides", description: "Structured beginner resources" },
+      { label: "Courses", href: "/courses", description: "Guided astrology learning", planned: true },
+      { label: "Articles", href: "/articles", description: "Practical Vedic astrology guides", planned: true },
+      { label: "Astrology Guides", href: "/category/guides", description: "Structured beginner resources", planned: true },
     ],
   },
   {
@@ -96,8 +107,8 @@ export const navigation = [
 ] as const;
 
 export const utilityNavigation = [
-  { label: "Search", href: "/search" },
+  { label: "Search", href: "/search", planned: true },
   { label: "Account", href: "/account" },
-  { label: "Wishlist", href: "/account/wishlist" },
+  { label: "Wishlist", href: "/account/wishlist", planned: true },
   { label: "Cart", href: "/cart" },
 ] as const;

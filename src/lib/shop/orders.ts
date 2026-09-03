@@ -498,6 +498,11 @@ export async function getOwnedOrder(userId: string, orderId: string) {
       currency: true,
       couponCodeSnapshot: true,
       shippingAddress: true,
+      carrierName: true,
+      trackingNumber: true,
+      trackingUrl: true,
+      shippedAt: true,
+      deliveredAt: true,
       createdAt: true,
       paidAt: true,
       items: {

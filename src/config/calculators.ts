@@ -1,4 +1,4 @@
-import { CalendarDays, Compass, Hash, Moon, Sparkles, Star, Sunrise, Users } from "lucide-react";
+import { CalendarDays, Compass, Hash, Moon, Orbit, Sparkles, Star, Sunrise, Users } from "lucide-react";
 
 /**
  * The public tool catalogue.
@@ -71,6 +71,14 @@ export const ASTROLOGY_TOOLS: readonly ToolEntry[] = [
     title: "Numerology Calculator",
     shortDescription: "Life Path and Birth Number from the Chaldean system.",
     icon: Hash,
+    isPublic: true,
+  },
+  {
+    slug: "transits",
+    href: "/transits",
+    title: "Planetary Transits",
+    shortDescription: "Where the nine planets are in the sidereal zodiac right now.",
+    icon: Orbit,
     isPublic: true,
   },
   {

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { astrologyCalculationConfig, getConfiguredAstrologyProviderName, vedAstroConfig } from "@/config/astrology";
+import { PLANETS, astrologyCalculationConfig, getConfiguredAstrologyProviderName, vedAstroConfig } from "@/config/astrology";
 import { AstrologyProviderError } from "@/lib/astrology/errors";
 import { VedAstroClient } from "@/lib/astrology/providers/vedastro-client";
 import {
@@ -9,7 +9,7 @@ import {
   normalizeVedAstroTransitPlanet,
 } from "@/lib/astrology/providers/vedastro-tools";
 import { getHistoricalUtcOffset, toVedAstroLocation } from "@/lib/astrology/providers/vedastro-time";
-import type { CompatibilityResult, PanchangResult, TransitPlanetPosition } from "@/lib/astrology/tool-types";
+import type { CompatibilityResult, PanchangResult, TransitPlanetPosition, TransitResult } from "@/lib/astrology/tool-types";
 import type { CalculationMetadata, NormalizedBirthDetails, ResolvedLocation } from "@/lib/kundli/types";
 
 /**
@@ -24,6 +24,7 @@ export interface AstrologyToolsProvider {
   calculateCompatibility(a: NormalizedBirthDetails, b: NormalizedBirthDetails): Promise<CompatibilityResult>;
   calculatePanchang(input: { date: string; location: ResolvedLocation }): Promise<PanchangResult>;
   getTransitPlanet(planet: "Saturn", at: Date): Promise<TransitPlanetPosition>;
+  getAllTransits(at: Date): Promise<TransitResult>;
 }
 
 function metadataFor(provider: string, providerVersion: string, isFixture: boolean): CalculationMetadata {
@@ -136,6 +137,37 @@ export class VedAstroToolsProvider implements AstrologyToolsProvider {
     }
 
     return position;
+  }
+
+  /**
+   * All nine planets in one request.
+   *
+   * Asking for every planet at once costs a single provider call rather than
+   * nine, which matters on a 5 requests/minute free tier. Any planet the payload
+   * does not carry is omitted rather than guessed.
+   */
+  async getAllTransits(at: Date): Promise<TransitResult> {
+    const payload = await this.client.calculate("AllPlanetData", {
+      Time: toInstantTime(at, TRANSIT_REFERENCE_LOCATION),
+      PlanetName: "All",
+      Ayanamsa: astrologyCalculationConfig.ayanamsa,
+    });
+
+    const positions = PLANETS.map((planet) => normalizeVedAstroTransitPlanet(payload, planet)).filter(
+      (position): position is TransitPlanetPosition => position !== null,
+    );
+
+    if (positions.length === 0) {
+      throw new AstrologyProviderError({
+        code: "UNAVAILABLE",
+        provider: "vedastro",
+        operation: "AllPlanetData",
+        message: "No transit positions could be decoded.",
+        userMessage: "The transit calculation is temporarily unavailable. Please try again.",
+      });
+    }
+
+    return { at: at.toISOString(), positions, calculationMetadata: this.metadata };
   }
 }
 

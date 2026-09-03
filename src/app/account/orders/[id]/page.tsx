@@ -70,6 +70,36 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
         </div>
       </AccountSection>
 
+      {order.carrierName || order.trackingNumber || order.shippedAt ? (
+        <AccountSection description="Provided by our team when your order was dispatched." title="Delivery">
+          <Card className="grid gap-2 p-5">
+            {order.carrierName ? <Row label="Carrier" value={order.carrierName} /> : null}
+            {order.trackingNumber ? <Row label="Tracking number" value={order.trackingNumber} /> : null}
+            {order.shippedAt ? (
+              <Row label="Dispatched" value={order.shippedAt.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} />
+            ) : null}
+            {order.deliveredAt ? (
+              <Row label="Delivered" value={order.deliveredAt.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} />
+            ) : null}
+
+            {order.trackingUrl ? (
+              <a
+                className="mt-2 inline-flex min-h-11 w-fit items-center justify-center rounded-md border border-border-strong bg-surface px-5 py-3 text-sm font-semibold transition hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+                href={order.trackingUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Track this parcel
+              </a>
+            ) : null}
+
+            <p className="mt-2 caption text-foreground-muted">
+              Tracking details are entered by our team and are not verified with the carrier automatically.
+            </p>
+          </Card>
+        </AccountSection>
+      ) : null}
+
       <div className="grid gap-8 lg:grid-cols-2">
         <AccountSection description="Where this order was sent." title="Shipping address">
           <Card className="p-5">

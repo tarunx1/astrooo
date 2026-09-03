@@ -84,3 +84,19 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Public tools support SEO with one strong page each. Do not generate thin date or location permutation pages.
 - Reuse the cached Kundli calculation for birth-based tools rather than issuing separate provider requests; the free tier allows 5 requests a minute.
 - Approved existing UI remains visually frozen unless a redesign is explicitly requested.
+
+## Admin Operations
+
+- `/admin` requires server-side ADMIN authorization on every route and every Server Action. `requireAdmin()` and `authorizeAdminAction()` are the only gates; the role is re-read from the database using the session user id.
+- Hiding admin UI is not authorization. Navigation visibility never grants or denies access.
+- Historical financial snapshots are immutable. `OrderItem`, `Order` totals, `ReportOrder` price and name snapshots, `couponCodeSnapshot` and `CouponRedemption` are never rewritten by an admin action.
+- Admin cannot fabricate payment success. There is no transition into PAID, no amount edit, and no path to `providerPaymentId`, `providerOrderId`, captured amount or `paidAt`.
+- Product price changes affect future purchases only.
+- Inventory changes only through a recorded `InventoryAdjustment` in the same transaction as the stock write and the audit entry. Stock may never go below zero; backorders are not supported.
+- Order fulfilment follows the explicit transition table in `order-transitions.ts`. Backwards and skipping transitions are refused at the service boundary, not only in the UI.
+- `AuditLog` is append-only. There is no update or delete path in the admin UI, and metadata never carries a secret, token, prompt or raw provider payload.
+- Report retries preserve the original `ReportOrder`, its price snapshot and its immutable `AstrologyCalculation`, and never charge the customer again.
+- Admin input is untrusted: validate with Zod and reload authoritative state server-side before every write.
+- Public navigation must not contain known internal 404 links. A destination that does not exist yet is marked `planned` and rendered disabled.
+- Astrology transit data must remain deterministic and provider-normalized.
+- Approved existing UI remains visually frozen unless a redesign is explicitly requested.
