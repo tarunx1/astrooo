@@ -137,7 +137,19 @@ origin and that the Google callback URL is registered. Cookies are `HttpOnly`,
 `SameSite=Lax`, and `Secure` only in production — a site served over plain HTTP
 in "production" mode will appear to lose sessions.
 
-**Elevated 429s.** Expected during an attack. `rate_limit` events carry the
+**Elevated 429s — check which limiter fired first.** There are two, and they
+are distinguishable from the response alone. Better Auth ships its own
+credential limiter that activates in production and is considerably stricter
+(roughly 3 requests per 10 seconds on sign-in); it answers with
+`x-retry-after` and a body of `{"message":"Too many requests. Please try again
+later."}`. The application's distributed limiter answers with `Retry-After` and
+`{"error":"Too many attempts. Please try again shortly."}`, and logs a
+`rate_limit` event naming the namespace and limit. A user reporting an
+unexpected sign-in block during normal use is almost always hitting Better
+Auth's window, not `RATE_LIMITS`. Verified by observation on a production
+build.
+
+Otherwise, elevated 429s are expected during an attack. `rate_limit` events carry the
 namespace and outcome but deliberately never the identifier, so they cannot be
 used to profile who was limited. If legitimate users are affected, adjust the
 threshold in `RATE_LIMITS` (`src/lib/security/rate-limit.ts`) — every limit and
@@ -154,3 +166,50 @@ its rationale is declared in that one table.
 | Backup and restore | **NOT VERIFIED** — see `docs/database-operations.md` |
 | Rollback procedure | **NOT VERIFIED** — no production environment exists |
 | Razorpay test-mode smoke test | **NOT EXECUTED** — no test credentials available |
+| Structured JSON logging in production | **PRODUCTION-LIKE VERIFIED** on a production build |
+| Readiness `503` names only the failed check | **PRODUCTION-LIKE VERIFIED** — no host, URL, credential or stack trace in the body |
+| Database outage → readiness `503`, health `200` | **REAL-INFRASTRUCTURE VERIFIED** — Postgres stopped and restarted |
+| Recovery after database returns | **REAL-INFRASTRUCTURE VERIFIED** — no application restart required |
+| Rate-limit store outage → fail-open with `protectionDisabled` | **PRODUCTION-LIKE VERIFIED** |
+| Rate-limit store outage → money paths fail closed | **PRODUCTION-LIKE VERIFIED** — user-visible message leaks no internals |
+| One distributed bucket shared across instances | **PRODUCTION-LIKE VERIFIED** — two processes, one store |
+| Spoofed `X-Forwarded-For` yields no extra buckets | **PRODUCTION-LIKE VERIFIED** |
+| Backup and restore | **REAL-INFRASTRUCTURE VERIFIED** — see `docs/database-operations.md` |
+
+
+## Verifying the distributed rate-limit store
+
+Before trusting a new environment's rate limiting, confirm the store is actually
+shared rather than per-instance. A per-process counter looks healthy and
+enforces nothing across a fleet.
+
+1. `curl -fsS https://<host>/api/readiness` must return `{"status":"ok"}`.
+   A body of `{"status":"unavailable","failed":["rateLimitStore"]}` means the
+   store is unset or unreachable, and production refuses to fall back to an
+   in-process counter by design.
+2. Send requests to the same credential endpoint through two different
+   instances and confirm the limit is consumed **once in total**, not once per
+   instance. If each instance has its own allowance, the store is not shared.
+3. Confirm keys expire: a bucket must reset at the end of its window.
+
+This was verified on a production build with two processes against one store.
+
+## Proxy topology
+
+`TRUSTED_PROXY_PLATFORM` decides which header identifies a client, and getting
+it wrong silently disables IP-based rate limiting.
+
+After deploying, verify with a request carrying a forged forwarding header:
+
+```bash
+curl -s -o /dev/null -X POST https://<host>/api/auth/sign-in/email \
+  -H 'Content-Type: application/json' \
+  -H 'X-Forwarded-For: 10.0.0.1, 203.0.113.1' \
+  -d '{"email":"probe@example.test","password":"wrong"}'
+```
+
+Repeat with different left-hand entries. Every one must land in the same bucket:
+the limit should be consumed as though it were one caller. If varying the header
+grants a fresh allowance each time, the platform or hop count is misconfigured
+and the limiter is effectively off. Verified on a production build: fifteen
+forged identities produced exactly one bucket.

@@ -15,6 +15,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { getProductBySlug, listRelatedProducts } from "@/lib/shop/catalog";
 import { brand } from "@/config/brand";
+import { serializeJsonLd } from "@/lib/seo/json-ld";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -85,12 +86,12 @@ export default async function ProductPage({ params }: Params) {
       <PageContainer className="px-0">
         <script
          
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
           type="application/ld+json"
         />
         <script
          
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
           type="application/ld+json"
         />
 

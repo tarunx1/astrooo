@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { Card } from "@/components/ui/card";
 import { brand } from "@/config/brand";
+import { serializeJsonLd } from "@/lib/seo/json-ld";
 
 /**
  * Shared layout for the calculator pages.
@@ -18,6 +19,7 @@ export function CalculatorShell({
   breadcrumb,
   form,
   result,
+  wideForm,
   methodology,
   faqs,
   related,
@@ -27,10 +29,13 @@ export function CalculatorShell({
   breadcrumb: Array<{ label: string; href?: string }>;
   form: React.ReactNode;
   result?: React.ReactNode;
+  wideForm?: boolean;
   methodology: React.ReactNode;
   faqs: CalculatorFaq[];
   related?: React.ReactNode;
 }) {
+  const isWide = wideForm || !result;
+
   return (
     <Section className="star-field">
       <PageContainer className="px-0">
@@ -56,10 +61,14 @@ export function CalculatorShell({
         <h1 className="heading-xl">{title}</h1>
         <p className="mt-4 max-w-[var(--container-sm)] body-lg text-foreground-secondary">{intro}</p>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
-          <Card className="p-5 sm:p-6">{form}</Card>
-          <div className="min-w-0">{result}</div>
-        </div>
+        {isWide ? (
+          <div className="mt-10">{form}</div>
+        ) : (
+          <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
+            <Card className="p-5 sm:p-6">{form}</Card>
+            <div className="min-w-0">{result}</div>
+          </div>
+        )}
 
         <div className="mt-14 grid gap-10">
           <section aria-labelledby="methodology-heading">
@@ -105,7 +114,7 @@ export function CalculatorFaqSchema({ faqs }: { faqs: CalculatorFaq[] }) {
       acceptedAnswer: { "@type": "Answer", text: faq.answer },
     })),
   };
-  return <script dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
+  return <script dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} type="application/ld+json" />;
 }
 
 export function ToolBreadcrumbSchema({ items }: { items: Array<{ label: string; href?: string }> }) {
@@ -119,7 +128,7 @@ export function ToolBreadcrumbSchema({ items }: { items: Array<{ label: string; 
       ...(item.href ? { item: `${brand.url}${item.href}` } : {}),
     })),
   };
-  return <script dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
+  return <script dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} type="application/ld+json" />;
 }
 
 /**
@@ -139,7 +148,7 @@ export function ToolApplicationSchema({ name, description, path }: { name: strin
     operatingSystem: "Any",
     offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
   };
-  return <script dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
+  return <script dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} type="application/ld+json" />;
 }
 
 /** Conversion link into an existing paid report. No dark patterns. */

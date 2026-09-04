@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ShieldCheck, Sparkles } from "lucide-react";
 import { BirthDetailsForm } from "@/components/kundli/birth-details-form";
 import { PageContainer, Section } from "@/components/layout/primitives";
-import { createBreadcrumbJsonLd } from "@/lib/seo/json-ld";
+import { createBreadcrumbJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
 
 export const metadata: Metadata = {
   title: "Free Janam Kundli",
@@ -53,7 +53,7 @@ export default async function KundliPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <Section className="star-field border-b border-border">
         <PageContainer className="grid gap-10 px-0 lg:grid-cols-[0.82fr_1fr] lg:items-start">
           <div className="max-w-2xl">

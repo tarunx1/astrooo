@@ -131,6 +131,56 @@ redeploying the previous application version.
 | Connection strategy and transaction boundaries | STRUCTURALLY VERIFIED (code reviewed) |
 | Migration history has no destructive SQL | AUTOMATED — audited, see Phase 9 report |
 | `prisma migrate status` reports up to date | VERIFIED locally |
-| Backup procedure | **NOT VERIFIED** — no production database |
-| Restore procedure | **NOT VERIFIED** — no restore has been performed |
+| Backup procedure | **REAL-INFRASTRUCTURE VERIFIED** against a non-production Postgres 16 — see drill below |
+| Restore procedure | **REAL-INFRASTRUCTURE VERIFIED** — a restore was actually performed and checked |
 | Pooler configuration | **NOT VERIFIED** — deployment target not chosen |
+
+
+## Backup / restore drill (executed)
+
+A real drill was run against a non-production Postgres 16.14 instance. This is
+an executed restore, not a written procedure. It has **not** been run against
+production, which does not exist yet.
+
+### Method
+
+1. Seeded deterministic, clearly-synthetic fixtures: a user, a product with
+   inventory, a PAID order with a JSON shipping-address snapshot, an audit
+   entry, and a processed `PaymentWebhookEvent`. No real customer data.
+2. `pg_dump --format=custom --no-owner --no-acl`.
+3. Created a **separate empty** database and restored into it with
+   `pg_restore`. The source database was never overwritten.
+4. Verified counts and field values, then ran the application against the
+   restored database.
+
+### Observed timings
+
+These are drill observations on a local container, **not an RTO commitment**.
+Real infrastructure with production data volume will differ substantially.
+
+| Step | Observed |
+| --- | --- |
+| Backup (`pg_dump`) | 193 ms, 121.8 KB dump |
+| Restore (`pg_restore`) | 227 ms, 0 → 40 tables |
+| Application verification | ~2.3 s |
+
+### Result
+
+Every seeded value survived exactly: counts matched, and the order's status,
+currency, `paidAt` timestamp and JSON address snapshot round-tripped unchanged.
+Against the restored database, `prisma validate` passed and `prisma migrate
+status` reported "up to date", confirming migration state travels with the dump.
+
+The application served `/`, `/shop`, the restored product page, `/sign-in`,
+`/reports` and `/transits` from the restored data, and still returned `404` on
+every `/admin` route for an anonymous visitor, so authorization survived the
+restore.
+
+`/api/readiness` returned `503` naming `rateLimitStore`, because that drill
+process had no distributed store configured. That is the intended production
+guard, not a restore defect.
+
+### Cleanup
+
+The temporary restored database and the dump file were destroyed after
+verification, and the synthetic fixtures were removed from the source database.
