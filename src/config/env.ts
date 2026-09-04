@@ -26,6 +26,11 @@ const serverEnvSchema = z.object({
   // Distributed rate limit store. Both are server-only credentials.
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+  // Deployment shape. Decides which forwarding header may be trusted to
+  // identify a client; see lib/security/client-ip.ts.
+  TRUSTED_PROXY_PLATFORM: z.enum(["vercel", "cloudflare", "fly", "generic", "none"]).optional(),
+  TRUSTED_PROXY_HOPS: z.string().regex(/^\d+$/).optional(),
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
 });
 
 const publicEnvSchema = z.object({
@@ -75,6 +80,13 @@ export function assertProductionAuthEnv(env: NodeJS.ProcessEnv = process.env): v
   // rate limit at all.
   if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
     missing.push("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (distributed rate limiting)");
+  }
+
+  // Without this, no forwarding header is trusted and every anonymous caller
+  // shares one rate-limit bucket. That is safe but coarse, so production must
+  // state its topology deliberately rather than inherit the fallback.
+  if (!env.TRUSTED_PROXY_PLATFORM || env.TRUSTED_PROXY_PLATFORM === "none") {
+    missing.push("TRUSTED_PROXY_PLATFORM (set to the hosting platform, or 'generic' behind your own proxy)");
   }
 
   if (missing.length > 0) {

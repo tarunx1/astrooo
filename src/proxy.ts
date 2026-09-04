@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildContentSecurityPolicy } from "@/lib/security/headers";
+import { REQUEST_ID_HEADER, normalizeRequestId } from "@/lib/observability/request-context";
 
 /**
- * Per-request CSP nonce.
+ * Per-request CSP nonce and correlation id.
  *
  * Next 16 renamed Middleware to Proxy; the behaviour is the same. A fresh nonce
  * is generated for every request and passed to the render through a request
@@ -22,14 +23,22 @@ export function proxy(request: NextRequest) {
 
   const csp = buildContentSecurityPolicy({ nonce, isDevelopment });
 
-  // The nonce reaches the render through the request; the policy goes back to
-  // the browser on the response.
+  // An inbound id is kept only when it matches the expected shape, so a caller
+  // cannot inject newlines or unbounded text into log files through it.
+  const requestId = normalizeRequestId(request.headers.get(REQUEST_ID_HEADER));
+
+  // The nonce and correlation id reach the render through the request; the
+  // policy goes back to the browser on the response.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set(NONCE_HEADER, nonce);
+  requestHeaders.set(REQUEST_ID_HEADER, requestId);
   requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
+  // Echoed so an operator can tie a report of a broken page to its log lines.
+  // The id is random and carries no user, session or account information.
+  response.headers.set(REQUEST_ID_HEADER, requestId);
 
   return response;
 }

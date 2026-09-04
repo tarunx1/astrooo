@@ -3,6 +3,8 @@ import "server-only";
 import { headers } from "next/headers";
 import { getRateLimitStore, RateLimitStoreError, type RateLimitStore } from "@/lib/security/rate-limit-store";
 import { getCurrentUser } from "@/lib/auth/session";
+import { anonymousRateLimitIdentifier } from "@/lib/security/client-ip";
+import { logger, reportIncident } from "@/lib/observability/logger";
 
 /**
  * Central rate limiting.
@@ -168,7 +170,7 @@ export function rateLimitMessage(retryAfterSeconds: number): string {
 function logDecision(namespace: RateLimitNamespace, outcome: string, extra: Record<string, unknown> = {}) {
   // Deliberately omits the identifier and the key: an operational log should
   // never become a record of who was rate limited from which address.
-  console.info("rate_limit", { namespace, outcome, ...extra });
+  logger.info("rate_limit", { namespace, outcome, ...extra });
 }
 
 /**
@@ -208,12 +210,15 @@ export async function checkRateLimit(input: {
   } catch (error) {
     if (!(error instanceof RateLimitStoreError)) throw error;
 
-    // Never silent: an unreachable store is an error-level event either way.
-    console.error("rate_limit_store_unavailable", {
-      namespace: input.namespace,
-      policy: rule.fail,
-      message: error.message,
-    });
+    // Never silent. This matters most for the fail-open namespaces: while the
+    // store is down, brute-force protection on sign-in is not being enforced,
+    // and that must be visible to an operator rather than inferred later from a
+    // breach. Raised as an incident so it can be alerted on directly.
+    reportIncident(
+      "rate_limit_store_outage",
+      { namespace: input.namespace, policy: rule.fail, protectionDisabled: rule.fail === "open" },
+      error,
+    );
 
     const retryAfterSeconds = Math.ceil(rule.windowMs / 1000);
 
@@ -239,19 +244,17 @@ export async function enforceRateLimit(input: {
 }
 
 /**
- * Best-effort client address.
+ * Client address for an unauthenticated surface.
  *
- * Proxy headers are attacker-controllable, so this is only ever used for
- * unauthenticated surfaces where nothing better exists, and only the first
- * entry of `x-forwarded-for` is taken. An authenticated user id is always
- * preferred when one exists.
+ * Resolution is delegated to the trusted-proxy resolver rather than reading a
+ * forwarding header directly. Taking the leftmost `x-forwarded-for` entry, as
+ * this previously did, trusts a value the client chooses: an attacker could
+ * vary it per request and mint unlimited fresh buckets, which defeats every
+ * IP-keyed limit here. An authenticated user id is always preferred.
  */
 export async function anonymousIdentifier(): Promise<string> {
   const headerList = await headers();
-  const forwarded = headerList.get("x-forwarded-for");
-  const address = forwarded?.split(",")[0]?.trim() || headerList.get("x-real-ip")?.trim();
-
-  return address ? `ip:${address}` : "ip:unknown";
+  return anonymousRateLimitIdentifier(headerList);
 }
 
 /**

@@ -7,6 +7,7 @@ import { PaymentSignatureError } from "@/lib/payments/errors";
 import { applyVerifiedProviderPayment, markProviderOrderPaid } from "@/lib/reports/orders";
 import { applyVerifiedOrderPayment, findOrderByProviderOrderId } from "@/lib/shop/orders";
 import type { PaymentProvider, ProviderPayment } from "@/lib/payments/provider";
+import { logger, reportIncident } from "@/lib/observability/logger";
 
 type RazorpayWebhookPayload = {
   event?: string;
@@ -56,6 +57,10 @@ export async function processRazorpayWebhook(
 ): Promise<WebhookProcessingResult> {
   const provider = paymentProvider ?? getPaymentProvider();
   if (!provider.verifyWebhookSignature({ rawBody, signature })) {
+    // Worth an incident, not just a 401: a burst of these means either a
+    // misconfigured secret after a deploy or someone posting forged events at
+    // the endpoint. Neither should be discoverable only by reading access logs.
+    reportIncident("payment_signature_failure", { provider: "razorpay", source: "webhook" });
     throw new PaymentSignatureError();
   }
 
@@ -75,8 +80,13 @@ export async function processRazorpayWebhook(
     });
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+      // The unique constraint on providerEventId is the replay guard. Reaching
+      // it is normal (providers retry until acknowledged), so this is recorded
+      // rather than raised.
+      logger.info("payment_webhook_duplicate", { provider: "razorpay", eventType, providerEventId });
       return { ok: true, duplicate: true };
     }
+    reportIncident("payment_webhook_failure", { provider: "razorpay", eventType, providerEventId }, error);
     throw error;
   }
 
@@ -117,7 +127,7 @@ export async function processRazorpayWebhook(
         data: { processedAt: new Date() },
       });
 
-      console.info("payment_webhook_processed", { provider: "razorpay", eventType, providerEventId, kind: "physical" });
+      logger.info("payment_webhook_processed", { provider: "razorpay", eventType, providerEventId, kind: "physical" });
       return { ok: true, duplicate: false };
     }
 
@@ -170,7 +180,7 @@ export async function processRazorpayWebhook(
     data: { processedAt: new Date() },
   });
 
-  console.info("payment_webhook_processed", {
+  logger.info("payment_webhook_processed", {
     provider: "razorpay",
     eventType,
     providerEventId,

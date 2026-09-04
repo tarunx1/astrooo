@@ -2,7 +2,6 @@ import Link from "next/link";
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { Card } from "@/components/ui/card";
 import { brand } from "@/config/brand";
-import { getCspNonce } from "@/lib/security/nonce";
 
 /**
  * Shared layout for the calculator pages.
@@ -94,7 +93,7 @@ export function CalculatorShell({
 }
 
 /** FAQPage structured data. Only emitted when there are real questions. */
-export async function CalculatorFaqSchema({ faqs }: { faqs: CalculatorFaq[] }) {
+export function CalculatorFaqSchema({ faqs }: { faqs: CalculatorFaq[] }) {
   if (faqs.length === 0) return null;
 
   const schema = {
@@ -106,12 +105,10 @@ export async function CalculatorFaqSchema({ faqs }: { faqs: CalculatorFaq[] }) {
       acceptedAnswer: { "@type": "Answer", text: faq.answer },
     })),
   };
-
-  const nonce = await getCspNonce();
-  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
+  return <script dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
 }
 
-export async function ToolBreadcrumbSchema({ items }: { items: Array<{ label: string; href?: string }> }) {
+export function ToolBreadcrumbSchema({ items }: { items: Array<{ label: string; href?: string }> }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -122,9 +119,7 @@ export async function ToolBreadcrumbSchema({ items }: { items: Array<{ label: st
       ...(item.href ? { item: `${brand.url}${item.href}` } : {}),
     })),
   };
-
-  const nonce = await getCspNonce();
-  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
+  return <script dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
 }
 
 /**
@@ -133,7 +128,7 @@ export async function ToolBreadcrumbSchema({ items }: { items: Array<{ label: st
  * Deliberately not Product schema: these calculators are not for sale, and
  * marking them up as products would be misrepresentation.
  */
-export async function ToolApplicationSchema({ name, description, path }: { name: string; description: string; path: string }) {
+export function ToolApplicationSchema({ name, description, path }: { name: string; description: string; path: string }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -144,9 +139,7 @@ export async function ToolApplicationSchema({ name, description, path }: { name:
     operatingSystem: "Any",
     offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
   };
-
-  const nonce = await getCspNonce();
-  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
+  return <script dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />;
 }
 
 /** Conversion link into an existing paid report. No dark patterns. */

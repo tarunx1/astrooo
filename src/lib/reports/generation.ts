@@ -12,6 +12,7 @@ import { buildCalculatedFacts, buildReportContext } from "@/lib/reports/context"
 import { REPORT_SCHEMA_VERSION, STANDARD_DISCLAIMERS, reportDocumentSchema } from "@/lib/reports/document";
 import { PROMPT_VERSION, buildSystemPrompt, buildUserPrompt, getReportSpec, hasRequiredContext } from "@/lib/reports/specs";
 import type { KundliResult } from "@/lib/kundli/types";
+import { logger, reportIncident } from "@/lib/observability/logger";
 
 /**
  * Report generation pipeline.
@@ -115,7 +116,7 @@ async function recordFailure(
     await prisma.reportOrder.update({ where: { id: reportOrderId }, data: { status: ReportStatus.FAILED } });
   }
 
-  console.error("report_generation_failed", { generatedReportId, category, retryable });
+  reportIncident("ai_generation_failure", { reportId: generatedReportId, category, retryable });
 }
 
 /**
@@ -229,7 +230,7 @@ export async function runGenerationJob(
       },
     });
 
-    console.info("report_interpretation_complete", {
+    logger.info("report_interpretation_complete", {
       generatedReportId: job.id,
       provider: providerName,
       model,

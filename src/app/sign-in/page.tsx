@@ -25,7 +25,7 @@ export default async function SignInPage({
   return (
     <Section className="star-field flex min-h-[calc(100vh-var(--header-height)-12rem)] items-center justify-center py-12">
       <PageContainer className="flex justify-center px-0">
-        <GlassAuthCard defaultTab="signin" returnTo={returnTo} />
+        <GlassAuthCard defaultTab="signin" headingLevel="h1" returnTo={returnTo} />
       </PageContainer>
     </Section>
   );

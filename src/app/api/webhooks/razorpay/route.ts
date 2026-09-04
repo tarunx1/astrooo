@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PaymentSignatureError } from "@/lib/payments/errors";
 import { processRazorpayWebhook } from "@/lib/payments/webhooks";
+import { reportIncident } from "@/lib/observability/logger";
 
 export async function POST(request: Request) {
   const signature = request.headers.get("x-razorpay-signature");
@@ -21,6 +22,9 @@ export async function POST(request: Request) {
     if (error instanceof SyntaxError) {
       return NextResponse.json({ ok: false }, { status: 400 });
     }
+    // Never swallowed: an unhandled webhook error means a real payment may be
+    // unrecorded, so it must be visible even though the provider only sees 500.
+    reportIncident("payment_webhook_failure", { provider: "razorpay", stage: "route" }, error);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

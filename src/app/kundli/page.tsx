@@ -3,7 +3,6 @@ import { ShieldCheck, Sparkles } from "lucide-react";
 import { BirthDetailsForm } from "@/components/kundli/birth-details-form";
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { createBreadcrumbJsonLd } from "@/lib/seo/json-ld";
-import { getCspNonce } from "@/lib/security/nonce";
 
 export const metadata: Metadata = {
   title: "Free Janam Kundli",
@@ -33,7 +32,6 @@ const faqs = [
 ];
 
 export default async function KundliPage() {
-  const nonce = await getCspNonce();
   const jsonLd = [
     createBreadcrumbJsonLd([
       { name: "Home", url: "/" },
@@ -55,7 +53,7 @@ export default async function KundliPage() {
 
   return (
     <>
-      <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Section className="star-field border-b border-border">
         <PageContainer className="grid gap-10 px-0 lg:grid-cols-[0.82fr_1fr] lg:items-start">
           <div className="max-w-2xl">

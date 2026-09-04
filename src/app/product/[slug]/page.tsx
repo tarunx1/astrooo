@@ -15,7 +15,6 @@ import {
 import { Card } from "@/components/ui/card";
 import { getProductBySlug, listRelatedProducts } from "@/lib/shop/catalog";
 import { brand } from "@/config/brand";
-import { getCspNonce } from "@/lib/security/nonce";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -37,7 +36,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Params) {
-  const nonce = await getCspNonce();
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) notFound();
@@ -86,12 +84,12 @@ export default async function ProductPage({ params }: Params) {
     <Section className="star-field">
       <PageContainer className="px-0">
         <script
-          nonce={nonce}
+         
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
           type="application/ld+json"
         />
         <script
-          nonce={nonce}
+         
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
           type="application/ld+json"
         />
