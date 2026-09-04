@@ -44,7 +44,15 @@ const CAMERA_Z = 18;
 const CAMERA_FOV = 52;
 /** Fraction of the shorter visible dimension a formed shape should occupy. */
 const FORMATION_FILL = 0.62;
-const MORPH_SPEED = 3.2;
+const MORPH_SPEED = 0.95;
+
+/**
+ * Size of a particle that is drawing the sign, relative to a free star.
+ *
+ * Finer than the surrounding sky on purpose: at full size the stroke reads as a
+ * thick painted line, where the point of this is a figure picked out in stars.
+ */
+const SHAPE_PARTICLE_SCALE = 0.42;
 
 /**
  * How much of the sky gathers into a shape.
@@ -115,12 +123,18 @@ const SHADER_UNIFORMS = {
   uTime: { value: 0 },
   uOpacity: { value: 0.95 },
   uPixelRatio: { value: 1 },
+  /** How many leading particles belong to the current shape. */
+  uShapeCount: { value: 0 },
+  /** Eased 0 to 1, so the size change travels with the morph rather than snapping. */
+  uShapeStrength: { value: 0 },
+  uShapeSize: { value: SHAPE_PARTICLE_SCALE },
 };
 
 const vertexShader = /* glsl */ `
   attribute float aSize;
   attribute float aPhase;
   attribute float aSparkle;
+  attribute float aIndex;
 
   varying vec3 vColor;
   varying float vTwinkle;
@@ -128,6 +142,9 @@ const vertexShader = /* glsl */ `
 
   uniform float uTime;
   uniform float uPixelRatio;
+  uniform float uShapeCount;
+  uniform float uShapeStrength;
+  uniform float uShapeSize;
 
   void main() {
     vColor = color;
@@ -140,8 +157,13 @@ const vertexShader = /* glsl */ `
     vec4 viewPosition = viewMatrix * modelMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * viewPosition;
 
+    // The leading slice of particles is the one that draws the sign. Those are
+    // rendered finer than the free stars around them, eased in with the morph.
+    float inShape = step(aIndex + 0.5, uShapeCount);
+    float scale = mix(1.0, uShapeSize, inShape * uShapeStrength);
+
     float perspective = 300.0 / max(1.0, -viewPosition.z);
-    gl_PointSize = clamp(aSize * uPixelRatio * perspective * twinkle, 1.5, 14.0);
+    gl_PointSize = clamp(aSize * scale * uPixelRatio * perspective * twinkle, 1.0, 14.0);
   }
 `;
 
@@ -193,13 +215,22 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
   const sizes = new Float32Array(count);
   const phases = new Float32Array(count);
   const sparkles = new Float32Array(count);
+  const indices = new Float32Array(count);
+
+  const shapeSlice = Math.floor(count * SHAPE_SHARE);
+
   for (let i = 0; i < count; i += 1) {
-    // A handful of genuinely bright stars carry the spikes. Giving every star
-    // them would turn the sky into glitter.
-    const bright = Math.random() > 0.94;
+    // Particles in the leading slice are the ones that will draw a sign. They
+    // sparkle far more often than the open sky does: they are rendered small,
+    // so without spikes the glyph reads as a dull band of dust rather than a
+    // figure picked out in stars. The open sky keeps its sparse handful, since
+    // giving every background star spikes would turn it into glitter.
+    const bright = i < shapeSlice ? Math.random() > 0.62 : Math.random() > 0.94;
+
     sizes[i] = bright ? 2.6 + Math.random() * 1.8 : 0.9 + Math.random() * 0.9;
     phases[i] = Math.random() * Math.PI * 2;
     sparkles[i] = bright ? 1 : 0;
+    indices[i] = i;
   }
 
   geometry.setAttribute("position", new BufferAttribute(new Float32Array(initial.positions), 3));
@@ -207,6 +238,7 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
   geometry.setAttribute("aSize", new BufferAttribute(sizes, 1));
   geometry.setAttribute("aPhase", new BufferAttribute(phases, 1));
   geometry.setAttribute("aSparkle", new BufferAttribute(sparkles, 1));
+  geometry.setAttribute("aIndex", new BufferAttribute(indices, 1));
 
   return initial;
 }
@@ -230,6 +262,9 @@ function MorphingStars({
   const targetPositions = useRef<Float32Array | null>(null);
   const targetColors = useRef<Float32Array | null>(null);
   const pointer = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+  // 1 while a sign is held, 0 for open sky. Eased in the frame loop so the
+  // particles change size over the same span as they change position.
+  const shapeStrength = useRef(0);
 
   const { invalidate } = useThree();
 
@@ -262,6 +297,7 @@ function MorphingStars({
       const open = createStarfieldTargets(count);
       targetPositions.current = open.positions;
       targetColors.current = open.colors;
+      shapeStrength.current = 0;
       invalidate();
     };
 
@@ -303,6 +339,11 @@ function MorphingStars({
 
         targetPositions.current = open.positions;
         targetColors.current = open.colors;
+
+        if (materialRef.current) {
+          materialRef.current.uniforms.uShapeCount.value = shaped;
+        }
+        shapeStrength.current = 1;
         invalidate();
       } catch (error) {
         if (cancelled) return;
@@ -360,6 +401,9 @@ function MorphingStars({
 
       positionAttribute.needsUpdate = true;
       colorAttribute.needsUpdate = true;
+
+      const strength = material.uniforms.uShapeStrength;
+      strength.value += (shapeStrength.current - strength.value) * damping;
     }
 
     if (reduceMotion) return;
