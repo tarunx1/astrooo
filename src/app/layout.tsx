@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { StarFieldBackground } from "@/components/visuals/star-field-background";
+import { StarFieldProvider } from "@/components/visuals/star-field-source";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { brand } from "@/config/brand";
 import "./globals.css";
@@ -35,10 +36,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang={brand.business.locale} className="h-full antialiased" data-scroll-behavior="smooth">
       <body className="min-h-full" suppressHydrationWarning>
-        <StarFieldBackground />
-        <SiteHeader />
-        <main>{children}</main>
-        <SiteFooter />
+        <StarFieldProvider>
+          <StarFieldBackground />
+          <SiteHeader />
+          <main>{children}</main>
+          <SiteFooter />
+        </StarFieldProvider>
       </body>
     </html>
   );

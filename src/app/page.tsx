@@ -8,6 +8,7 @@ import { ServicesSection } from "@/components/sections/services-section";
 import { ShopSection } from "@/components/sections/shop-section";
 import { TrustSection } from "@/components/sections/trust-section";
 import { createOrganizationJsonLd, createWebsiteJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
+import { ZodiacCycle } from "@/components/visuals/zodiac-cycle";
 
 export const metadata: Metadata = {
   title: "Ravish Astro",
@@ -25,6 +26,7 @@ export default function HomePage() {
        
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
+      <ZodiacCycle />
       <HeroSection />
       <ServicesSection />
       <CalculatorAndPanchang />
