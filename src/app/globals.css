@@ -191,10 +191,20 @@ textarea {
 
 .star-field {
   background-image:
-    radial-gradient(circle, var(--star-bright) 0 1px, transparent 1.5px),
-    radial-gradient(circle, var(--star-warm) 0 1px, transparent 1.5px);
+    radial-gradient(circle, var(--star-bright) 0 1.8px, transparent 2.8px),
+    radial-gradient(circle, var(--star-warm) 0 2.2px, transparent 3.4px);
   background-position: 0 0, 34px 44px;
   background-size: 120px 120px, 190px 190px;
+  animation: moveStarField 90s linear infinite;
+}
+
+@keyframes moveStarField {
+  0% {
+    background-position: 0 0, 34px 44px;
+  }
+  100% {
+    background-position: 120px 120px, 224px 234px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

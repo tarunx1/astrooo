@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowRight, ShieldCheck, Star } from "lucide-react";
 import { PageContainer } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
 import { quickServices } from "@/data/home";
 
 export function HeroSection() {
@@ -52,17 +53,23 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="relative z-20 mt-8 grid gap-0 overflow-hidden border border-border bg-surface/95 shadow-[var(--shadow-md)] backdrop-blur-xl sm:grid-cols-2 lg:grid-cols-6">
+        <div className="relative z-20 mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
           {quickServices.map((service) => {
             const Icon = service.icon;
             return (
-              <a className="group flex min-h-24 items-center gap-3 border-b border-r border-border px-4 py-4 transition hover:bg-surface-hover" href={service.href} key={service.title}>
+              <GlassCard
+                variant="glass"
+                spotlight={true}
+                className="flex min-h-24 items-center gap-3 p-4 transition-all duration-300 hover:-translate-y-0.5"
+                href={service.href}
+                key={service.title}
+              >
                 <Icon className="shrink-0 text-premium" size={22} />
                 <span>
                   <span className="block text-sm font-semibold text-foreground">{service.title}</span>
                   <span className="mt-1 block caption text-foreground-muted">{service.text}</span>
                 </span>
-              </a>
+              </GlassCard>
             );
           })}
         </div>

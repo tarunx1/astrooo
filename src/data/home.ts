@@ -70,23 +70,89 @@ export const panchangRows = [
 ] as const;
 
 export const reports = [
-  { title: "2026 Year Forecast", text: "A month-by-month view for major decisions.", price: "₹799", tone: "chart" },
-  { title: "Career & Finance", text: "Work, wealth and growth timing.", price: "₹599", tone: "mountain" },
-  { title: "Love & Marriage", text: "Patterns, compatibility and remedies.", price: "₹599", tone: "heart" },
-  { title: "Health & Wellbeing", text: "Traditional indicators and caution windows.", price: "₹599", tone: "tree" },
-  { title: "Dasha Predictions", text: "Planetary periods explained clearly.", price: "₹699", tone: "planet" },
+  {
+    title: "2026 Year Forecast",
+    text: "A month-by-month view for major decisions.",
+    price: "₹799",
+    tone: "chart",
+    image: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    title: "Career & Finance",
+    text: "Work, wealth and growth timing.",
+    price: "₹599",
+    tone: "mountain",
+    image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    title: "Love & Marriage",
+    text: "Patterns, compatibility and remedies.",
+    price: "₹599",
+    tone: "heart",
+    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    title: "Health & Wellbeing",
+    text: "Traditional indicators and caution windows.",
+    price: "₹599",
+    tone: "tree",
+    image: "https://images.unsplash.com/photo-1507499739999-097706ad8914?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    title: "Dasha Predictions",
+    text: "Planetary periods explained clearly.",
+    price: "₹699",
+    tone: "planet",
+    image: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600&auto=format&fit=crop&q=80",
+  },
 ] as const;
 
 export const storeCategories = [
-  { title: "Gemstones", text: "Certified origin, treatment and lab details.", href: "/shop/gemstones", icon: Gem },
-  { title: "Rudraksha", text: "Traditional associations explained responsibly.", href: "/shop/rudraksha", icon: ShieldCheck },
-  { title: "Yantras", text: "Sacred geometry pieces for home and puja.", href: "/shop/yantras", icon: Map },
+  {
+    title: "Gemstones",
+    text: "Certified origin, treatment and lab details.",
+    href: "/shop/gemstones",
+    icon: Gem,
+    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    title: "Rudraksha",
+    text: "Traditional associations explained responsibly.",
+    href: "/shop/rudraksha",
+    icon: ShieldCheck,
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    title: "Yantras",
+    text: "Sacred geometry pieces for home and puja.",
+    href: "/shop/yantras",
+    icon: Map,
+    image: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80",
+  },
 ] as const;
 
 export const astrologers = [
-  { name: "Acharya Dev Raman", skill: "Career, business, dasha", language: "Hindi, English", sessions: "12k+" },
-  { name: "Dr. Kavya Trivedi", skill: "Marriage, compatibility", language: "Hindi, Gujarati", sessions: "8k+" },
-  { name: "Pandit Neel Sharma", skill: "Muhurat, remedies", language: "Hindi, Sanskrit", sessions: "15k+" },
+  {
+    name: "Acharya Dev Raman",
+    skill: "Career, business, dasha",
+    language: "Hindi, English",
+    sessions: "12k+",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
+  },
+  {
+    name: "Dr. Kavya Trivedi",
+    skill: "Marriage, compatibility",
+    language: "Hindi, Gujarati",
+    sessions: "8k+",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80",
+  },
+  {
+    name: "Pandit Neel Sharma",
+    skill: "Muhurat, remedies",
+    language: "Hindi, Sanskrit",
+    sessions: "15k+",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
+  },
 ] as const;
 
 export const trustMetrics = [

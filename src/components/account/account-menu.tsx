@@ -21,9 +21,12 @@ export type AccountMenuUser = {
  * menu button with aria-expanded, Escape-to-close, outside-click dismissal and
  * focus return - the same affordance on desktop and mobile.
  */
+import { AuthModal } from "@/components/account/auth-modal";
+
 export function AccountMenu({ user }: { user: AccountMenuUser | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const menuId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,14 +55,21 @@ export function AccountMenu({ user }: { user: AccountMenuUser | null }) {
 
   if (!user) {
     return (
-      <Link
-        className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground-muted transition hover:bg-surface hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
-        href="/sign-in"
-        prefetch={false}
-      >
-        <UserRound aria-hidden="true" size={18} />
-        Sign In
-      </Link>
+      <>
+        <button
+          className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground-muted transition hover:bg-surface hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+          onClick={() => setAuthModalOpen(true)}
+          type="button"
+        >
+          <UserRound aria-hidden="true" size={18} />
+          Sign In
+        </button>
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          defaultTab="signup"
+        />
+      </>
     );
   }
 

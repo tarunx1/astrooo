@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Section, SectionHeader } from "@/components/layout/primitives";
+import { GlassCard } from "@/components/ui/glass-card";
 import { featuredServices } from "@/data/home";
 
 export function ServicesSection() {
@@ -13,8 +14,10 @@ export function ServicesSection() {
         {featuredServices.map((service, index) => {
           const Icon = service.icon;
           return (
-            <a
-              className="group border border-border bg-surface p-6 shadow-[var(--shadow-md)] transition hover:-translate-y-1 hover:border-primary/70"
+            <GlassCard
+              variant="glass"
+              spotlight={true}
+              className="p-6 transition-all duration-300 hover:-translate-y-1"
               href={service.href}
               key={service.title}
             >
@@ -28,7 +31,7 @@ export function ServicesSection() {
               <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition group-hover:text-premium">
                 Open service <ArrowRight size={16} />
               </span>
-            </a>
+            </GlassCard>
           );
         })}
       </div>
