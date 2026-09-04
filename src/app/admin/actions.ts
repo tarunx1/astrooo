@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { InventoryAdjustmentReason, OrderStatus, UserRole } from "@prisma/client";
 import { z } from "zod";
 import { authorizeAdminAction } from "@/lib/auth/admin";
+import { checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 import { adjustInventory } from "@/lib/admin/inventory";
 import { transitionOrderStatus, updateShipmentDetails } from "@/lib/admin/order-transitions";
 import { createProduct, productInputSchema, setProductActive, updateProduct, upsertVariant, variantInputSchema } from "@/lib/admin/products";
@@ -32,8 +33,9 @@ import type { AdminActionState } from "@/lib/admin/action-state";
  */
 const idSchema = z.string().trim().min(1).max(64);
 
-function denied(): AdminActionState {
-  return { ok: false, error: "You are not authorised to perform this action.", fieldErrors: {} };
+/** Surfaces the guard's own reason: either a refusal or a rate-limit notice. */
+function denied(reason?: string): AdminActionState {
+  return { ok: false, error: reason ?? "You are not authorised to perform this action.", fieldErrors: {} };
 }
 
 function failure(error: string, fieldErrors: Record<string, string[]> = {}): AdminActionState {
@@ -87,7 +89,7 @@ function readProductForm(formData: FormData) {
 
 export async function createProductAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const parsed = readProductForm(formData);
   if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
@@ -102,7 +104,7 @@ export async function createProductAction(_state: AdminActionState, formData: Fo
 
 export async function updateProductAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const productId = idSchema.safeParse(formData.get("productId"));
   if (!productId.success) return failure("That product could not be found.");
@@ -121,7 +123,7 @@ export async function updateProductAction(_state: AdminActionState, formData: Fo
 
 export async function setProductActiveAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const productId = idSchema.safeParse(formData.get("productId"));
   if (!productId.success) return failure("That product could not be found.");
@@ -137,7 +139,7 @@ export async function setProductActiveAction(_state: AdminActionState, formData:
 
 export async function upsertVariantAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const productId = idSchema.safeParse(formData.get("productId"));
   if (!productId.success) return failure("That product could not be found.");
@@ -166,7 +168,7 @@ export async function upsertVariantAction(_state: AdminActionState, formData: Fo
 
 export async function adjustInventoryAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const parsed = z
     .object({
@@ -216,7 +218,7 @@ export async function adjustInventoryAction(_state: AdminActionState, formData: 
 
 export async function transitionOrderAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const parsed = z
     .object({ orderId: idSchema, to: z.nativeEnum(OrderStatus) })
@@ -241,7 +243,7 @@ export async function transitionOrderAction(_state: AdminActionState, formData: 
 
 export async function updateShipmentAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const orderId = idSchema.safeParse(formData.get("orderId"));
   if (!orderId.success) return failure("That order could not be found.");
@@ -270,7 +272,7 @@ export async function updateReportDefinitionAction(
   formData: FormData,
 ): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const definitionId = idSchema.safeParse(formData.get("definitionId"));
   if (!definitionId.success) return failure("That report could not be found.");
@@ -303,10 +305,15 @@ export async function updateReportDefinitionAction(
 
 export async function retryReportAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const generatedReportId = idSchema.safeParse(formData.get("generatedReportId"));
   if (!generatedReportId.success) return failure("That report could not be found.");
+
+  // A retry costs a paid model call, so it carries a tighter cap than the
+  // general admin-mutation limit already applied by the guard.
+  const aiLimit = await checkRateLimit({ namespace: "ai:retry", identifier: `admin:${auth.admin.id}` });
+  if (!aiLimit.allowed) return failure(rateLimitMessage(aiLimit.retryAfterSeconds));
 
   const result = await retryGeneratedReport({
     adminUserId: auth.admin.id,
@@ -342,7 +349,7 @@ function readCouponForm(formData: FormData) {
 
 export async function createCouponAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const parsed = readCouponForm(formData);
   if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
@@ -356,7 +363,7 @@ export async function createCouponAction(_state: AdminActionState, formData: For
 
 export async function updateCouponAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const couponId = idSchema.safeParse(formData.get("couponId"));
   if (!couponId.success) return failure("That coupon could not be found.");
@@ -378,7 +385,7 @@ export async function updateCouponAction(_state: AdminActionState, formData: For
 
 export async function changeUserRoleAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const auth = await authorizeAdminAction();
-  if (!auth.ok) return denied();
+  if (!auth.ok) return denied(auth.error);
 
   const parsed = z
     .object({ targetUserId: idSchema, role: z.nativeEnum(UserRole) })

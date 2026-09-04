@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/auth/session";
+import { checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 
 /**
  * The single admin authorization gate.
@@ -76,11 +77,26 @@ export const ADMIN_DENIED: AdminActionDenial = {
  *
  * Actions return a denial rather than throwing, so a non-admin submitting a
  * crafted request gets a plain refusal and no stack trace.
+ *
+ * Rate limiting lives here rather than in each action so every current and
+ * future admin mutation is covered by construction: an action cannot forget the
+ * limiter without also forgetting authorization. The bucket is keyed on the
+ * admin's own id, so one operator hammering an endpoint never affects another.
  */
 export async function authorizeAdminAction(): Promise<
   { ok: true; admin: AdminIdentity } | AdminActionDenial
 > {
   const admin = await getAdminIdentity();
   if (!admin) return ADMIN_DENIED;
+
+  const decision = await checkRateLimit({
+    namespace: "admin:mutation",
+    identifier: `admin:${admin.id}`,
+  });
+
+  if (!decision.allowed) {
+    return { ok: false, error: rateLimitMessage(decision.retryAfterSeconds) };
+  }
+
   return { ok: true, admin };
 }

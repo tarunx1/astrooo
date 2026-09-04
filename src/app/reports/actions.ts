@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createReportOrderForUser } from "@/lib/reports/orders";
 import { getCurrentUser } from "@/lib/auth/session";
+import { checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 
 export type ReportCheckoutState = {
   formErrors: string[];
@@ -22,6 +23,12 @@ export async function createReportCheckoutAction(
   const user = await getCurrentUser();
   if (!user) {
     return { formErrors: ["Your session has expired. Please sign in again."], fieldErrors: {} };
+  }
+
+  // Creating a report order calls the payment provider, so it is limited first.
+  const limit = await checkRateLimit({ namespace: "payment:order-create", identifier: `user:${user.id}` });
+  if (!limit.allowed) {
+    return { formErrors: [rateLimitMessage(limit.retryAfterSeconds)], fieldErrors: {} };
   }
 
   const parsed = checkoutSchema.safeParse(Object.fromEntries(formData.entries()));

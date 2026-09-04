@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getBirthInsight, getCompatibility, getPanchang, getSadeSati } from "@/lib/astrology/tools-service";
 import { resolveBirthFromForm } from "@/lib/astrology/tool-input";
 import { getLocationProvider } from "@/lib/location/provider";
+import { actorIdentifier, checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 import { calculateNumerology, NumerologyCalculationError } from "@/lib/numerology/calculator";
 import type {
   BirthToolState,
@@ -21,7 +22,23 @@ import type {
  * the request: results are returned in action state rather than encoded into a
  * URL.
  */
+/**
+ * Astrology tools call an external provider whose free tier allows only a few
+ * requests a minute, so an unmetered calculator would exhaust the quota for
+ * every visitor at once.
+ */
+async function astrologyRateLimit(): Promise<string | null> {
+  const decision = await checkRateLimit({
+    namespace: "astrology:calculate",
+    identifier: await actorIdentifier(),
+  });
+  return decision.allowed ? null : rateLimitMessage(decision.retryAfterSeconds);
+}
+
 export async function calculateBirthToolAction(_state: BirthToolState, formData: FormData): Promise<BirthToolState> {
+  const blocked = await astrologyRateLimit();
+  if (blocked) return { formErrors: [blocked], fieldErrors: {}, result: null };
+
   const birth = await resolveBirthFromForm(formData);
   if (!birth.ok) return { formErrors: birth.formErrors, fieldErrors: birth.fieldErrors, result: null };
 
@@ -32,6 +49,9 @@ export async function calculateBirthToolAction(_state: BirthToolState, formData:
 }
 
 export async function calculateSadeSatiAction(_state: SadeSatiState, formData: FormData): Promise<SadeSatiState> {
+  const blocked = await astrologyRateLimit();
+  if (blocked) return { formErrors: [blocked], fieldErrors: {}, result: null };
+
   const birth = await resolveBirthFromForm(formData);
   if (!birth.ok) return { formErrors: birth.formErrors, fieldErrors: birth.fieldErrors, result: null };
 
@@ -45,6 +65,9 @@ export async function calculateCompatibilityAction(
   _state: CompatibilityState,
   formData: FormData,
 ): Promise<CompatibilityState> {
+  const blocked = await astrologyRateLimit();
+  if (blocked) return { formErrors: [blocked], fieldErrors: {}, result: null };
+
   const [personA, personB] = await Promise.all([
     resolveBirthFromForm(formData, "a"),
     resolveBirthFromForm(formData, "b"),
@@ -70,6 +93,9 @@ const panchangSchema = z.object({
 });
 
 export async function calculatePanchangAction(_state: PanchangState, formData: FormData): Promise<PanchangState> {
+  const blocked = await astrologyRateLimit();
+  if (blocked) return { formErrors: [blocked], fieldErrors: {}, result: null };
+
   const parsed = panchangSchema.safeParse({
     date: formData.get("date"),
     placeId: formData.get("placeId"),

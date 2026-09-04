@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { addToCart, removeCartItem, updateCartItemQuantity, MAX_LINE_QUANTITY } from "@/lib/shop/cart";
 import { resolveCartOwnerForRead, resolveCartOwnerForWrite } from "@/lib/shop/cart-session";
+import { actorIdentifier, checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 
 /**
  * Cart mutations.
@@ -33,7 +34,19 @@ function revalidateCart() {
   revalidatePath("/checkout");
 }
 
+/** Shared limiter for every cart mutation. Anonymous carts fall back to the address. */
+async function cartRateLimit(): Promise<string | null> {
+  const decision = await checkRateLimit({
+    namespace: "cart:mutation",
+    identifier: await actorIdentifier(),
+  });
+  return decision.allowed ? null : rateLimitMessage(decision.retryAfterSeconds);
+}
+
 export async function addToCartAction(_state: CartActionState, formData: FormData): Promise<CartActionState> {
+  const blocked = await cartRateLimit();
+  if (blocked) return { error: blocked, ok: false };
+
   const rawVariant = formData.get("productVariantId");
   const parsed = addSchema.safeParse({
     productId: formData.get("productId"),
@@ -59,6 +72,9 @@ export async function addToCartAction(_state: CartActionState, formData: FormDat
 }
 
 export async function updateCartItemAction(_state: CartActionState, formData: FormData): Promise<CartActionState> {
+  const blocked = await cartRateLimit();
+  if (blocked) return { error: blocked, ok: false };
+
   const parsed = updateSchema.safeParse({
     itemId: formData.get("itemId"),
     quantity: formData.get("quantity"),
@@ -77,6 +93,9 @@ export async function updateCartItemAction(_state: CartActionState, formData: Fo
 }
 
 export async function removeCartItemAction(_state: CartActionState, formData: FormData): Promise<CartActionState> {
+  const blocked = await cartRateLimit();
+  if (blocked) return { error: blocked, ok: false };
+
   const parsed = idSchema.safeParse(formData.get("itemId"));
   if (!parsed.success) return { error: "That cart item could not be found.", ok: false };
 

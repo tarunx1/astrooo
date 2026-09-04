@@ -8,6 +8,8 @@ import {
   ReportStatus,
   UserRole,
 } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { prisma } from "@/lib/db/prisma";
 import { ADMIN_ROLES } from "@/lib/auth/admin";
 import { adjustInventory, LOW_STOCK_THRESHOLD, inventoryStatusFor } from "@/lib/admin/inventory";
@@ -16,6 +18,8 @@ import { createProduct, productInputSchema, setProductActive, updateProduct } fr
 import { changeUserRole, couponSchema, createCoupon, updateCoupon, updateReportDefinition } from "@/lib/admin/catalog-admin";
 import { retryGeneratedReport } from "@/lib/admin/report-retry";
 import { listAuditLog } from "@/lib/admin/audit";
+
+type RoleChangeResult = Awaited<ReturnType<typeof changeUserRole>>;
 
 /**
  * Admin operations against real Postgres.
@@ -594,6 +598,80 @@ describe("user roles", () => {
     expect((result as { message: string }).message).toContain("last admin");
 
     // Restore.
+    await prisma.user.updateMany({
+      where: { id: { in: others.map((user) => user.id) } },
+      data: { role: UserRole.ADMIN },
+    });
+  });
+
+  it("cannot be raced into leaving the site with zero admins", async () => {
+    // The dangerous interleaving is that two operators demote the last two
+    // admins at the same moment, each observing the other still standing.
+    //
+    // Simply firing both calls with Promise.all does not reproduce it: they
+    // finish fast enough that the second reads the first's committed change.
+    // So the overlap is forced. A third connection holds a lock on the admin
+    // rows, both demotions run into it, and only then is the lock released --
+    // which puts both of them inside the window at once. Without row locking in
+    // changeUserRole, both would pass the last-admin check and commit, leaving
+    // the site with no administrator at all.
+    const others = await prisma.user.findMany({
+      where: { role: { in: [...ADMIN_ROLES] }, id: { notIn: [admin.id] } },
+      select: { id: true },
+    });
+
+    await prisma.user.updateMany({
+      where: { id: { in: others.map((user) => user.id) } },
+      data: { role: UserRole.CUSTOMER },
+    });
+
+    const second = await createUser(`race-${Date.now()}`, UserRole.ADMIN);
+    // Exactly two admins now exist: `admin` and `second`.
+
+    const blocker = new PrismaClient({
+      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+    });
+
+    let a: RoleChangeResult;
+    let b: RoleChangeResult;
+
+    try {
+      let releaseBlocker: () => void = () => {};
+      const blockerReleased = new Promise<void>((resolve) => {
+        releaseBlocker = resolve;
+      });
+
+      const holding = blocker.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT "id" FROM "User" WHERE "role"::text = ANY(${ADMIN_ROLES.map(String)}) FOR UPDATE`;
+        await blockerReleased;
+      });
+
+      // Give the blocker time to take the lock, then start both demotions so
+      // they queue behind it together.
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const demotions = Promise.all([
+        changeUserRole({ adminUserId: second.id, targetUserId: admin.id, role: UserRole.CUSTOMER }),
+        changeUserRole({ adminUserId: admin.id, targetUserId: second.id, role: UserRole.CUSTOMER }),
+      ]);
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseBlocker();
+      await holding;
+
+      [a, b] = await demotions;
+    } finally {
+      await blocker.$disconnect();
+    }
+
+    // Exactly one demotion may win; the other must hit the last-admin guard.
+    expect([a.ok, b.ok].filter(Boolean)).toHaveLength(1);
+
+    const remaining = await prisma.user.count({ where: { role: { in: [...ADMIN_ROLES] } } });
+    expect(remaining).toBeGreaterThanOrEqual(1);
+
+    // Restore.
+    await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.ADMIN } });
     await prisma.user.updateMany({
       where: { id: { in: others.map((user) => user.id) } },
       data: { role: UserRole.ADMIN },

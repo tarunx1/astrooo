@@ -426,9 +426,19 @@ export async function changeUserRole(input: {
     const isDemotingAnAdmin = ADMIN_ROLES.includes(target.role) && !ADMIN_ROLES.includes(input.role);
 
     if (isDemotingAnAdmin) {
-      const remainingAdmins = await tx.user.count({
-        where: { role: { in: [...ADMIN_ROLES] }, id: { not: target.id } },
-      });
+      // A plain count would not be safe here. Under READ COMMITTED two
+      // concurrent demotions of the last two admins each observe one other
+      // admin still standing, both pass the check, and the site is left with
+      // none. Locking the admin rows serialises the two transactions: the
+      // second blocks, then re-evaluates the rows against the committed state,
+      // where the first target no longer matches an admin role and so drops out
+      // of the locked set. The count is taken from that locked set, not from a
+      // separate unlocked read.
+      const lockedAdmins = await tx.$queryRaw<Array<{ id: string }>>`
+        SELECT "id" FROM "User" WHERE "role"::text = ANY(${ADMIN_ROLES.map(String)}) FOR UPDATE
+      `;
+
+      const remainingAdmins = lockedAdmins.filter((row) => row.id !== target.id).length;
 
       if (remainingAdmins === 0) {
         return { ok: false as const, message: "This is the last admin. Promote someone else before demoting them." };

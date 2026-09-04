@@ -7,6 +7,7 @@ import { findActiveCart } from "@/lib/shop/cart";
 import { shippingAddressSchema } from "@/lib/shop/address";
 import { createOrderFromCart } from "@/lib/shop/orders";
 import { verifyCheckoutPaymentForOrder } from "@/lib/shop/payment-verification";
+import { checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 
 /**
  * Checkout.
@@ -36,6 +37,13 @@ export async function placeOrderAction(_state: CheckoutState, formData: FormData
 
   if (!address.success) {
     return { error: null, fieldErrors: address.error.flatten().fieldErrors, order: null };
+  }
+
+  // Each successful call creates a real provider order, so this is limited
+  // before any work is done. Keyed on the signed-in user.
+  const limit = await checkRateLimit({ namespace: "payment:order-create", identifier: `user:${user.id}` });
+  if (!limit.allowed) {
+    return { error: rateLimitMessage(limit.retryAfterSeconds), fieldErrors: {}, order: null };
   }
 
   const cart = await findActiveCart({ userId: user.id });
@@ -97,6 +105,11 @@ export async function verifyOrderPaymentAction(_state: VerifyState, formData: Fo
   });
 
   if (!parsed.success) return { error: "Payment could not be verified.", verified: false, orderId: null };
+
+  const limit = await checkRateLimit({ namespace: "payment:verify", identifier: `user:${user.id}` });
+  if (!limit.allowed) {
+    return { error: rateLimitMessage(limit.retryAfterSeconds), verified: false, orderId: parsed.data.orderId };
+  }
 
   const outcome = await verifyCheckoutPaymentForOrder({ userId: user.id, ...parsed.data });
 

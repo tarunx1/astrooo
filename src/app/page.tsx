@@ -8,6 +8,7 @@ import { ServicesSection } from "@/components/sections/services-section";
 import { ShopSection } from "@/components/sections/shop-section";
 import { TrustSection } from "@/components/sections/trust-section";
 import { createOrganizationJsonLd, createWebsiteJsonLd } from "@/lib/seo/json-ld";
+import { getCspNonce } from "@/lib/security/nonce";
 
 export const metadata: Metadata = {
   title: "Ravish Astro",
@@ -15,13 +16,15 @@ export const metadata: Metadata = {
     "Generate a free Kundli, explore personalized astrology reports, consult verified astrologers, and shop gemstones through a premium Vedic astrology platform.",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const nonce = await getCspNonce();
   const jsonLd = [createOrganizationJsonLd(), createWebsiteJsonLd()];
 
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroSection />

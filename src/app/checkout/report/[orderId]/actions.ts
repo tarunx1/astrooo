@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/session";
 import { PaymentSignatureError, PaymentValidationError } from "@/lib/payments/errors";
 import { verifyCheckoutPaymentForUser } from "@/lib/reports/orders";
+import { checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 
 const paymentResponseSchema = z.object({
   razorpay_order_id: z.string().min(1).max(128),
@@ -20,6 +21,10 @@ export async function verifyReportPaymentAction(
 
   const parsed = paymentResponseSchema.safeParse(payload);
   if (!parsed.success) return { ok: false, message: "Payment response could not be validated." };
+
+  // Signature verification must not be an unbounded oracle.
+  const limit = await checkRateLimit({ namespace: "payment:verify", identifier: `user:${user.id}` });
+  if (!limit.allowed) return { ok: false, message: rateLimitMessage(limit.retryAfterSeconds) };
 
   try {
     return await verifyCheckoutPaymentForUser({

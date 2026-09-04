@@ -23,6 +23,9 @@ const serverEnvSchema = z.object({
   STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   EMAIL_PROVIDER_API_KEY: z.string().optional(),
+  // Distributed rate limit store. Both are server-only credentials.
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
 });
 
 const publicEnvSchema = z.object({
@@ -65,6 +68,13 @@ export function assertProductionAuthEnv(env: NodeJS.ProcessEnv = process.env): v
     if (!env.RAZORPAY_KEY_ID) missing.push("RAZORPAY_KEY_ID");
     if (!env.RAZORPAY_KEY_SECRET) missing.push("RAZORPAY_KEY_SECRET");
     if (!env.RAZORPAY_WEBHOOK_SECRET) missing.push("RAZORPAY_WEBHOOK_SECRET");
+  }
+
+  // Rate limiting must be distributed in production. A process-local counter
+  // would reset on every deploy and be independent per instance, which is not a
+  // rate limit at all.
+  if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
+    missing.push("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (distributed rate limiting)");
   }
 
   if (missing.length > 0) {
