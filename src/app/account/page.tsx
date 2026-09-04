@@ -34,7 +34,7 @@ export default async function AccountOverviewPage() {
     >
       {/* Gathers the shared star field into the visitor's own sign. Renders
           nothing, and releases the sky again when they navigate away. */}
-      {moonSign ? <StarFieldSource source={zodiacShapeFor(moonSign)} /> : null}
+      {moonSign ? <StarFieldSource label={moonSign} source={zodiacShapeFor(moonSign)} /> : null}
 
       <AccountSection description="A quick summary of what you have saved." title="Overview">
         <div className="grid gap-4 sm:grid-cols-2">

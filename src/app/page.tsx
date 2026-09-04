@@ -8,7 +8,8 @@ import { ServicesSection } from "@/components/sections/services-section";
 import { ShopSection } from "@/components/sections/shop-section";
 import { TrustSection } from "@/components/sections/trust-section";
 import { createOrganizationJsonLd, createWebsiteJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
-import { ZodiacCycle } from "@/components/visuals/zodiac-cycle";
+import { ZodiacScroll } from "@/components/visuals/zodiac-scroll";
+import { ZodiacBand } from "@/components/sections/zodiac-band";
 
 export const metadata: Metadata = {
   title: "Ravish Astro",
@@ -26,11 +27,12 @@ export default function HomePage() {
        
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <ZodiacCycle />
+      <ZodiacScroll />
       <HeroSection />
       <ServicesSection />
       <CalculatorAndPanchang />
       <ReportsSection />
+      <ZodiacBand />
       <ShopSection />
       <ConsultationSection />
       <TrustSection />

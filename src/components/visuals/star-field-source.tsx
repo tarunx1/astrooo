@@ -15,14 +15,31 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
  */
 type StarFieldSourceValue = {
   source: string | null;
-  setSource: (source: string | null) => void;
+  /** Human name of the current shape, for UI that wants to caption it. */
+  label: string | null;
+  setShape: (shape: { source: string | null; label?: string | null }) => void;
 };
 
 const StarFieldSourceContext = createContext<StarFieldSourceValue | null>(null);
 
 export function StarFieldProvider({ children }: { children: ReactNode }) {
-  const [source, setSource] = useState<string | null>(null);
-  const value = useMemo(() => ({ source, setSource }), [source]);
+  const [shape, setShapeState] = useState<{ source: string | null; label: string | null }>({
+    source: null,
+    label: null,
+  });
+
+  // The setter must keep a stable identity. Consumers depend on it in effects
+  // whose cleanup releases the shape, so a setter that changed on every update
+  // would tear those effects down and clear the shape immediately after it was
+  // set - which is exactly what happened before this was memoised.
+  const setShape = useCallback((next: { source: string | null; label?: string | null }) => {
+    setShapeState({ source: next.source, label: next.label ?? null });
+  }, []);
+
+  const value = useMemo(
+    () => ({ source: shape.source, label: shape.label, setShape }),
+    [shape, setShape],
+  );
 
   return <StarFieldSourceContext.Provider value={value}>{children}</StarFieldSourceContext.Provider>;
 }
@@ -31,7 +48,7 @@ export function useStarFieldSource(): StarFieldSourceValue {
   const context = useContext(StarFieldSourceContext);
   // Null rather than throwing: the star field is decorative, and a subtree
   // rendered outside the provider should still render its own content.
-  return context ?? { source: null, setSource: () => {} };
+  return context ?? { source: null, label: null, setShape: () => {} };
 }
 
 /**
@@ -41,15 +58,15 @@ export function useStarFieldSource(): StarFieldSourceValue {
  * the stars drift back to open sky without that page having to remember to
  * clean up.
  */
-export function StarFieldSource({ source }: { source: string | null }) {
-  const { setSource } = useStarFieldSource();
+export function StarFieldSource({ source, label }: { source: string | null; label?: string | null }) {
+  const { setShape } = useStarFieldSource();
 
-  const release = useCallback(() => setSource(null), [setSource]);
+  const release = useCallback(() => setShape({ source: null }), [setShape]);
 
   useEffect(() => {
-    setSource(source);
+    setShape({ source, label });
     return release;
-  }, [source, setSource, release]);
+  }, [source, label, setShape, release]);
 
   return null;
 }

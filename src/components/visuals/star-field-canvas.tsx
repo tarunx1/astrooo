@@ -111,52 +111,73 @@ function createStarfieldTargets(count: number) {
   return { positions, colors };
 }
 
+const SHADER_UNIFORMS = {
+  uTime: { value: 0 },
+  uOpacity: { value: 0.95 },
+  uPixelRatio: { value: 1 },
+};
+
 const vertexShader = /* glsl */ `
   attribute float aSize;
   attribute float aPhase;
+  attribute float aSparkle;
 
   varying vec3 vColor;
   varying float vTwinkle;
+  varying float vSparkle;
 
   uniform float uTime;
   uniform float uPixelRatio;
 
   void main() {
     vColor = color;
+    vSparkle = aSparkle;
 
-    float twinkle = 0.82 + sin(uTime * 1.6 + aPhase) * 0.18;
+    // A deeper swing than a gentle fade, so the sky visibly breathes.
+    float twinkle = 0.68 + sin(uTime * 1.9 + aPhase) * 0.32;
     vTwinkle = twinkle;
 
     vec4 viewPosition = viewMatrix * modelMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * viewPosition;
 
-    float perspective = 260.0 / max(1.0, -viewPosition.z);
-    gl_PointSize = clamp(aSize * uPixelRatio * perspective * twinkle, 1.0, 8.0);
+    float perspective = 300.0 / max(1.0, -viewPosition.z);
+    gl_PointSize = clamp(aSize * uPixelRatio * perspective * twinkle, 1.5, 14.0);
   }
 `;
-
-const SHADER_UNIFORMS = {
-  uTime: { value: 0 },
-  uOpacity: { value: 0.62 },
-  uPixelRatio: { value: 1 },
-};
 
 const fragmentShader = /* glsl */ `
   precision highp float;
 
   varying vec3 vColor;
   varying float vTwinkle;
+  varying float vSparkle;
 
   uniform float uOpacity;
 
   void main() {
-    float distanceToCenter = length(gl_PointCoord - vec2(0.5));
-    if (distanceToCenter > 0.5) discard;
+    vec2 offset = gl_PointCoord - vec2(0.5);
+    float distanceToCentre = length(offset);
 
-    float glow = 1.0 - smoothstep(0.05, 0.5, distanceToCenter);
-    float core = 1.0 - smoothstep(0.0, 0.14, distanceToCenter);
+    // A hot core inside a soft halo reads as a light source. A single flat
+    // falloff reads as a printed dot, which is what this looked like before.
+    float core = pow(clamp(1.0 - distanceToCentre / 0.17, 0.0, 1.0), 2.0);
+    float halo = pow(clamp(1.0 - distanceToCentre / 0.5, 0.0, 1.0), 2.5);
 
-    gl_FragColor = vec4(vColor + core * 0.55, glow * uOpacity * vTwinkle);
+    // Four-point diffraction spikes on the brightest stars only. This is the
+    // detail that makes a point of light look like it is sparkling, and the
+    // reason the sprite is not clipped to a circle: the spikes need the corners.
+    float spike = 0.0;
+    if (vSparkle > 0.5) {
+      float horizontal = exp(-abs(offset.y) * 80.0) * exp(-abs(offset.x) * 6.0);
+      float vertical = exp(-abs(offset.x) * 80.0) * exp(-abs(offset.y) * 6.0);
+      spike = (horizontal + vertical) * 0.55;
+    }
+
+    float intensity = (core + halo * 0.45 + spike) * uOpacity * vTwinkle;
+    if (intensity < 0.01) discard;
+
+    // Pushing the centre toward white is what gives it the burning look.
+    gl_FragColor = vec4(vColor + core * 1.15, clamp(intensity, 0.0, 1.0));
   }
 `;
 
@@ -171,16 +192,21 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
 
   const sizes = new Float32Array(count);
   const phases = new Float32Array(count);
+  const sparkles = new Float32Array(count);
   for (let i = 0; i < count; i += 1) {
-    const bright = Math.random() > 0.965;
-    sizes[i] = bright ? 2.2 + Math.random() * 1.5 : 0.8 + Math.random() * 0.8;
+    // A handful of genuinely bright stars carry the spikes. Giving every star
+    // them would turn the sky into glitter.
+    const bright = Math.random() > 0.94;
+    sizes[i] = bright ? 2.6 + Math.random() * 1.8 : 0.9 + Math.random() * 0.9;
     phases[i] = Math.random() * Math.PI * 2;
+    sparkles[i] = bright ? 1 : 0;
   }
 
   geometry.setAttribute("position", new BufferAttribute(new Float32Array(initial.positions), 3));
   geometry.setAttribute("color", new BufferAttribute(new Float32Array(initial.colors), 3));
   geometry.setAttribute("aSize", new BufferAttribute(sizes, 1));
   geometry.setAttribute("aPhase", new BufferAttribute(phases, 1));
+  geometry.setAttribute("aSparkle", new BufferAttribute(sparkles, 1));
 
   return initial;
 }
