@@ -31,6 +31,7 @@ export default function HomePage() {
       <HeroSection />
       <ServicesSection />
       <CalculatorAndPanchang />
+      <ZodiacBand />
       <ReportsSection />
       <ZodiacBand />
       <ShopSection />

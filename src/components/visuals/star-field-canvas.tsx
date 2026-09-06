@@ -12,6 +12,13 @@ import {
 } from "three";
 import { sampleImageToParticles } from "@/lib/star-image/sample-image";
 import type { ImageMaskMode } from "@/lib/star-image/types";
+import {
+  formationOffsetForViewport,
+  formationScaleForViewport,
+  type StarFieldAlign,
+} from "@/lib/star-image/formation";
+
+export type { StarFieldAlign };
 
 /**
  * Ambient star field that can gather into a shape.
@@ -29,8 +36,6 @@ import type { ImageMaskMode } from "@/lib/star-image/types";
  * rebuilt, which is what keeps a morph free of flicker and free of leaks.
  */
 /** Where in the frame a shape gathers. */
-export type StarFieldAlign = "left" | "center" | "right";
-
 export type StarFieldCanvasProps = {
   /** Image to gather into. Null means open sky. */
   source?: string | null;
@@ -44,18 +49,7 @@ export type StarFieldCanvasProps = {
 
 const SPREAD = 44;
 const FORMATION_DEPTH = 0.3;
-const CAMERA_Z = 18;
-const CAMERA_FOV = 52;
-/** Fraction of the shorter visible dimension a formed shape should occupy. */
-const FORMATION_FILL = 0.62;
-/** How far off centre an aligned shape sits, as a fraction of visible width. */
-const FORMATION_SHIFT = 0.24;
-/**
- * Below this the viewport is too narrow to hold a shape beside anything, so an
- * aligned formation is centred instead of being pushed half off screen.
- */
-const ALIGN_MIN_WIDTH = 768;
-const MORPH_SPEED = 0.95;
+const MORPH_SPEED = 1.3;
 
 /**
  * Size of a particle that is drawing the sign, relative to a free star.
@@ -83,51 +77,6 @@ function particleCountForViewport(): number {
   if (width <= 480) return 4000;
   if (width <= 1024) return 6000;
   return 8000;
-}
-
-/**
- * How large a formed shape should be, in world units.
- *
- * Derived from what the camera can actually see rather than fixed, because the
- * visible width collapses on a narrow screen: a constant that frames a glyph
- * nicely on a desktop makes it overflow the viewport on a phone and sit right
- * on top of the copy. Glyph coordinates span -1..1, so the returned value is
- * half the width the shape should end up occupying.
- */
-function formationScaleForViewport(): number {
-  if (typeof window === "undefined") return 5.4;
-
-  const visibleHeight = 2 * CAMERA_Z * Math.tan((CAMERA_FOV * Math.PI) / 360);
-  const visibleWidth = visibleHeight * (window.innerWidth / window.innerHeight);
-
-  return (Math.min(visibleWidth, visibleHeight) * FORMATION_FILL) / 2;
-}
-
-/**
- * Horizontal offset in world units for an aligned formation.
- *
- * Derived from the visible width for the same reason the size is: a fixed
- * offset that clears the copy on a desktop pushes the shape off the side of a
- * laptop. Below a certain width there is no room to sit a shape beside
- * anything, so an aligned formation is centred rather than half off screen.
- */
-function formationOffsetForViewport(align: StarFieldAlign): { x: number; y: number } {
-  if (typeof window === "undefined") return { x: 0, y: 0 };
-
-  const visibleHeight = 2 * CAMERA_Z * Math.tan((CAMERA_FOV * Math.PI) / 360);
-  const visibleWidth = visibleHeight * (window.innerWidth / window.innerHeight);
-
-  // A narrow viewport has no room to sit a shape beside anything, so it moves
-  // up instead of sideways and the copy goes underneath it. Pushing it half off
-  // the side would be worse than not moving it at all.
-  if (window.innerWidth < ALIGN_MIN_WIDTH) {
-    return { x: 0, y: align === "center" ? 0 : visibleHeight * 0.17 };
-  }
-
-  if (align === "center") return { x: 0, y: 0 };
-
-  const shift = visibleWidth * FORMATION_SHIFT;
-  return { x: align === "left" ? -shift : shift, y: 0 };
 }
 
 /**
@@ -426,9 +375,16 @@ function MorphingStars({
           // A little depth so the shape reads as made of stars, not printed.
           open.positions[i * 3 + 2] = (Math.random() - 0.5) * FORMATION_DEPTH;
 
-          open.colors[i * 3] = sampled.colors[i * 3];
-          open.colors[i * 3 + 1] = sampled.colors[i * 3 + 1];
-          open.colors[i * 3 + 2] = sampled.colors[i * 3 + 2];
+          // Keep the colour each particle already had as a free star, so the
+          // figure is picked out in the same blues, golds and oranges as the
+          // sky around it. Overwriting with the sampler's flat starlight is
+          // what made every formed sign a uniform white cutout. Only an
+          // explicit request for the image's own colours overrides that.
+          if (useImageColors) {
+            open.colors[i * 3] = sampled.colors[i * 3];
+            open.colors[i * 3 + 1] = sampled.colors[i * 3 + 1];
+            open.colors[i * 3 + 2] = sampled.colors[i * 3 + 2];
+          }
         }
 
         targetPositions.current = open.positions;

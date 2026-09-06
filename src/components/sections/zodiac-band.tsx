@@ -32,9 +32,14 @@ export function ZodiacBand() {
             the shape forms at the centre of the viewport rather than of this
             band. */}
         {/* On a narrow screen the shape moves up rather than sideways, so the
-            copy sits under it. From md the two share the width instead. */}
+            copy sits under it. From md the two share the width instead.
+            The band is taller than a viewport because a shape only gathers
+            while the band fully clears it, and that window has to last long
+            enough for the morph to actually finish. The copy is centred within
+            it rather than pinned to the top, which on a band this tall would
+            leave it scrolled off while the shape is on screen. */}
         <div
-          className="flex min-h-[80vh] flex-col justify-end md:justify-start md:min-h-[86vh]"
+          className="flex min-h-[92vh] flex-col justify-end md:justify-center md:min-h-[124vh]"
           data-zodiac-band=""
         >
           <div
