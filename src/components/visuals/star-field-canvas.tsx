@@ -92,11 +92,30 @@ function formationScaleForViewport(): number {
   return (Math.min(visibleWidth, visibleHeight) * FORMATION_FILL) / 2;
 }
 
-/** Mostly white, with a few blue and amber stars so the sky is not flat. */
+/**
+ * Star colours, by share of the sky.
+ *
+ * Real stars are coloured by temperature: the hot ones burn blue-white and the
+ * cool ones amber through orange. Most of the sky stays white so the tinted
+ * ones read as accents rather than confetti, and the golden is the brand's own
+ * premium gold lifted to starlight rather than an arbitrary yellow.
+ *
+ * Cumulative thresholds, so the list stays readable as the mix is tuned.
+ */
+const STAR_COLORS: ReadonlyArray<readonly [number, readonly [number, number, number]]> = [
+  [0.56, [1, 1, 1]], // white
+  [0.73, [0.6, 0.77, 1]], // blue-white
+  [0.88, [1, 0.83, 0.49]], // golden, from --premium #d6b56d
+  [1, [1, 0.58, 0.29]], // orange
+];
+
 function starColor(target: Color, random: () => number): Color {
   const variant = random();
-  if (variant < 0.15) return target.setRGB(0.78, 0.86, 1);
-  if (variant < 0.3) return target.setRGB(1, 0.9, 0.78);
+
+  for (const [threshold, rgb] of STAR_COLORS) {
+    if (variant <= threshold) return target.setRGB(rgb[0], rgb[1], rgb[2]);
+  }
+
   return target.setRGB(1, 1, 1);
 }
 
@@ -219,7 +238,10 @@ const fragmentShader = /* glsl */ `
     if (intensity < 0.01) discard;
 
     // Pushing the centre toward white is what gives it the burning look.
-    gl_FragColor = vec4(vColor + core * 1.4 * vTwinkle, intensity);
+    // Scale the star's own colour rather than adding white to it. Adding a
+    // flat amount drained the hue at the centre, which is where most of a
+    // small star's pixels are, so every star looked white whatever its colour.
+    gl_FragColor = vec4(vColor * (1.0 + core * 0.95 * vTwinkle), intensity);
   }
 `;
 
