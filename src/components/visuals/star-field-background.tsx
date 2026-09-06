@@ -26,7 +26,7 @@ export function StarFieldBackground() {
   // Undefined until the preference is known, so nothing is requested during the
   // first client render and the decision is never made on a guess.
   const [animate, setAnimate] = useState<boolean | undefined>(undefined);
-  const { source } = useStarFieldSource();
+  const { source, align } = useStarFieldSource();
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -39,5 +39,5 @@ export function StarFieldBackground() {
 
   if (!animate) return null;
 
-  return <StarFieldCanvas source={source} maskMode="alpha" threshold={0.1} />;
+  return <StarFieldCanvas align={align} maskMode="alpha" source={source} threshold={0.1} />;
 }

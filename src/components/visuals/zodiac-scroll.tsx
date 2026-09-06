@@ -15,6 +15,13 @@ import { ZODIAC_SIGNS, zodiacShapeFor } from "@/lib/star-image/zodiac-shapes";
  * hero, where the headline and the call to action sit, and a glyph gathering
  * behind that copy competes with it. Formation begins once the reader has moved
  * past it and the page has room for the shape.
+ *
+ * Which side a shape gathers on is anchored to the open bands rather than to
+ * the sign index. Alternating per sign looked right in isolation but landed
+ * arbitrarily: a side change that happens behind a full-width card is a side
+ * change nobody sees. Counting the bands already passed means the first band a
+ * reader reaches holds its shape on the left and the next one answers from the
+ * right, which is the rhythm the alternation is for.
  */
 const HERO_FRACTION = 0.12;
 
@@ -22,6 +29,7 @@ export function ZodiacScroll() {
   const { setShape } = useStarFieldSource();
   const [enabled, setEnabled] = useState(false);
   const lastIndex = useRef<number | null>(null);
+  const lastAlign = useRef<"left" | "right" | null>(null);
 
   // Reduced-motion visitors never load the canvas, so this would only be
   // watching scroll for a background that does not exist.
@@ -48,6 +56,7 @@ export function ZodiacScroll() {
       if (progress < HERO_FRACTION) {
         if (lastIndex.current !== null) {
           lastIndex.current = null;
+          lastAlign.current = null;
           setShape({ source: null });
         }
         return;
@@ -56,14 +65,24 @@ export function ZodiacScroll() {
       const through = (progress - HERO_FRACTION) / (1 - HERO_FRACTION);
       const index = Math.min(ZODIAC_SIGNS.length - 1, Math.floor(through * ZODIAC_SIGNS.length));
 
-      // Only re-target when the sign actually changes; scrolling fires far more
-      // often than the shape needs to move, and re-sampling on every pixel of
-      // travel would be wasted work.
-      if (lastIndex.current === index) return;
+      // The first band the reader reaches is the first alternation, so count
+      // how many have gone past the middle of the viewport.
+      const middle = window.scrollY + window.innerHeight / 2;
+      let passed = 0;
+      for (const band of document.querySelectorAll<HTMLElement>("[data-zodiac-band]")) {
+        if (band.getBoundingClientRect().top + window.scrollY <= middle) passed += 1;
+      }
+      const align = passed % 2 === 1 ? "left" : "right";
+
+      // Only re-target when something actually changes; scrolling fires far
+      // more often than the shape needs to move, and re-sampling on every pixel
+      // of travel would be wasted work.
+      if (lastIndex.current === index && lastAlign.current === align) return;
       lastIndex.current = index;
+      lastAlign.current = align;
 
       const sign = ZODIAC_SIGNS[index];
-      setShape({ source: zodiacShapeFor(sign), label: sign });
+      setShape({ source: zodiacShapeFor(sign), label: sign, align });
     };
 
     const onScroll = () => {

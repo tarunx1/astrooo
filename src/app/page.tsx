@@ -35,6 +35,7 @@ export default function HomePage() {
       <ZodiacBand />
       <ShopSection />
       <ConsultationSection />
+      <ZodiacBand />
       <TrustSection />
       <InsightsSection />
     </>

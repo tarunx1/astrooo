@@ -28,9 +28,13 @@ import type { ImageMaskMode } from "@/lib/star-image/types";
  * same particles are given new targets and drift to them; the scene is never
  * rebuilt, which is what keeps a morph free of flicker and free of leaks.
  */
+/** Where in the frame a shape gathers. */
+export type StarFieldAlign = "left" | "center" | "right";
+
 export type StarFieldCanvasProps = {
   /** Image to gather into. Null means open sky. */
   source?: string | null;
+  align?: StarFieldAlign;
   maskMode?: ImageMaskMode;
   threshold?: number;
   useImageColors?: boolean;
@@ -44,6 +48,13 @@ const CAMERA_Z = 18;
 const CAMERA_FOV = 52;
 /** Fraction of the shorter visible dimension a formed shape should occupy. */
 const FORMATION_FILL = 0.62;
+/** How far off centre an aligned shape sits, as a fraction of visible width. */
+const FORMATION_SHIFT = 0.24;
+/**
+ * Below this the viewport is too narrow to hold a shape beside anything, so an
+ * aligned formation is centred instead of being pushed half off screen.
+ */
+const ALIGN_MIN_WIDTH = 768;
 const MORPH_SPEED = 0.95;
 
 /**
@@ -93,6 +104,33 @@ function formationScaleForViewport(): number {
 }
 
 /**
+ * Horizontal offset in world units for an aligned formation.
+ *
+ * Derived from the visible width for the same reason the size is: a fixed
+ * offset that clears the copy on a desktop pushes the shape off the side of a
+ * laptop. Below a certain width there is no room to sit a shape beside
+ * anything, so an aligned formation is centred rather than half off screen.
+ */
+function formationOffsetForViewport(align: StarFieldAlign): { x: number; y: number } {
+  if (typeof window === "undefined") return { x: 0, y: 0 };
+
+  const visibleHeight = 2 * CAMERA_Z * Math.tan((CAMERA_FOV * Math.PI) / 360);
+  const visibleWidth = visibleHeight * (window.innerWidth / window.innerHeight);
+
+  // A narrow viewport has no room to sit a shape beside anything, so it moves
+  // up instead of sideways and the copy goes underneath it. Pushing it half off
+  // the side would be worse than not moving it at all.
+  if (window.innerWidth < ALIGN_MIN_WIDTH) {
+    return { x: 0, y: align === "center" ? 0 : visibleHeight * 0.17 };
+  }
+
+  if (align === "center") return { x: 0, y: 0 };
+
+  const shift = visibleWidth * FORMATION_SHIFT;
+  return { x: align === "left" ? -shift : shift, y: 0 };
+}
+
+/**
  * Star colours, by share of the sky.
  *
  * Real stars are coloured by temperature: the hot ones burn blue-white and the
@@ -104,7 +142,7 @@ function formationScaleForViewport(): number {
  */
 const STAR_COLORS: ReadonlyArray<readonly [number, readonly [number, number, number]]> = [
   [0.56, [1, 1, 1]], // white
-  [0.73, [0.6, 0.77, 1]], // blue-white
+  [0.73, [0.31, 0.46, 0.98]], // royal blue (#4169e1, lifted to starlight)
   [0.88, [1, 0.83, 0.49]], // golden, from --premium #d6b56d
   [1, [1, 0.58, 0.29]], // orange
 ];
@@ -292,6 +330,7 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
 
 function MorphingStars({
   source,
+  align = "center",
   maskMode,
   threshold,
   useImageColors,
@@ -367,6 +406,7 @@ function MorphingStars({
       try {
         const shaped = Math.floor(count * SHAPE_SHARE);
         const scale = formationScaleForViewport();
+        const offset = formationOffsetForViewport(align);
         const sampled = await sampleImageToParticles(source, {
           count: shaped,
           mode: maskMode,
@@ -381,8 +421,8 @@ function MorphingStars({
         const open = createStarfieldTargets(count);
 
         for (let i = 0; i < shaped; i += 1) {
-          open.positions[i * 3] = sampled.positions[i * 3] * scale;
-          open.positions[i * 3 + 1] = sampled.positions[i * 3 + 1] * scale;
+          open.positions[i * 3] = sampled.positions[i * 3] * scale + offset.x;
+          open.positions[i * 3 + 1] = sampled.positions[i * 3 + 1] * scale + offset.y;
           // A little depth so the shape reads as made of stars, not printed.
           open.positions[i * 3 + 2] = (Math.random() - 0.5) * FORMATION_DEPTH;
 
@@ -414,7 +454,7 @@ function MorphingStars({
     return () => {
       cancelled = true;
     };
-  }, [source, maskMode, threshold, invertMask, useImageColors, onImageError, invalidate]);
+  }, [source, align, maskMode, threshold, invertMask, useImageColors, onImageError, invalidate]);
 
   useEffect(() => {
     if (reduceMotion) return;

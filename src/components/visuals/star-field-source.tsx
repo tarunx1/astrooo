@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { StarFieldAlign } from "@/components/visuals/star-field-canvas";
 
 /**
  * Lets a page choose what the shared star field forms.
@@ -17,27 +18,37 @@ type StarFieldSourceValue = {
   source: string | null;
   /** Human name of the current shape, for UI that wants to caption it. */
   label: string | null;
-  setShape: (shape: { source: string | null; label?: string | null }) => void;
+  /** Which side of the frame the shape gathers on, so copy can sit opposite. */
+  align: StarFieldAlign;
+  setShape: (shape: { source: string | null; label?: string | null; align?: StarFieldAlign }) => void;
 };
 
 const StarFieldSourceContext = createContext<StarFieldSourceValue | null>(null);
 
 export function StarFieldProvider({ children }: { children: ReactNode }) {
-  const [shape, setShapeState] = useState<{ source: string | null; label: string | null }>({
-    source: null,
-    label: null,
-  });
+  const [shape, setShapeState] = useState<{
+    source: string | null;
+    label: string | null;
+    align: StarFieldAlign;
+  }>({ source: null, label: null, align: "center" });
 
   // The setter must keep a stable identity. Consumers depend on it in effects
   // whose cleanup releases the shape, so a setter that changed on every update
   // would tear those effects down and clear the shape immediately after it was
   // set - which is exactly what happened before this was memoised.
-  const setShape = useCallback((next: { source: string | null; label?: string | null }) => {
-    setShapeState({ source: next.source, label: next.label ?? null });
-  }, []);
+  const setShape = useCallback(
+    (next: { source: string | null; label?: string | null; align?: StarFieldAlign }) => {
+      setShapeState({
+        source: next.source,
+        label: next.label ?? null,
+        align: next.align ?? "center",
+      });
+    },
+    [],
+  );
 
   const value = useMemo(
-    () => ({ source: shape.source, label: shape.label, setShape }),
+    () => ({ source: shape.source, label: shape.label, align: shape.align, setShape }),
     [shape, setShape],
   );
 
@@ -48,7 +59,7 @@ export function useStarFieldSource(): StarFieldSourceValue {
   const context = useContext(StarFieldSourceContext);
   // Null rather than throwing: the star field is decorative, and a subtree
   // rendered outside the provider should still render its own content.
-  return context ?? { source: null, label: null, setShape: () => {} };
+  return context ?? { source: null, label: null, align: "center" as StarFieldAlign, setShape: () => {} };
 }
 
 /**
@@ -58,15 +69,23 @@ export function useStarFieldSource(): StarFieldSourceValue {
  * the stars drift back to open sky without that page having to remember to
  * clean up.
  */
-export function StarFieldSource({ source, label }: { source: string | null; label?: string | null }) {
+export function StarFieldSource({
+  source,
+  label,
+  align = "center",
+}: {
+  source: string | null;
+  label?: string | null;
+  align?: StarFieldAlign;
+}) {
   const { setShape } = useStarFieldSource();
 
   const release = useCallback(() => setShape({ source: null }), [setShape]);
 
   useEffect(() => {
-    setShape({ source, label });
+    setShape({ source, label, align });
     return release;
-  }, [source, label, setShape, release]);
+  }, [source, label, align, setShape, release]);
 
   return null;
 }

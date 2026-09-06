@@ -2,6 +2,7 @@
 
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { useStarFieldSource } from "@/components/visuals/star-field-source";
+import { cn } from "@/lib/utils";
 
 /**
  * Open sky, deliberately.
@@ -11,27 +12,37 @@ import { useStarFieldSource } from "@/components/visuals/star-field-source";
  * to give it somewhere to actually be seen: no cards, no imagery, just height
  * and a caption naming whichever sign the field is currently holding.
  *
- * The caption is the only content, so it stays out of the middle of the frame
- * where the glyph forms.
+ * The copy sits on the side the shape is *not* on, and follows it as the
+ * alignment alternates down the page. That is the whole point of the band -
+ * content and constellation share the width rather than fighting for the
+ * middle of it.
  */
 export function ZodiacBand() {
-  const { label } = useStarFieldSource();
+  const { label, align } = useStarFieldSource();
+
+  // The shape takes one half, so the copy takes the other. A centred shape has
+  // no free side, so the copy falls back to the left where every other section
+  // header on this page begins.
+  const copyOnRight = align === "left";
 
   return (
     <Section className="relative">
       <PageContainer className="px-0">
-        {/* Tall enough that the caption and the name clear the glyph, which
-            forms at the centre of the viewport rather than the centre of this
-            band. Text is kept to the left column for the same reason: the
-            glyph occupies the middle of the frame at every scroll position, so
-            anything centred here would end up sitting on top of it. Left
-            alignment also matches every other section header on this page. */}
-        <div className="flex min-h-[80vh] flex-col sm:min-h-[86vh]">
-          {/* Kept narrow and to the left so it clears the glyph, which always
-              forms in the middle of the frame. Anything centred here would end
-              up sitting on top of it at some scroll position. Left alignment
-              also matches every other section header on this page. */}
-          <div className="max-w-sm">
+        {/* Tall enough that the copy clears the glyph vertically as well, since
+            the shape forms at the centre of the viewport rather than of this
+            band. */}
+        {/* On a narrow screen the shape moves up rather than sideways, so the
+            copy sits under it. From md the two share the width instead. */}
+        <div
+          className="flex min-h-[80vh] flex-col justify-end md:justify-start md:min-h-[86vh]"
+          data-zodiac-band=""
+        >
+          <div
+            className={cn(
+              "max-w-sm transition-[margin] duration-700 ease-out",
+              copyOnRight ? "md:ml-auto md:text-right" : "md:mr-auto",
+            )}
+          >
             <p className="caption text-foreground-muted">The sky above, drawn as you scroll</p>
             <p aria-live="polite" className="mt-4 heading-lg text-premium">
               {label ?? "Open sky"}
