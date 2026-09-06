@@ -2,6 +2,7 @@ import { ArrowRight, Mail } from "lucide-react";
 import { Section, SectionHeader } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
 import { articles } from "@/data/home";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 export function InsightsSection() {
   return (
@@ -27,7 +28,7 @@ export function InsightsSection() {
           <h2 className="mt-5 heading-xl">Stay aligned with cosmic updates</h2>
           <p className="mt-3 body text-foreground-secondary">Weekly insights, panchang alerts and report launches, written with restraint.</p>
           <form className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <input
+            <SmoothInput
               className="min-h-12 flex-1 rounded-md border border-border-strong bg-background px-4 body-sm outline-none transition focus:border-accent-cyan"
               placeholder="Enter your email address"
               type="email"

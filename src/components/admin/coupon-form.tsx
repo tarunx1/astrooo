@@ -2,6 +2,7 @@
 
 import { AdminField, AdminForm, adminInputClass } from "@/components/admin/admin-form";
 import { createCouponAction, updateCouponAction } from "@/app/admin/actions";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
  * Coupon create and edit.
@@ -41,7 +42,7 @@ export function CouponForm({ initial }: { initial?: CouponFormValues }) {
             label="Code"
             name="code"
           >
-            <input
+            <SmoothInput
               className={`${adminInputClass} uppercase`}
               defaultValue={initial?.code}
               id="code"
@@ -52,7 +53,7 @@ export function CouponForm({ initial }: { initial?: CouponFormValues }) {
           </AdminField>
 
           <AdminField label="Description" name="description">
-            <input className={adminInputClass} defaultValue={initial?.description} id="description" name="description" />
+            <SmoothInput className={adminInputClass} defaultValue={initial?.description} id="description" name="description" />
           </AdminField>
 
           <div className="grid gap-4 sm:grid-cols-2">

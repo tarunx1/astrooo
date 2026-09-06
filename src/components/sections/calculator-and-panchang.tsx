@@ -3,6 +3,7 @@ import { Section } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { calculators, panchangRows } from "@/data/home";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 export function CalculatorAndPanchang() {
   return (
@@ -17,7 +18,7 @@ export function CalculatorAndPanchang() {
             {["Full name", "Birth date", "Birth time", "Birth place"].map((label) => (
               <label className="grid gap-2 caption text-foreground-secondary" key={label}>
                 {label}
-                <input
+                <SmoothInput
                   className="min-h-11 rounded-md border border-white/10 bg-background/60 px-3 body-sm text-foreground outline-none transition focus:border-accent-cyan focus:bg-background/80"
                   placeholder={label === "Birth place" ? "City or place of birth" : label}
                 />

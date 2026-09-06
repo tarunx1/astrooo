@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
  * Provider-neutral sign-in panel.
@@ -103,7 +104,7 @@ export function SignInPanel({ returnTo, googleEnabled, devCredentialsEnabled }: 
           <p className="caption text-foreground-muted">Development credentials (not available in production)</p>
           <label className="grid gap-1.5 caption text-foreground-secondary" htmlFor="dev-email">
             Email
-            <input
+            <SmoothInput
               autoComplete="email"
               className="min-h-11 rounded-md border border-border bg-background px-3.5 py-2.5 text-sm text-foreground"
               id="dev-email"
@@ -114,7 +115,7 @@ export function SignInPanel({ returnTo, googleEnabled, devCredentialsEnabled }: 
           </label>
           <label className="grid gap-1.5 caption text-foreground-secondary" htmlFor="dev-password">
             Password
-            <input
+            <SmoothInput
               autoComplete="current-password"
               className="min-h-11 rounded-md border border-border bg-background px-3.5 py-2.5 text-sm text-foreground"
               id="dev-password"

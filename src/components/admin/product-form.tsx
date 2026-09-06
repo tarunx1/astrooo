@@ -2,6 +2,7 @@
 
 import { AdminField, AdminForm, adminInputClass } from "@/components/admin/admin-form";
 import { createProductAction, updateProductAction } from "@/app/admin/actions";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
  * Product create and edit.
@@ -35,7 +36,7 @@ export function ProductForm({ initial }: { initial?: ProductFormValues }) {
           {isEdit ? <input name="productId" type="hidden" value={initial!.id} /> : null}
 
           <AdminField error={state.fieldErrors.title?.[0]} label="Title" name="title">
-            <input className={adminInputClass} defaultValue={initial?.title} id="title" name="title" required />
+            <SmoothInput className={adminInputClass} defaultValue={initial?.title} id="title" name="title" required />
           </AdminField>
 
           <AdminField
@@ -44,7 +45,7 @@ export function ProductForm({ initial }: { initial?: ProductFormValues }) {
             label="Slug"
             name="slug"
           >
-            <input className={adminInputClass} defaultValue={initial?.slug} id="slug" name="slug" required />
+            <SmoothInput className={adminInputClass} defaultValue={initial?.slug} id="slug" name="slug" required />
           </AdminField>
 
           <AdminField error={state.fieldErrors.description?.[0]} label="Description" name="description">
@@ -59,7 +60,7 @@ export function ProductForm({ initial }: { initial?: ProductFormValues }) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <AdminField error={state.fieldErrors.sku?.[0]} label="SKU" name="sku">
-              <input className={adminInputClass} defaultValue={initial?.sku} id="sku" name="sku" />
+              <SmoothInput className={adminInputClass} defaultValue={initial?.sku} id="sku" name="sku" />
             </AdminField>
             <AdminField
               error={state.fieldErrors.pricePaise?.[0]}

@@ -7,6 +7,7 @@ import { transitionOrderAction, updateShipmentAction } from "@/app/admin/actions
 import { INITIAL_ADMIN_STATE } from "@/lib/admin/action-state";
 import { ORDER_STATUS_LABELS } from "@/lib/shop/order-status";
 import { adminInputClass } from "@/components/admin/admin-form";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
  * Fulfilment controls.
@@ -88,15 +89,15 @@ export function ShipmentForm({
       <div className="grid gap-3 sm:grid-cols-3">
         <label className="grid gap-1.5 caption text-foreground-secondary" htmlFor="carrierName">
           Carrier
-          <input className={adminInputClass} defaultValue={carrierName ?? ""} id="carrierName" name="carrierName" />
+          <SmoothInput className={adminInputClass} defaultValue={carrierName ?? ""} id="carrierName" name="carrierName" />
         </label>
         <label className="grid gap-1.5 caption text-foreground-secondary" htmlFor="trackingNumber">
           Tracking number
-          <input className={adminInputClass} defaultValue={trackingNumber ?? ""} id="trackingNumber" name="trackingNumber" />
+          <SmoothInput className={adminInputClass} defaultValue={trackingNumber ?? ""} id="trackingNumber" name="trackingNumber" />
         </label>
         <label className="grid gap-1.5 caption text-foreground-secondary" htmlFor="trackingUrl">
           Tracking URL
-          <input className={adminInputClass} defaultValue={trackingUrl ?? ""} id="trackingUrl" name="trackingUrl" type="url" />
+          <SmoothInput className={adminInputClass} defaultValue={trackingUrl ?? ""} id="trackingUrl" name="trackingUrl" type="url" />
         </label>
       </div>
 

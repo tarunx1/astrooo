@@ -2,6 +2,7 @@
 
 import { AdminField, AdminForm, adminInputClass } from "@/components/admin/admin-form";
 import { updateReportDefinitionAction } from "@/app/admin/actions";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /** The slug is intentionally not editable: orders and prompt specs key on it. */
 export function ReportDefinitionForm({
@@ -26,11 +27,11 @@ export function ReportDefinitionForm({
           <input name="definitionId" type="hidden" value={initial.id} />
 
           <AdminField error={state.fieldErrors.name?.[0]} label="Name" name="name">
-            <input className={adminInputClass} defaultValue={initial.name} id="name" name="name" required />
+            <SmoothInput className={adminInputClass} defaultValue={initial.name} id="name" name="name" required />
           </AdminField>
 
           <AdminField error={state.fieldErrors.shortDescription?.[0]} label="Short description" name="shortDescription">
-            <input className={adminInputClass} defaultValue={initial.shortDescription} id="shortDescription" name="shortDescription" required />
+            <SmoothInput className={adminInputClass} defaultValue={initial.shortDescription} id="shortDescription" name="shortDescription" required />
           </AdminField>
 
           <AdminField error={state.fieldErrors.description?.[0]} label="Full description" name="description">

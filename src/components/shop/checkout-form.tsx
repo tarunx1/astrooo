@@ -7,6 +7,7 @@ import { placeOrderAction, verifyOrderPaymentAction } from "@/app/checkout/actio
 import { INITIAL_CHECKOUT_STATE, INITIAL_VERIFY_STATE } from "@/lib/shop/action-state";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 import { loadRazorpayCheckout } from "@/lib/payments/razorpay-checkout";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
  * Checkout form.
@@ -93,7 +94,7 @@ export function CheckoutForm({
 
         <div className="mt-4 grid gap-4">
           <Field error={fieldError("fullName")} label="Full name" name="fullName">
-            <input
+            <SmoothInput
               autoComplete="name"
               className={inputClass}
               defaultValue={savedAddress?.fullName ?? customer.name}
@@ -104,7 +105,7 @@ export function CheckoutForm({
           </Field>
 
           <Field error={fieldError("phone")} label="Phone" name="phone">
-            <input
+            <SmoothInput
               autoComplete="tel"
               className={inputClass}
               defaultValue={savedAddress?.phone ?? ""}
@@ -117,7 +118,7 @@ export function CheckoutForm({
           </Field>
 
           <Field error={fieldError("addressLine1")} label="Address" name="addressLine1">
-            <input
+            <SmoothInput
               autoComplete="address-line1"
               className={inputClass}
               defaultValue={savedAddress?.addressLine1 ?? ""}
@@ -129,7 +130,7 @@ export function CheckoutForm({
           </Field>
 
           <Field error={fieldError("addressLine2")} label="Apartment, landmark (optional)" name="addressLine2">
-            <input
+            <SmoothInput
               autoComplete="address-line2"
               className={inputClass}
               defaultValue={savedAddress?.addressLine2 ?? ""}
@@ -140,7 +141,7 @@ export function CheckoutForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field error={fieldError("city")} label="City" name="city">
-              <input
+              <SmoothInput
                 autoComplete="address-level2"
                 className={inputClass}
                 defaultValue={savedAddress?.city ?? ""}
@@ -150,7 +151,7 @@ export function CheckoutForm({
               />
             </Field>
             <Field error={fieldError("region")} label="State" name="region">
-              <input
+              <SmoothInput
                 autoComplete="address-level1"
                 className={inputClass}
                 defaultValue={savedAddress?.region ?? ""}
@@ -163,7 +164,7 @@ export function CheckoutForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field error={fieldError("postalCode")} label="PIN code" name="postalCode">
-              <input
+              <SmoothInput
                 autoComplete="postal-code"
                 className={inputClass}
                 defaultValue={savedAddress?.postalCode ?? ""}
@@ -187,7 +188,7 @@ export function CheckoutForm({
         <p className="mt-1.5 body-sm text-foreground-secondary">
           Have a code? Enter it here — the discount is applied by our server when the order is placed.
         </p>
-        <input
+        <SmoothInput
           aria-label="Coupon code"
           className={`${inputClass} mt-3 uppercase`}
           name="couponCode"

@@ -6,6 +6,7 @@ import { Lock, Mail, X } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 type AuthCardProps = {
   defaultTab?: "signup" | "signin";
@@ -155,7 +156,7 @@ export function GlassAuthCard({
       <form className="mt-6 grid gap-3.5" onSubmit={handleSubmit}>
         {tab === "signup" ? (
           <div className="grid grid-cols-2 gap-3">
-            <input
+            <SmoothInput
               autoComplete="given-name"
               className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 px-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
               name="firstName"
@@ -163,7 +164,7 @@ export function GlassAuthCard({
               required
               type="text"
             />
-            <input
+            <SmoothInput
               autoComplete="family-name"
               className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 px-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
               name="lastName"
@@ -176,7 +177,7 @@ export function GlassAuthCard({
         {/* Email Field */}
         <div className="relative">
           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground-muted/60" size={17} />
-          <input
+          <SmoothInput
             autoComplete="email"
             className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 pl-11 pr-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
             name="email"
@@ -189,7 +190,7 @@ export function GlassAuthCard({
         {/* Password Field */}
         <div className="relative">
           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground-muted/60" size={17} />
-          <input
+          <SmoothInput
             autoComplete={tab === "signup" ? "new-password" : "current-password"}
             className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 pl-11 pr-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
             name="password"

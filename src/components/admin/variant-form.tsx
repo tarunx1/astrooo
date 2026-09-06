@@ -2,6 +2,7 @@
 
 import { AdminField, AdminForm, adminInputClass } from "@/components/admin/admin-form";
 import { upsertVariantAction } from "@/app/admin/actions";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
  * Variant create and edit.
@@ -31,11 +32,11 @@ export function VariantForm({
               label="Label"
               name="title"
             >
-              <input className={adminInputClass} defaultValue={variant?.title} id="title" name="title" required />
+              <SmoothInput className={adminInputClass} defaultValue={variant?.title} id="title" name="title" required />
             </AdminField>
 
             <AdminField error={state.fieldErrors.sku?.[0]} label="SKU" name="sku">
-              <input className={adminInputClass} defaultValue={variant?.sku} id="sku" name="sku" required />
+              <SmoothInput className={adminInputClass} defaultValue={variant?.sku} id="sku" name="sku" required />
             </AdminField>
 
             <AdminField

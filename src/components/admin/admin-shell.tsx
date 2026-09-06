@@ -3,6 +3,7 @@ import { PageContainer, Section } from "@/components/layout/primitives";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAVIGATION } from "@/config/admin-navigation";
+import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
  * Admin shell.
@@ -345,7 +346,7 @@ export function AdminSearch({
       <label className="sr-only" htmlFor="admin-search">
         {placeholder}
       </label>
-      <input
+      <SmoothInput
         className="min-h-10 min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
         defaultValue={defaultValue}
         id="admin-search"
