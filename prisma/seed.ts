@@ -145,6 +145,7 @@ const PRODUCTS = [
     pricePaise: 4_850_000,
     salePricePaise: 4_250_000,
     quantity: 2,
+    imageUrl: "/images/products/blue-sapphire.jpg",
     description:
       "A natural, unheated Ceylon blue sapphire of 3.25 carat with an even royal blue tone and eye-clean clarity. Supplied with an IGI certificate confirming origin and treatment status.",
     attributes: {
@@ -172,6 +173,7 @@ const PRODUCTS = [
     sku: "GEM-PUKHRAJ-505",
     pricePaise: 6_200_000,
     quantity: 1,
+    imageUrl: "/images/products/yellow-sapphire.jpg",
     description:
       "A natural Ceylon yellow sapphire of 5.05 carat with a warm, even golden tone. Unheated and supplied with a GII certificate.",
     attributes: {
@@ -198,6 +200,7 @@ const PRODUCTS = [
     sku: "GEM-MOONGA-620",
     pricePaise: 1_850_000,
     quantity: 4,
+    imageUrl: "/images/products/red-coral.jpg",
     description:
       "A natural Italian red coral of 6.20 carat, capsule cut, with a deep uniform red and a smooth polish.",
     attributes: {
@@ -224,6 +227,7 @@ const PRODUCTS = [
     pricePaise: 450_000,
     salePricePaise: 385_000,
     quantity: 12,
+    imageUrl: "/images/products/rudraksha-mala.jpg",
     description:
       "A traditional 108-bead japa mala of five mukhi Nepali Rudraksha, hand-knotted on cotton thread with a guru bead.",
     attributes: {
@@ -248,6 +252,7 @@ const PRODUCTS = [
     sku: "RUD-1M-JAVA-PEND",
     pricePaise: 1_250_000,
     quantity: 3,
+    imageUrl: "/images/products/rudraksha-mala.jpg",
     description:
       "A rare one mukhi Java Rudraksha set in a silver cap and supplied with a lab certificate confirming its single natural face.",
     attributes: {
@@ -270,6 +275,7 @@ const PRODUCTS = [
     sku: "CRY-QTZ-PT-L",
     pricePaise: 320_000,
     quantity: 8,
+    imageUrl: "/images/products/clear-quartz.jpg",
     description:
       "A hand-polished clear quartz point with good transparency and natural internal veiling. Each piece varies slightly.",
     attributes: {
@@ -450,6 +456,18 @@ async function seedShop() {
         status: product.quantity > 0 ? InventoryStatus.IN_STOCK : InventoryStatus.OUT_OF_STOCK,
       },
     });
+
+    if ("imageUrl" in product && typeof product.imageUrl === "string") {
+      await prisma.productImage.deleteMany({ where: { productId: row.id } });
+      await prisma.productImage.create({
+        data: {
+          productId: row.id,
+          url: product.imageUrl,
+          alt: product.title,
+          sortOrder: 0,
+        },
+      });
+    }
   }
 
   console.info(`seeded ${CATEGORIES.length} categories and ${PRODUCTS.length} products`);
