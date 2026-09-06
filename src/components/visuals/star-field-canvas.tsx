@@ -135,6 +135,7 @@ const vertexShader = /* glsl */ `
   attribute float aPhase;
   attribute float aSparkle;
   attribute float aIndex;
+  attribute float aRate;
 
   varying vec3 vColor;
   varying float vTwinkle;
@@ -150,9 +151,15 @@ const vertexShader = /* glsl */ `
     vColor = color;
     vSparkle = aSparkle;
 
-    // A deeper swing than a gentle fade, so the sky visibly breathes.
-    float twinkle = 0.68 + sin(uTime * 1.9 + aPhase) * 0.32;
-    vTwinkle = twinkle;
+    // Each star keeps its own rate as well as its own phase. A single shared
+    // rate makes the whole sky pulse in lockstep, which reads as a flicker
+    // rather than as stars.
+    float pulse = sin(uTime * aRate + aPhase);
+
+    // Brightness swings further than size: that is what the eye reads as
+    // twinkling. Size follows more gently, so stars breathe rather than throb.
+    vTwinkle = 0.28 + 0.72 * (pulse * 0.5 + 0.5);
+    float sizePulse = 0.55 + 0.45 * (pulse * 0.5 + 0.5);
 
     vec4 viewPosition = viewMatrix * modelMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * viewPosition;
@@ -162,8 +169,14 @@ const vertexShader = /* glsl */ `
     float inShape = step(aIndex + 0.5, uShapeCount);
     float scale = mix(1.0, uShapeSize, inShape * uShapeStrength);
 
-    float perspective = 300.0 / max(1.0, -viewPosition.z);
-    gl_PointSize = clamp(aSize * scale * uPixelRatio * perspective * twinkle, 1.0, 14.0);
+    // The clamp is applied to the resting size and the pulse multiplies what
+    // comes out of it. Clamping the pulsed value instead pinned every near or
+    // bright star to the ceiling, where the animation had nothing left to move
+    // - which is exactly why the sky looked frozen.
+    float perspective = 190.0 / max(9.0, -viewPosition.z);
+    float restingSize = clamp(aSize * scale * uPixelRatio * perspective, 1.0, 24.0);
+
+    gl_PointSize = max(0.9, restingSize * sizePulse);
   }
 `;
 
@@ -182,24 +195,31 @@ const fragmentShader = /* glsl */ `
 
     // A hot core inside a soft halo reads as a light source. A single flat
     // falloff reads as a printed dot, which is what this looked like before.
-    float core = pow(clamp(1.0 - distanceToCentre / 0.17, 0.0, 1.0), 2.0);
-    float halo = pow(clamp(1.0 - distanceToCentre / 0.5, 0.0, 1.0), 2.5);
+    // A wide, barely-shaded centre keeps even a three-pixel sprite crisp; the
+    // halo decays fast so it reads as glow around a point rather than fog.
+    float core = pow(clamp(1.0 - distanceToCentre / 0.24, 0.0, 1.0), 1.5);
+    float halo = pow(clamp(1.0 - distanceToCentre / 0.5, 0.0, 1.0), 3.6);
 
     // Four-point diffraction spikes on the brightest stars only. This is the
     // detail that makes a point of light look like it is sparkling, and the
     // reason the sprite is not clipped to a circle: the spikes need the corners.
     float spike = 0.0;
     if (vSparkle > 0.5) {
-      float horizontal = exp(-abs(offset.y) * 80.0) * exp(-abs(offset.x) * 6.0);
-      float vertical = exp(-abs(offset.x) * 80.0) * exp(-abs(offset.y) * 6.0);
-      spike = (horizontal + vertical) * 0.55;
+      float horizontal = exp(-abs(offset.y) * 64.0) * exp(-abs(offset.x) * 5.0);
+      float vertical = exp(-abs(offset.x) * 64.0) * exp(-abs(offset.y) * 5.0);
+      // Spikes flare with the pulse, which is what catches the eye as a sparkle.
+      spike = (horizontal + vertical) * 0.75 * vTwinkle;
     }
 
-    float intensity = (core + halo * 0.45 + spike) * uOpacity * vTwinkle;
+    // Clamp the resting profile, then let the twinkle scale it. Multiplying
+    // first and clamping afterwards held the core at full opacity through most
+    // of the cycle, so the star never visibly dimmed.
+    float profile = clamp(core * 1.0 + halo * 0.3 + spike, 0.0, 1.0);
+    float intensity = profile * uOpacity * vTwinkle;
     if (intensity < 0.01) discard;
 
     // Pushing the centre toward white is what gives it the burning look.
-    gl_FragColor = vec4(vColor + core * 1.15, clamp(intensity, 0.0, 1.0));
+    gl_FragColor = vec4(vColor + core * 1.4 * vTwinkle, intensity);
   }
 `;
 
@@ -216,6 +236,7 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
   const phases = new Float32Array(count);
   const sparkles = new Float32Array(count);
   const indices = new Float32Array(count);
+  const rates = new Float32Array(count);
 
   const shapeSlice = Math.floor(count * SHAPE_SHARE);
 
@@ -227,10 +248,13 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
     // giving every background star spikes would turn it into glitter.
     const bright = i < shapeSlice ? Math.random() > 0.62 : Math.random() > 0.94;
 
-    sizes[i] = bright ? 2.6 + Math.random() * 1.8 : 0.9 + Math.random() * 0.9;
+    sizes[i] = bright ? 2.8 + Math.random() * 2.2 : 0.65 + Math.random() * 1.25;
     phases[i] = Math.random() * Math.PI * 2;
     sparkles[i] = bright ? 1 : 0;
     indices[i] = i;
+    // Spread over roughly a 4x range, so some stars flare quickly while others
+    // take several seconds to come round.
+    rates[i] = 0.55 + Math.random() * 1.85;
   }
 
   geometry.setAttribute("position", new BufferAttribute(new Float32Array(initial.positions), 3));
@@ -239,6 +263,7 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
   geometry.setAttribute("aPhase", new BufferAttribute(phases, 1));
   geometry.setAttribute("aSparkle", new BufferAttribute(sparkles, 1));
   geometry.setAttribute("aIndex", new BufferAttribute(indices, 1));
+  geometry.setAttribute("aRate", new BufferAttribute(rates, 1));
 
   return initial;
 }
@@ -266,7 +291,7 @@ function MorphingStars({
   // particles change size over the same span as they change position.
   const shapeStrength = useRef(0);
 
-  const { invalidate } = useThree();
+  const { invalidate, gl } = useThree();
 
   // Chosen once. Rebuilding the scene on every resize would be far worse than
   // running a desktop particle count on a window that was later made narrow.
@@ -280,13 +305,20 @@ function MorphingStars({
     const initial = initialiseGeometry(geometry, count);
     targetPositions.current = initial.positions;
     targetColors.current = initial.colors;
+
+    // gl_PointSize is in physical pixels, so without this every star rendered
+    // at half size on a retina display. It was left at 1 and never assigned.
+    if (materialRef.current) {
+      materialRef.current.uniforms.uPixelRatio.value = gl.getPixelRatio();
+    }
+
     invalidate();
 
     return () => {
       geometry.dispose();
       countRef.current = 0;
     };
-  }, [invalidate]);
+  }, [invalidate, gl]);
 
   // Resolve the requested shape into targets. The particles themselves are
   // untouched here; the frame loop walks them across.
@@ -470,7 +502,7 @@ export default function StarFieldCanvas(props: StarFieldCanvasProps) {
       <Canvas
         camera={{ position: [0, 0, 18], fov: 52 }}
         // Capped device pixel ratio keeps this cheap on high-density displays.
-        dpr={[1, 1.5]}
+        dpr={[1, 2]}
         // Reduced motion still needs frames while a shape settles, so the loop
         // is demand-driven rather than stopped outright.
         frameloop={!visible ? "never" : reduceMotion ? "demand" : "always"}
