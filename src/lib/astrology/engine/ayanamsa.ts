@@ -10,9 +10,15 @@ import { julianCenturies } from "@/lib/astrology/engine/time";
  * turns an astronomical longitude into a Vedic one.
  *
  * This is a convention, not an astronomical fact: several definitions are in
- * use and they disagree by arcminutes. This product uses Lahiri throughout,
- * which is what the Indian government's Rashtriya Panchang uses and what every
+ * use and they disagree by arcminutes. Lahiri is the default throughout, which
+ * is what the Indian government's Rashtriya Panchang uses and what every
  * calculation stored so far has been computed with.
+ *
+ * The choice is named rather than assumed because Krishnamurti Paddhati is
+ * traditionally worked in its own ayanamsa, which differs from Lahiri by a few
+ * arcminutes. That sounds negligible and is not: a KP sub-sub division spans
+ * about 10 arcminutes, so a shift of that size changes sub-sub lords routinely
+ * and sub lords occasionally.
  */
 
 /**
@@ -43,7 +49,31 @@ export function lahiriAyanamsa(jdTT: number): number {
   return LAHIRI_AT_J2000 + precessionSinceJ2000(jdTT);
 }
 
+/**
+ * The ayanamsa definitions this engine can compute.
+ *
+ * Only Lahiri is here. The Krishnamurti ayanamsa that KP is traditionally
+ * worked in is deliberately absent: its anchor is a published constant this
+ * engine has no verified source for, and guessing one would silently move
+ * every KP sub lord. Adding it is a matter of supplying that one number - see
+ * AYANAMSA_ANCHORS below - not of new machinery.
+ */
+export type AyanamsaName = "lahiri";
+
+/**
+ * Each definition is one anchor value plus the same precession term. That is
+ * all an ayanamsa is: a starting offset and the rate the equinox slides.
+ */
+export const AYANAMSA_ANCHORS: Record<AyanamsaName, { atJ2000: number; label: string }> = {
+  lahiri: { atJ2000: LAHIRI_AT_J2000, label: "Lahiri (Chitrapaksha)" },
+};
+
+/** Ayanamsa in degrees at an instant, for a named definition. */
+export function ayanamsaFor(jdTT: number, name: AyanamsaName = "lahiri"): number {
+  return AYANAMSA_ANCHORS[name].atJ2000 + precessionSinceJ2000(jdTT);
+}
+
 /** Converts a tropical longitude to sidereal, both in degrees. */
-export function toSidereal(tropicalLongitude: number, jdTT: number): number {
-  return normalizeDegrees(tropicalLongitude - lahiriAyanamsa(jdTT));
+export function toSidereal(tropicalLongitude: number, jdTT: number, name: AyanamsaName = "lahiri"): number {
+  return normalizeDegrees(tropicalLongitude - ayanamsaFor(jdTT, name));
 }

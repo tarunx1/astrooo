@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { ChartPanel } from "@/components/astrology/chart-panel";
 import { GocharPanel } from "@/components/astrology/gochar-panel";
-import { KpPositions } from "@/components/astrology/kp-positions";
+import { KpPanel } from "@/components/astrology/kp-panel";
 import { PlanetPositionTable } from "@/components/astrology/planet-position-table";
 import { VedicChart } from "@/components/astrology/vedic-chart";
 import { Card } from "@/components/ui/card";
@@ -74,16 +74,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
     {
       id: "kp",
       label: "KP",
-      content: (
-        <div className="grid gap-5">
-          <KpPositions data={rashi} />
-          <p className="caption text-foreground-muted">
-            Krishnamurti Paddhati subdivides each nakshatra in Vimshottari proportion. The star, sub and sub-sub
-            lords above are computed from each planet&rsquo;s longitude. Cuspal sub-lords are not shown: KP reads
-            them from Placidus house cusps, which this calculation does not provide.
-          </p>
-        </div>
-      ),
+      content: <KpPanel result={result} />,
     },
   ];
 
