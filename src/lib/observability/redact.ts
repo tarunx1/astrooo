@@ -9,7 +9,7 @@
  * bounded: a runaway provider payload must not become a runaway log line.
  */
 const SENSITIVE_KEY_PATTERN =
-  /(pass(word|phrase)?|secret|token|otp|cookie|authorization|auth[-_]?header|api[-_]?key|keysecret|key[-_]secret|credential|signature|session|bearer|private[-_]?key|salt|webhook[-_]?secret|refresh|access[-_]?key)/i;
+  /(pass(word|phrase)?|secret|token|otp|cookie|authorization|auth[-_]?header|api[-_]?key|keysecret|key[-_]secret|credential|signature|session|bearer|private[-_]?key|salt|webhook[-_]?secret|refresh|access[-_]?key|envelope|ciphertext|cipher[-_]?text|authtag|auth[-_]tag|plaintext|encryption[-_]?key)/i;
 
 /** Keys that are safe despite matching the pattern above. */
 const ALLOWED_KEYS = new Set(["tokenCount", "signatureValid", "sessionCount", "hasSession"]);

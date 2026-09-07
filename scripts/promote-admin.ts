@@ -8,6 +8,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
  * database access:
  *
  *   ADMIN_EMAIL=someone@example.com pnpm admin:promote
+ *   ADMIN_EMAIL=someone@example.com pnpm admin:promote-super
  *
  * Deliberately not automatic: no email is hard-coded in application code, the
  * first registered user is not promoted, and no browser request can assign a
@@ -48,7 +49,7 @@ async function main() {
     await tx.auditLog.create({
       data: {
         actorUserId: user.id,
-        action: "USER_ROLE_CHANGED",
+        action: role === UserRole.SUPER_ADMIN ? "SUPER_ADMIN_PROMOTED" : "USER_ROLE_CHANGED",
         entityType: "User",
         entityId: user.id,
         metadata: { from: previousRole, to: role, via: "bootstrap-script" },

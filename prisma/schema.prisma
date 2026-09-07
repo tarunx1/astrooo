@@ -880,6 +880,19 @@ enum AuditAction {
   COUPON_ACTIVATED
   COUPON_DEACTIVATED
   USER_ROLE_CHANGED
+  SYSTEM_SETTING_UPDATED
+  SYSTEM_SECRET_REPLACED
+  SYSTEM_SECRET_REMOVED
+  PROVIDER_ENABLED
+  PROVIDER_DISABLED
+  PROVIDER_TESTED
+  PAYMENT_MODE_CHANGED
+  HOMEPAGE_CONTENT_UPDATED
+  HOMEPAGE_SECTION_TOGGLED
+  NAVIGATION_UPDATED
+  FEATURE_SETTING_UPDATED
+  SUPER_ADMIN_PROMOTED
+  SUPER_ADMIN_DEMOTED
 }
 
 /// Append-only record of sensitive operator actions.
@@ -902,4 +915,63 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([action])
   @@index([createdAt])
+}
+
+/// Runtime configuration an operator may change without a deploy.
+///
+/// Deliberately not a free-form KEY=value store. Every key is declared in the
+/// typed registry in `lib/settings/registry.ts` with its own schema, and a key
+/// that is not in the registry is refused on write and ignored on read, so this
+/// table cannot become a way to inject arbitrary configuration.
+///
+/// Non-secret values only. Credentials live in SystemSecret, encrypted.
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  category    String
+  /// Shape is defined by the registry entry for `key`.
+  valueJson   Json
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+/// Provider credentials, encrypted at rest.
+///
+/// A separate table from SystemSetting so the encryption boundary is a table
+/// boundary: anything here is ciphertext, anything there is not. That makes
+/// "did a secret ever get written in the clear" answerable by looking at one
+/// place rather than auditing every row of a mixed table.
+///
+/// `envelope` holds the self-describing AES-256-GCM envelope produced by
+/// `lib/settings/crypto.ts`. Plaintext is never stored, never returned to a
+/// browser, and never written to a log or audit entry.
+model SystemSecret {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  envelope    String
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// Editable content and presentation for one homepage section.
+///
+/// `key` matches a section the code already renders. A row here can change that
+/// section's copy, hide it or reorder it; it can never introduce a new section,
+/// markup, styling or behaviour, so the approved design stays code-controlled.
+model HomepageSection {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  enabled     Boolean  @default(true)
+  sortOrder   Int
+  /// Structured copy fields only. Shape is defined by the section's registry entry.
+  contentJson Json?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
 }

@@ -1,5 +1,6 @@
 import {
   Boxes,
+  SlidersHorizontal,
   ClipboardList,
   FileText,
   LayoutDashboard,
@@ -21,6 +22,14 @@ export type AdminNavItem = {
   label: string;
   href: string;
   icon: typeof LayoutDashboard;
+  /**
+   * Only shown to a super admin.
+   *
+   * Presentation only. Every settings route and action authorizes server-side,
+   * so hiding the link changes what an operator sees and nothing about what
+   * they may do.
+   */
+  superAdminOnly?: boolean;
 };
 
 export const ADMIN_NAVIGATION: readonly AdminNavItem[] = [
@@ -34,4 +43,5 @@ export const ADMIN_NAVIGATION: readonly AdminNavItem[] = [
   { label: "Coupons", href: "/admin/coupons", icon: Tag },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Audit Log", href: "/admin/audit", icon: ShieldCheck },
+  { label: "System", href: "/admin/settings", icon: SlidersHorizontal, superAdminOnly: true },
 ] as const;

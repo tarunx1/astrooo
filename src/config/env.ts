@@ -31,6 +31,9 @@ const serverEnvSchema = z.object({
   TRUSTED_PROXY_PLATFORM: z.enum(["vercel", "cloudflare", "fly", "generic", "none"]).optional(),
   TRUSTED_PROXY_HOPS: z.string().regex(/^\d+$/).optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
+  // Root of trust for credentials stored through the admin. Never stored in the
+  // database, never editable from a browser, never returned to one.
+  CONFIG_ENCRYPTION_KEY: z.string().min(32).optional(),
 });
 
 const publicEnvSchema = z.object({

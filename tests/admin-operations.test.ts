@@ -677,6 +677,72 @@ describe("user roles", () => {
       data: { role: UserRole.ADMIN },
     });
   });
+  it("cannot be raced into leaving the system with zero super admins", async () => {
+    // The admin-count invariant does not cover this: demoting a super admin to
+    // ADMIN keeps the admin count healthy while removing the only account that
+    // can reach system settings and provider credentials.
+    const otherSupers = await prisma.user.findMany({
+      where: { role: UserRole.SUPER_ADMIN, id: { notIn: [admin.id] } },
+      select: { id: true },
+    });
+
+    await prisma.user.updateMany({
+      where: { id: { in: otherSupers.map((user) => user.id) } },
+      data: { role: UserRole.ADMIN },
+    });
+
+    await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.SUPER_ADMIN } });
+    const second = await createUser(`super-${Date.now()}`, UserRole.SUPER_ADMIN);
+    // Exactly two super admins now exist: `admin` and `second`.
+
+    const blocker = new PrismaClient({
+      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+    });
+
+    let a: RoleChangeResult;
+    let b: RoleChangeResult;
+
+    try {
+      let releaseBlocker: () => void = () => {};
+      const blockerReleased = new Promise<void>((resolve) => {
+        releaseBlocker = resolve;
+      });
+
+      // Same forced overlap as the last-admin test: a third connection holds the
+      // rows so both demotions end up inside the window together.
+      const holding = blocker.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT "id" FROM "User" WHERE "role"::text = ${UserRole.SUPER_ADMIN} FOR UPDATE`;
+        await blockerReleased;
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const demotions = Promise.all([
+        changeUserRole({ adminUserId: second.id, targetUserId: admin.id, role: UserRole.ADMIN }),
+        changeUserRole({ adminUserId: admin.id, targetUserId: second.id, role: UserRole.ADMIN }),
+      ]);
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseBlocker();
+      await holding;
+
+      [a, b] = await demotions;
+    } finally {
+      await blocker.$disconnect();
+    }
+
+    expect([a.ok, b.ok].filter(Boolean)).toHaveLength(1);
+
+    const remaining = await prisma.user.count({ where: { role: UserRole.SUPER_ADMIN } });
+    expect(remaining).toBeGreaterThanOrEqual(1);
+
+    // Restore.
+    await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.ADMIN } });
+    await prisma.user.updateMany({
+      where: { id: { in: otherSupers.map((user) => user.id) } },
+      data: { role: UserRole.SUPER_ADMIN },
+    });
+  });
 });
 
 describe("report generation retry", () => {

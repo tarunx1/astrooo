@@ -100,3 +100,43 @@ export async function authorizeAdminAction(): Promise<
 
   return { ok: true, admin };
 }
+
+/**
+ * Page guard for the system settings area.
+ *
+ * Settings can change how money is taken and which credentials the server
+ * uses, so they are held to a higher bar than day-to-day operations: an ADMIN
+ * who can process orders still cannot reach them. Renders a 404 for the same
+ * reason `requireAdmin` does - the existence of the area is not confirmed to
+ * someone who may not enter it.
+ */
+export async function requireSuperAdmin(): Promise<AdminIdentity> {
+  const admin = await getAdminIdentity();
+  if (!admin?.isSuperAdmin) notFound();
+  return admin;
+}
+
+/**
+ * Server Action guard for system settings.
+ *
+ * Mirrors `authorizeAdminAction`, including the rate limit, but requires
+ * SUPER_ADMIN. Hiding the navigation is not authorization; every settings
+ * mutation calls this.
+ */
+export async function authorizeSuperAdminAction(): Promise<
+  { ok: true; admin: AdminIdentity } | AdminActionDenial
+> {
+  const admin = await getAdminIdentity();
+  if (!admin?.isSuperAdmin) return ADMIN_DENIED;
+
+  const decision = await checkRateLimit({
+    namespace: "admin:settings",
+    identifier: `admin:${admin.id}`,
+  });
+
+  if (!decision.allowed) {
+    return { ok: false, error: rateLimitMessage(decision.retryAfterSeconds) };
+  }
+
+  return { ok: true, admin };
+}

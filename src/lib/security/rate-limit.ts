@@ -37,6 +37,9 @@ export type RateLimitNamespace =
   | "ai:generate"
   | "ai:retry"
   | "admin:mutation"
+  | "admin:settings"
+  | "admin:secret-replace"
+  | "admin:integration-test"
   | "cart:mutation"
   | "astrology:calculate";
 
@@ -104,6 +107,24 @@ export const RATE_LIMITS: Record<RateLimitNamespace, LimitRule> = {
     windowMs: HOUR,
     fail: "closed",
     rationale: "Operator retries are legitimate but each one costs a model call.",
+  },
+  "admin:settings": {
+    limit: 60,
+    windowMs: 5 * MINUTE,
+    fail: "open",
+    rationale: "Settings are edited in bursts while configuring, but a runaway script should still be caught.",
+  },
+  "admin:secret-replace": {
+    limit: 10,
+    windowMs: 10 * MINUTE,
+    fail: "closed",
+    rationale: "Credential rotation is rare and deliberate. Failing closed is right: better to refuse than to churn provider credentials during an outage.",
+  },
+  "admin:integration-test": {
+    limit: 12,
+    windowMs: 10 * MINUTE,
+    fail: "closed",
+    rationale: "Each test calls a third party. Unmetered use would burn provider quota from the admin UI.",
   },
   "admin:mutation": {
     limit: 120,

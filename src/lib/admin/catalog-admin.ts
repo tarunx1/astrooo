@@ -445,11 +445,46 @@ export async function changeUserRole(input: {
       }
     }
 
+    // A second, stricter invariant. System settings are SUPER_ADMIN-only, so a
+    // site with admins but no super admin can still be locked out of its own
+    // provider credentials and site configuration with no way back except shell
+    // access. Losing the last super admin is therefore its own failure, and it
+    // can happen while the admin count above stays healthy - demoting a super
+    // admin to ADMIN passes that check entirely.
+    const isLosingASuperAdmin =
+      target.role === UserRole.SUPER_ADMIN && input.role !== UserRole.SUPER_ADMIN;
+
+    if (isLosingASuperAdmin) {
+      // Locked and counted exactly like the admin check above, and for the same
+      // reason: two concurrent demotions of the last two super admins would each
+      // see the other still standing.
+      const lockedSuperAdmins = await tx.$queryRaw<Array<{ id: string }>>`
+        SELECT "id" FROM "User" WHERE "role"::text = ${UserRole.SUPER_ADMIN} FOR UPDATE
+      `;
+
+      const remainingSuperAdmins = lockedSuperAdmins.filter((row) => row.id !== target.id).length;
+
+      if (remainingSuperAdmins === 0) {
+        return {
+          ok: false as const,
+          message:
+            "This is the last super admin. Promote someone else to super admin before changing this role.",
+        };
+      }
+    }
+
     await tx.user.update({ where: { id: target.id }, data: { role: input.role } });
+
+    const action =
+      input.role === UserRole.SUPER_ADMIN
+        ? AuditAction.SUPER_ADMIN_PROMOTED
+        : target.role === UserRole.SUPER_ADMIN
+          ? AuditAction.SUPER_ADMIN_DEMOTED
+          : AuditAction.USER_ROLE_CHANGED;
 
     await recordAudit(tx, {
       actorUserId: input.adminUserId,
-      action: AuditAction.USER_ROLE_CHANGED,
+      action,
       entityType: "User",
       entityId: target.id,
       metadata: { email: target.email, from: target.role, to: input.role },

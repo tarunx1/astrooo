@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { AnnouncementBanner } from "@/components/layout/announcement-banner";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { StarFieldBackground } from "@/components/visuals/star-field-background";
 import { StarFieldProvider } from "@/components/visuals/star-field-source";
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-full" suppressHydrationWarning>
         <StarFieldProvider>
           <StarFieldBackground />
+          <AnnouncementBanner />
           <SiteHeader />
           <main>{children}</main>
           <SiteFooter />

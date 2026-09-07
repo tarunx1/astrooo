@@ -2,7 +2,8 @@ import Link from "next/link";
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ADMIN_NAVIGATION } from "@/config/admin-navigation";
+import { ADMIN_NAVIGATION, type AdminNavItem } from "@/config/admin-navigation";
+import { getAdminIdentity } from "@/lib/auth/admin";
 import { SmoothInput } from "@/components/ui/smooth-input";
 
 /**
@@ -12,7 +13,7 @@ import { SmoothInput } from "@/components/ui/smooth-input";
  * it reads as the same product rather than a bolted-on dashboard. Desktop gets a
  * sidebar; mobile gets a scrollable rail, and every table falls back to cards.
  */
-export function AdminLayout({
+export async function AdminLayout({
   currentPath,
   title,
   description,
@@ -27,6 +28,12 @@ export function AdminLayout({
   children: React.ReactNode;
   adminName: string;
 }) {
+  // Settings links are shown only to a super admin. This is presentation: every
+  // settings route and action authorizes server-side, so hiding a link changes
+  // what an operator sees and nothing about what they may reach.
+  const identity = await getAdminIdentity();
+  const navigation = ADMIN_NAVIGATION.filter((item) => !item.superAdminOnly || identity?.isSuperAdmin);
+
   return (
     <Section className="py-[var(--section-space-sm)]">
       <PageContainer className="px-0">
@@ -37,8 +44,8 @@ export function AdminLayout({
 
         <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
           <div className="grid gap-4 lg:gap-0">
-            <AdminSidebar currentPath={currentPath} />
-            <AdminMobileNav currentPath={currentPath} />
+            <AdminSidebar currentPath={currentPath} items={navigation} />
+            <AdminMobileNav currentPath={currentPath} items={navigation} />
           </div>
 
           <div className="min-w-0">
@@ -51,12 +58,18 @@ export function AdminLayout({
   );
 }
 
-export function AdminSidebar({ currentPath }: { currentPath: string }) {
+export function AdminSidebar({
+  currentPath,
+  items = ADMIN_NAVIGATION,
+}: {
+  currentPath: string;
+  items?: readonly AdminNavItem[];
+}) {
   return (
     <nav aria-label="Admin navigation" className="hidden lg:block">
       <Card className="p-2">
         <ul className="grid gap-0.5">
-          {ADMIN_NAVIGATION.map((item) => {
+          {items.map((item) => {
             const active = currentPath === item.href;
             const Icon = item.icon;
 
@@ -86,11 +99,17 @@ export function AdminSidebar({ currentPath }: { currentPath: string }) {
   );
 }
 
-export function AdminMobileNav({ currentPath }: { currentPath: string }) {
+export function AdminMobileNav({
+  currentPath,
+  items = ADMIN_NAVIGATION,
+}: {
+  currentPath: string;
+  items?: readonly AdminNavItem[];
+}) {
   return (
     <nav aria-label="Admin navigation" className="overflow-hidden lg:hidden">
       <ul className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {ADMIN_NAVIGATION.map((item) => {
+        {items.map((item) => {
           const active = currentPath === item.href;
           const Icon = item.icon;
 
@@ -347,7 +366,7 @@ export function AdminSearch({
         {placeholder}
       </label>
       <SmoothInput
-        className="min-h-10 min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+        className="form-control flex-1"
         defaultValue={defaultValue}
         id="admin-search"
         name="q"
