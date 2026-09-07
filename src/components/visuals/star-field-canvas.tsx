@@ -49,7 +49,6 @@ export type StarFieldCanvasProps = {
 
 const SPREAD = 44;
 const FORMATION_DEPTH = 0.3;
-const MORPH_SPEED = 1.3;
 
 /**
  * Size of a particle that is drawing the sign, relative to a free star.
@@ -444,7 +443,7 @@ function MorphingStars({
     return () => window.removeEventListener("pointermove", onPointerMove);
   }, [reduceMotion]);
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     const geometry = geometryRef.current;
     const material = materialRef.current;
     const points = pointsRef.current;
@@ -459,20 +458,18 @@ function MorphingStars({
       const positions = positionAttribute.array as Float32Array;
       const colors = colorAttribute.array as Float32Array;
 
-      // Frame-rate independent easing: the same journey takes the same time on
-      // a 60Hz and a 144Hz display.
-      const damping = reduceMotion ? 1 : 1 - Math.exp(-MORPH_SPEED * Math.min(delta, 0.05));
-
-      for (let i = 0; i < positions.length; i += 1) {
-        positions[i] += (nextPositions[i] - positions[i]) * damping;
-        colors[i] += (nextColors[i] - colors[i]) * damping;
-      }
+      // Formations snap rather than drift. A sign only holds while its band
+      // crosses the middle of the viewport, and easing spent a good part of
+      // that window mid-morph - the reader saw the approach to a shape more
+      // often than the shape. Arriving at once means the whole window shows
+      // the finished figure.
+      positions.set(nextPositions);
+      colors.set(nextColors);
 
       positionAttribute.needsUpdate = true;
       colorAttribute.needsUpdate = true;
 
-      const strength = material.uniforms.uShapeStrength;
-      strength.value += (shapeStrength.current - strength.value) * damping;
+      material.uniforms.uShapeStrength.value = shapeStrength.current;
     }
 
     if (reduceMotion) return;
