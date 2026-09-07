@@ -181,7 +181,7 @@ function createPlanetPositions(seed: number, ascendantIndex: number): PlanetPosi
 function unsupportedProviderMethod(operation: string): AstrologyProviderError {
   return new AstrologyProviderError({
     code: "CONFIGURATION",
-    provider: "vedastro",
+    provider: "development-fixture",
     operation,
     message: `${operation} is not implemented for the current phase.`,
     userMessage: "This astrology calculation is not available yet.",

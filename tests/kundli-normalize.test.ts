@@ -38,12 +38,12 @@ describe("Kundli normalization and hash", () => {
     const currentHash = createKundliInputHash(input);
     const changedVersionHash = createKundliInputHash(input, {
       ayanamsa: "LAHIRI",
-      houseSystem: "VEDASTRO_DEFAULT",
+      houseSystem: "WHOLE_SIGN",
       version: "ravish-kundli-v2",
     });
     const changedAyanamsaHash = createKundliInputHash(input, {
       ayanamsa: "RAMAN",
-      houseSystem: "VEDASTRO_DEFAULT",
+      houseSystem: "WHOLE_SIGN",
       version: "ravish-kundli-v1",
     });
 

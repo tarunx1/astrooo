@@ -1,6 +1,14 @@
 # Astrology Provider Decision
 
 Date: 2026-09-02
+**Superseded on 2026-09-07 — see [Astrology Engine Decision](astrology-engine-decision.md).**
+
+The application no longer calls VedAstro or any other astrology API. Positions
+are calculated in-app. The rest of this document is kept as the record of what
+was in place before that, and of what was actually verified about the API while
+it was in use.
+
+---
 
 ## Selected Provider
 

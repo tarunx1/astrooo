@@ -49,7 +49,7 @@ export type PlanetName = (typeof PLANETS)[number];
 export type ZodiacSign = (typeof SIGNS)[number];
 export type NakshatraName = (typeof NAKSHATRAS)[number];
 
-export type AstrologyProviderName = "native" | "vedastro" | "development";
+export type AstrologyProviderName = "native" | "development";
 
 export const astrologyCalculationConfig = {
   // Bumped when a change would move a placement: charts stored under an older
