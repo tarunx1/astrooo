@@ -11,7 +11,7 @@ import {
   ManglikSummary,
   PlanetaryPositionsTable,
 } from "@/components/kundli/result-sections";
-import { KundliChart } from "@/components/kundli/kundli-chart";
+import { KundliCharts } from "@/components/astrology/kundli-charts";
 import { SaveKundliCard } from "@/components/kundli/save-kundli";
 import { getKundliResult } from "@/lib/kundli/service";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -52,8 +52,8 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
         />
         <FixtureNotice result={result} />
         <CoreAstrologySummary result={result} />
-        <section className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
-          <KundliChart data={result.chart} />
+        <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <KundliCharts result={result} />
           <PlanetaryPositionsTable result={result} />
         </section>
         <section className="grid gap-6 lg:grid-cols-2">
