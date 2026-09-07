@@ -1,0 +1,368 @@
+{
+  "source": "Charts calculated by the former VedAstro provider and stored in this database.",
+  "purpose": "Evidence that replacing the provider with our own engine does not change anyone's existing chart. Independent correctness is established against JPL Horizons in astronomy-engine.test.ts.",
+  "ayanamsa": "LAHIRI",
+  "note": "Longitudes are stored to two decimal places, so agreement is expected to about 0.6 arcmin.",
+  "charts": [
+    {
+      "birth": {
+        "dateOfBirth": "2001-11-27",
+        "timeOfBirth": "20:30"
+      },
+      "location": {
+        "city": "Bat\u0101la",
+        "latitude": 31.75063,
+        "timezone": "Asia/Kolkata",
+        "longitude": 75.75562
+      },
+      "ascendant": {
+        "sign": "Gemini",
+        "degree": 26.25
+      },
+      "planets": [
+        {
+          "sign": "Scorpio",
+          "house": 6,
+          "planet": "Sun",
+          "longitude": 221.56,
+          "nakshatra": "Anuradha",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Aries",
+          "house": 11,
+          "planet": "Moon",
+          "longitude": 2.94,
+          "nakshatra": "Ashwini",
+          "nakshatraPada": 1
+        },
+        {
+          "sign": "Capricorn",
+          "house": 8,
+          "planet": "Mars",
+          "longitude": 297.93,
+          "nakshatra": "Dhanishta",
+          "nakshatraPada": 2
+        },
+        {
+          "sign": "Scorpio",
+          "house": 6,
+          "planet": "Mercury",
+          "longitude": 217.48,
+          "nakshatra": "Anuradha",
+          "nakshatraPada": 2
+        },
+        {
+          "sign": "Gemini",
+          "house": 1,
+          "planet": "Jupiter",
+          "longitude": 80.78,
+          "nakshatra": "Punarvasu",
+          "nakshatraPada": 1
+        },
+        {
+          "sign": "Scorpio",
+          "house": 6,
+          "planet": "Venus",
+          "longitude": 210.04,
+          "nakshatra": "Vishakha",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Taurus",
+          "house": 12,
+          "planet": "Saturn",
+          "longitude": 48.09,
+          "nakshatra": "Rohini",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Gemini",
+          "house": 1,
+          "planet": "Rahu",
+          "longitude": 64.3,
+          "nakshatra": "Mrigashira",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 7,
+          "planet": "Ketu",
+          "longitude": 244.3,
+          "nakshatra": "Mula",
+          "nakshatraPada": 2
+        }
+      ]
+    },
+    {
+      "birth": {
+        "dateOfBirth": "1992-08-14",
+        "timeOfBirth": "06:35"
+      },
+      "location": {
+        "city": "Amritsar",
+        "latitude": 31.634,
+        "timezone": "Asia/Kolkata",
+        "longitude": 74.8723
+      },
+      "ascendant": {
+        "sign": "Leo",
+        "degree": 5.33
+      },
+      "planets": [
+        {
+          "sign": "Cancer",
+          "house": 12,
+          "planet": "Sun",
+          "longitude": 117.74,
+          "nakshatra": "Ashwini",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Aquarius",
+          "house": 7,
+          "planet": "Moon",
+          "longitude": 304.38,
+          "nakshatra": "Dhanishta",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Taurus",
+          "house": 10,
+          "planet": "Mars",
+          "longitude": 48.38,
+          "nakshatra": "Rohini",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Cancer",
+          "house": 12,
+          "planet": "Mercury",
+          "longitude": 102.26,
+          "nakshatra": "Ashwini",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Leo",
+          "house": 1,
+          "planet": "Jupiter",
+          "longitude": 143.97,
+          "nakshatra": "Ashwini",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Leo",
+          "house": 1,
+          "planet": "Venus",
+          "longitude": 134.58,
+          "nakshatra": "Ashwini",
+          "nakshatraPada": 1
+        },
+        {
+          "sign": "Capricorn",
+          "house": 6,
+          "planet": "Saturn",
+          "longitude": 290.88,
+          "nakshatra": "Shravana",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 5,
+          "planet": "Rahu",
+          "longitude": 244.08,
+          "nakshatra": "Mula",
+          "nakshatraPada": 2
+        },
+        {
+          "sign": "Gemini",
+          "house": 11,
+          "planet": "Ketu",
+          "longitude": 64.08,
+          "nakshatra": "Mrigashira",
+          "nakshatraPada": 4
+        }
+      ]
+    },
+    {
+      "birth": {
+        "dateOfBirth": "1994-04-12",
+        "timeOfBirth": "07:30"
+      },
+      "location": {
+        "city": "New Delhi",
+        "latitude": 28.613939,
+        "timezone": "Asia/Kolkata",
+        "longitude": 77.209023
+      },
+      "ascendant": {
+        "sign": "Aries",
+        "degree": 25.93
+      },
+      "planets": [
+        {
+          "sign": "Pisces",
+          "house": 12,
+          "planet": "Sun",
+          "longitude": 358.16,
+          "nakshatra": "Revati",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Aries",
+          "house": 1,
+          "planet": "Moon",
+          "longitude": 9.76,
+          "nakshatra": "Ashwini",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Pisces",
+          "house": 12,
+          "planet": "Mars",
+          "longitude": 334.14,
+          "nakshatra": "Uttara Bhadrapada",
+          "nakshatraPada": 1
+        },
+        {
+          "sign": "Pisces",
+          "house": 12,
+          "planet": "Mercury",
+          "longitude": 340.27,
+          "nakshatra": "Uttara Bhadrapada",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Libra",
+          "house": 7,
+          "planet": "Jupiter",
+          "longitude": 198.25,
+          "nakshatra": "Swati",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Aries",
+          "house": 1,
+          "planet": "Venus",
+          "longitude": 18.87,
+          "nakshatra": "Bharani",
+          "nakshatraPada": 2
+        },
+        {
+          "sign": "Aquarius",
+          "house": 11,
+          "planet": "Saturn",
+          "longitude": 314.7,
+          "nakshatra": "Shatabhisha",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Scorpio",
+          "house": 8,
+          "planet": "Rahu",
+          "longitude": 211.96,
+          "nakshatra": "Vishakha",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Taurus",
+          "house": 2,
+          "planet": "Ketu",
+          "longitude": 31.96,
+          "nakshatra": "Krittika",
+          "nakshatraPada": 2
+        }
+      ]
+    },
+    {
+      "birth": {
+        "dateOfBirth": "2001-11-27",
+        "timeOfBirth": "20:30"
+      },
+      "location": {
+        "city": "Amritsar",
+        "latitude": 31.634,
+        "timezone": "Asia/Kolkata",
+        "longitude": 74.8723
+      },
+      "ascendant": {
+        "sign": "Gemini",
+        "degree": 25.44
+      },
+      "planets": [
+        {
+          "sign": "Scorpio",
+          "house": 6,
+          "planet": "Sun",
+          "longitude": 221.56,
+          "nakshatra": "Anuradha",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Aries",
+          "house": 11,
+          "planet": "Moon",
+          "longitude": 2.94,
+          "nakshatra": "Ashwini",
+          "nakshatraPada": 1
+        },
+        {
+          "sign": "Capricorn",
+          "house": 8,
+          "planet": "Mars",
+          "longitude": 297.93,
+          "nakshatra": "Dhanishta",
+          "nakshatraPada": 2
+        },
+        {
+          "sign": "Scorpio",
+          "house": 6,
+          "planet": "Mercury",
+          "longitude": 217.48,
+          "nakshatra": "Anuradha",
+          "nakshatraPada": 2
+        },
+        {
+          "sign": "Gemini",
+          "house": 1,
+          "planet": "Jupiter",
+          "longitude": 80.78,
+          "nakshatra": "Punarvasu",
+          "nakshatraPada": 1
+        },
+        {
+          "sign": "Scorpio",
+          "house": 6,
+          "planet": "Venus",
+          "longitude": 210.04,
+          "nakshatra": "Vishakha",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Taurus",
+          "house": 12,
+          "planet": "Saturn",
+          "longitude": 48.09,
+          "nakshatra": "Rohini",
+          "nakshatraPada": 3
+        },
+        {
+          "sign": "Gemini",
+          "house": 1,
+          "planet": "Rahu",
+          "longitude": 64.3,
+          "nakshatra": "Mrigashira",
+          "nakshatraPada": 4
+        },
+        {
+          "sign": "Sagittarius",
+          "house": 7,
+          "planet": "Ketu",
+          "longitude": 244.3,
+          "nakshatra": "Mula",
+          "nakshatraPada": 2
+        }
+      ]
+    }
+  ]
+}
