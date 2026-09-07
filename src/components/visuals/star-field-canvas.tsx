@@ -296,6 +296,12 @@ function MorphingStars({
   const countRef = useRef(0);
   const targetPositions = useRef<Float32Array | null>(null);
   const targetColors = useRef<Float32Array | null>(null);
+  // Where the sky sits when it is holding nothing. Generated once and returned
+  // to, rather than rolled fresh each time: a new random layout on every change
+  // meant every star in the field travelled somewhere, including on the very
+  // first render and including the ones that had no part in the shape.
+  const homePositions = useRef<Float32Array | null>(null);
+  const homeColors = useRef<Float32Array | null>(null);
   const pointer = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
   // 1 while a sign is held, 0 for open sky. Eased in the frame loop so the
   // particles change size over the same span as they change position.
@@ -313,6 +319,10 @@ function MorphingStars({
     countRef.current = count;
 
     const initial = initialiseGeometry(geometry, count);
+    homePositions.current = initial.positions;
+    homeColors.current = initial.colors;
+    // The geometry was filled from these same values, so nothing has anywhere
+    // to travel to on the first frame.
     targetPositions.current = initial.positions;
     targetColors.current = initial.colors;
 
@@ -335,10 +345,11 @@ function MorphingStars({
   useEffect(() => {
     let cancelled = false;
 
-    const driftToOpenSky = (count: number) => {
-      const open = createStarfieldTargets(count);
-      targetPositions.current = open.positions;
-      targetColors.current = open.colors;
+    const driftToOpenSky = () => {
+      // Only the particles that were drawing the shape have moved, so only they
+      // have a journey home. The rest of the sky is already there.
+      targetPositions.current = homePositions.current;
+      targetColors.current = homeColors.current;
       shapeStrength.current = 0;
       invalidate();
     };
@@ -348,7 +359,7 @@ function MorphingStars({
       if (count === 0) return;
 
       if (!source) {
-        driftToOpenSky(count);
+        driftToOpenSky();
         return;
       }
 
@@ -365,9 +376,17 @@ function MorphingStars({
         });
         if (cancelled) return;
 
-        // Start from a fresh sky, then overwrite only the leading slice with the
-        // shape. The rest keep drifting as stars behind it.
-        const open = createStarfieldTargets(count);
+        // Start from the sky's resting layout and overwrite only the leading
+        // slice with the shape, so every other star keeps the position it
+        // already holds and never moves at all.
+        const home = homePositions.current;
+        const homeColour = homeColors.current;
+        if (!home || !homeColour) return;
+
+        const open = {
+          positions: new Float32Array(home),
+          colors: new Float32Array(homeColour),
+        };
 
         for (let i = 0; i < shaped; i += 1) {
           open.positions[i * 3] = sampled.positions[i * 3] * scale + offset.x;
@@ -402,7 +421,7 @@ function MorphingStars({
         onImageError?.(normalized);
 
         // Drifting back to open sky is a better failure than a broken shape.
-        driftToOpenSky(count);
+        driftToOpenSky();
       }
     }
 
