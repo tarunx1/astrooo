@@ -185,23 +185,15 @@ describe("Rahu and Ketu agency", () => {
     }
   });
 
-  it("counts only the strongest relation, not all three", () => {
+  it("counts every relation, not only the strongest", () => {
     // Rahu in Aries with Mars conjoined and Jupiter aspecting from Sagittarius.
-    // Mars wins, and Jupiter's houses must not be folded in as well.
+    // Both contribute; the strongest is only labelled, not used to exclude.
     const chart = syntheticChart({ Rahu: 5, Mars: 20, Jupiter: 250, Ketu: 185, Sun: 100 });
     const rahu = significatorsFor(chart.planets.find((planet) => planet.planet === "Rahu")!, chart);
 
     expect(rahu.primaryRelation).toBe("conjunct");
-    // Every borrowed house is attributed to Mars, and none to Jupiter.
     const borrowed = rahu.significations.filter((entry) => entry.source.startsWith("node-"));
-    expect(borrowed.length).toBeGreaterThan(0);
-    expect(new Set(borrowed.map((entry) => entry.via))).toEqual(new Set(["Mars"]));
-
-    // Jupiter is still listed as an available agent, and what it would have
-    // added is kept separately rather than thrown away.
-    expect(rahu.agents.some((agent) => agent.planet === "Jupiter")).toBe(true);
-    expect(rahu.secondaryHouses.length).toBeGreaterThan(0);
-    for (const house of rahu.secondaryHouses) expect(rahu.houses).not.toContain(house);
+    expect(new Set(borrowed.map((entry) => entry.via))).toEqual(new Set(["Mars", "Jupiter"]));
   });
 
   it("falls through the hierarchy when the stronger relation is absent", () => {
@@ -217,13 +209,12 @@ describe("Rahu and Ketu agency", () => {
     expect(rahu.significations.some((entry) => entry.source === "node-sign-lord")).toBe(true);
   });
 
-  it("gives a non-node no relation and no secondary houses", () => {
+  it("gives a non-node no agents at all", () => {
     const chart = chartFor();
     for (const planet of chart.planets.filter((entry) => entry.planet !== "Rahu" && entry.planet !== "Ketu")) {
       const result = significatorsFor(planet, chart);
       expect(result.primaryRelation, planet.planet).toBeNull();
       expect(result.agents, planet.planet).toHaveLength(0);
-      expect(result.secondaryHouses, planet.planet).toHaveLength(0);
     }
   });
 
@@ -236,6 +227,64 @@ describe("Rahu and Ketu agency", () => {
     expect(borrowed.length).toBeGreaterThan(0);
     // A borrowed house without an attributed planet is unreadable.
     for (const entry of borrowed) expect(entry.via).toBeTruthy();
+  });
+});
+
+describe("KP significators against AstroSage", () => {
+  /**
+   * The same birth, as AstroSage's KP "Nakshatra Nadi" table reports it.
+   *
+   * Its Planet column lists the houses a planet stands for in its own right,
+   * with the star lord's houses shown in the next column rather than folded
+   * in. Matching it is what settled two questions: that the planet column
+   * excludes the star lord, and that a node takes every one of its relations
+   * rather than only the strongest.
+   */
+  const ASTROSAGE_OWN_HOUSES: Record<string, number[]> = {
+    Sun: [3, 5],
+    Moon: [2, 10],
+    Mars: [6, 8, 11],
+    Mercury: [1, 4, 5],
+    Jupiter: [7, 10, 12],
+    Venus: [5, 12],
+    Saturn: [8, 9, 11],
+    Rahu: [1, 4, 5, 7, 10, 12],
+    Ketu: [6, 7, 10, 12],
+  };
+
+  const ASTROSAGE_STAR_LORDS: Record<string, string> = {
+    Sun: "Saturn", Moon: "Ketu", Mars: "Mars", Mercury: "Saturn", Jupiter: "Jupiter",
+    Venus: "Jupiter", Saturn: "Moon", Rahu: "Mars", Ketu: "Ketu",
+  };
+
+  it("reproduces every house AstroSage lists for this chart", () => {
+    const chart = chartFor();
+    for (const planet of chart.planets) {
+      const result = significatorsFor(planet, chart);
+      expect(result.ownHouses, planet.planet).toEqual(ASTROSAGE_OWN_HOUSES[planet.planet]);
+    }
+  });
+
+  it("reproduces every star lord AstroSage gives", () => {
+    // The star lords agree under our ayanamsa; only one sub lord does not,
+    // which is the ayanamsa difference and not a rule difference.
+    const chart = chartFor();
+    for (const planet of chart.planets) {
+      expect(planet.lords.starLord, planet.planet).toBe(ASTROSAGE_STAR_LORDS[planet.planet]);
+    }
+  });
+
+  it("keeps the star lord out of the planet's own column", () => {
+    // The failure this guards against printed the star lord's houses twice:
+    // once beside the planet and again in the star lord column.
+    const chart = chartFor();
+    const sun = significatorsFor(chart.planets.find((planet) => planet.planet === "Sun")!, chart);
+    const saturn = significatorsFor(chart.planets.find((planet) => planet.planet === "Saturn")!, chart);
+
+    expect(sun.ownHouses).toEqual([3, 5]);
+    // Saturn is the Sun's star lord, so its houses belong to the fuller list.
+    expect(sun.houses).toEqual(expect.arrayContaining(saturn.ownHouses));
+    expect(sun.houses.length).toBeGreaterThan(sun.ownHouses.length);
   });
 });
 

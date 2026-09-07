@@ -37,17 +37,25 @@ export type NodeAgent = { planet: PlanetName; relation: NodeRelation };
 export type PlanetSignificators = {
   planet: PlanetName;
   significations: Signification[];
-  /** Distinct houses by the KP hierarchy, ascending. What a summary table shows. */
-  houses: number[];
   /**
-   * Houses that only the weaker nodal relations reach, and which the hierarchy
-   * therefore excludes. Kept so a practitioner who reads the nodes cumulatively
-   * can still see them.
+   * The houses this planet stands for in its own right: the one it occupies,
+   * the ones it owns, and for a node the ones it borrows from its agents.
+   *
+   * This is what a KP table prints beside a planet's name. It deliberately
+   * excludes the star lord, because a KP table shows the star lord in its own
+   * column with its own houses - folding them in here would print the same
+   * numbers twice and make the columns redundant.
    */
-  secondaryHouses: number[];
-  /** For a node, every planet it could act for, strongest relation first. */
+  ownHouses: number[];
+  /**
+   * Everything the planet signifies once its star lord is included. This is
+   * the fuller KP claim and the one to reason from, but it is not what the
+   * table's first column shows.
+   */
+  houses: number[];
+  /** For a node, every planet it acts for, strongest relation first. */
   agents: NodeAgent[];
-  /** The relation the hierarchy actually used. Null for everything but a node. */
+  /** The strongest relation a node has. Null for everything but a node. */
   primaryRelation: NodeRelation | null;
 };
 
@@ -163,24 +171,25 @@ const RELATION_STRENGTH: NodeRelation[] = ["conjunct", "aspected-by", "sign-lord
 /**
  * Significators for one planet, including a node's borrowed houses.
  *
- * The nodal hierarchy is applied here rather than accumulated. Krishnamurti's
- * rule reads as a hierarchy - a node gives the results of the planet it is
- * conjoined with; failing that, of the planet aspecting it; failing that, of
- * its sign lord - and taking all three instead leaves a node signifying most
- * of the chart, which says nothing. Rahu in the sample chart drops from nine
- * houses to five once the rule is applied as written.
+ * Every nodal relation contributes. An earlier version applied Krishnamurti's
+ * rule as a strict hierarchy - conjunction, else aspect, else sign lord -
+ * because a node otherwise came out signifying nine of twelve houses, which
+ * says nothing. That reading was a fix for the wrong problem: the nine houses
+ * came from folding the star lord into the same list, not from the agents.
+ * With the star lord kept in its own column the node settles at six, and
+ * taking every relation is what published KP tables do.
+ *
+ * The strongest relation is still reported, because which one a node has is
+ * worth knowing even when all of them count.
  */
 export function significatorsFor(planet: KpPlanet, chart: KpChart): PlanetSignificators {
   const significations = directSignifications(planet, chart);
   const isNode = planet.planet === "Rahu" || planet.planet === "Ketu";
   const agents = isNode ? nodeAgents(planet, chart) : [];
 
-  // Only the strongest relation present counts.
   const primaryRelation = RELATION_STRENGTH.find((relation) =>
     agents.some((agent) => agent.relation === relation),
   ) ?? null;
-
-  const secondary: number[] = [];
 
   for (const agent of agents) {
     const agentPlanet = chart.planets.find((candidate) => candidate.planet === agent.planet);
@@ -189,24 +198,19 @@ export function significatorsFor(planet: KpPlanet, chart: KpChart): PlanetSignif
     // A node borrows the agent's occupation and ownership, not the agent's own
     // star-lord significations: it stands in for the planet, it does not
     // inherit the planet's whole chain.
-    const borrowed = [agentPlanet.house, ...ownedHouses(agent.planet, chart)];
-
-    if (agent.relation === primaryRelation) {
-      for (const house of borrowed) {
-        significations.push({ house, source: SOURCE_FOR_RELATION[agent.relation], via: agent.planet });
-      }
-    } else {
-      secondary.push(...borrowed);
+    for (const house of [agentPlanet.house, ...ownedHouses(agent.planet, chart)]) {
+      significations.push({ house, source: SOURCE_FOR_RELATION[agent.relation], via: agent.planet });
     }
   }
 
-  const houses = [...new Set(significations.map((entry) => entry.house))].sort((a, b) => a - b);
+  const distinct = (entries: Signification[]) =>
+    [...new Set(entries.map((entry) => entry.house))].sort((a, b) => a - b);
 
   return {
     planet: planet.planet,
     significations,
-    houses,
-    secondaryHouses: [...new Set(secondary)].filter((house) => !houses.includes(house)).sort((a, b) => a - b),
+    ownHouses: distinct(significations.filter((entry) => !entry.source.startsWith("star-lord"))),
+    houses: distinct(significations),
     agents,
     primaryRelation,
   };

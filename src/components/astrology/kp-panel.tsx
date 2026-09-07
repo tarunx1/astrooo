@@ -106,6 +106,8 @@ export function KpPanel({ result }: { result: KundliResult }) {
         </table>
       </section>
 
+      <NakshatraNadiTable chart={chart} significators={significators} />
+
       <section className="grid gap-2">
         <h3 className="body-sm font-semibold text-foreground">Planets, in Bhava Chalit houses</h3>
         <table className="w-full border-collapse text-left">
@@ -159,7 +161,7 @@ export function KpPanel({ result }: { result: KundliResult }) {
                     <Lord planet={planet.lords.subSubLord} />
                   </td>
                   <td className="hidden py-1.5 body-sm tabular-nums text-foreground-secondary @lg:table-cell">
-                    {signifies?.houses.join(", ") ?? "-"}
+                    {signifies?.ownHouses.join(", ") ?? "-"}
                   </td>
                 </tr>
               );
@@ -182,6 +184,72 @@ export function KpPanel({ result }: { result: KundliResult }) {
         Ve Venus, Sa Saturn, Ra Rahu, Ke Ketu.
       </p>
     </div>
+  );
+}
+
+/**
+ * The Nakshatra Nadi view condenses KP's three relevant readings into one
+ * scannable line: the planet itself, its star lord, and its sub lord. Each
+ * entry carries the houses it signifies, as practitioners conventionally read
+ * it (for example, `SUN-3,5`).
+ */
+function NakshatraNadiTable({
+  chart,
+  significators,
+}: {
+  chart: KpChart;
+  significators: ReadonlyMap<string, PlanetSignificators>;
+}) {
+  const houseLabel = (planet: string) => {
+    // The planet's own houses, not its full significations. Each column here
+    // names a different planet, and the star lord's houses belong in the star
+    // lord's column - folding them into the first one prints them twice and
+    // makes every entry look wider than it is.
+    const houses = significators.get(planet)?.ownHouses ?? [];
+    return `${planet.toUpperCase()}-${houses.length > 0 ? houses.join(",") : "—"}`;
+  };
+
+  return (
+    <section className="grid gap-2">
+      <div>
+        <h3 className="body-sm font-semibold text-foreground">Nakshatra Nadi</h3>
+        <p className="caption text-foreground-muted">
+          Planet, star lord and sub lord with the houses each signifies in its own right.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto rounded-md border border-border">
+        <table className="w-full min-w-[28rem] border-collapse text-left">
+          <caption className="sr-only">
+            Nakshatra Nadi house significators for each planet, its star lord, and its sub lord
+          </caption>
+          <thead className="bg-premium text-background">
+            <tr>
+              {(["Planet", "Star Lord", "Sub Lord"] as const).map((heading) => (
+                <th className="border-r border-background/25 px-3 py-2.5 text-sm font-semibold last:border-r-0 sm:px-4" key={heading} scope="col">
+                  {heading}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {chart.planets.map((planet) => (
+              <tr className="border-t border-border transition-colors hover:bg-surface-raised" key={planet.planet}>
+                <th className="border-r border-border px-3 py-2.5 font-medium text-foreground sm:px-4" scope="row">
+                  {houseLabel(planet.planet)}
+                </th>
+                <td className="border-r border-border px-3 py-2.5 text-foreground-secondary sm:px-4">
+                  {houseLabel(planet.lords.starLord)}
+                </td>
+                <td className="px-3 py-2.5 text-foreground-secondary sm:px-4">
+                  {houseLabel(planet.lords.subLord)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -214,37 +282,30 @@ function NodeAgency({ significators }: { significators: (PlanetSignificators | u
               <p className="mt-1 caption text-foreground-muted">No agent planet, so it speaks only for itself.</p>
             ) : (
               <ul className="mt-1 grid gap-0.5">
-                {node.agents.map((agent) => {
-                  const inForce = agent.relation === node.primaryRelation;
-                  return (
-                    <li
-                      className={inForce ? "caption text-foreground-secondary" : "caption text-foreground-muted"}
-                      key={agent.planet}
+                {node.agents.map((agent) => (
+                  <li className="caption text-foreground-secondary" key={agent.planet}>
+                    {RELATION_LABEL[agent.relation]}{" "}
+                    <span
+                      className={agent.relation === node.primaryRelation ? "font-semibold text-foreground" : ""}
                     >
-                      {RELATION_LABEL[agent.relation]}{" "}
-                      <span className={inForce ? "font-semibold text-foreground" : ""}>{agent.planet}</span>
-                      {inForce ? null : <span className="ml-1">&mdash; outranked</span>}
-                    </li>
-                  );
-                })}
+                      {agent.planet}
+                    </span>
+                  </li>
+                ))}
               </ul>
             )}
             <p className="mt-1.5 caption tabular-nums text-foreground-muted">
-              Signifies houses <span className="text-foreground">{node.houses.join(", ")}</span>
-              {node.secondaryHouses.length > 0 ? (
-                <>
-                  {" "}
-                  &middot; {node.secondaryHouses.join(", ")} only if the weaker relations are read cumulatively
-                </>
+              Signifies houses <span className="text-foreground">{node.ownHouses.join(", ")}</span>
+              {node.houses.length > node.ownHouses.length ? (
+                <> &middot; {node.houses.join(", ")} once its star lord is counted too</>
               ) : null}
             </p>
           </li>
         ))}
       </ul>
       <p className="caption text-foreground-muted">
-        A node gives the results of the planet it is conjoined with; failing that, of the planet aspecting it;
-        failing that, of the lord of the sign it occupies. Only the strongest relation present is counted, which is
-        the rule as Krishnamurti wrote it &mdash; taking all three would leave a node signifying most of the chart.
+        A node gives the results of the planet it is conjoined with, the planet aspecting it, and the lord of the
+        sign it occupies. All of them count; the strongest is shown in bold.
       </p>
     </section>
   );
