@@ -1,8 +1,12 @@
+import { Suspense } from "react";
 import { ChartPanel } from "@/components/astrology/chart-panel";
+import { GocharPanel } from "@/components/astrology/gochar-panel";
+import { KpPositions } from "@/components/astrology/kp-positions";
 import { PlanetPositionTable } from "@/components/astrology/planet-position-table";
 import { VedicChart } from "@/components/astrology/vedic-chart";
 import { Card } from "@/components/ui/card";
 import { createChartsFromKundli } from "@/lib/astrology/charts/factory";
+import { getSignNumberFromName } from "@/lib/astrology/charts/signs";
 import type { KundliResult } from "@/lib/kundli/types";
 
 /**
@@ -15,9 +19,13 @@ import type { KundliResult } from "@/lib/kundli/types";
  * The Navamsa is offered only when the ascendant's exact degree is available.
  * The D9 ascendant is the navamsa of the rising degree, and a sign alone cannot
  * produce it - showing an approximation would be worse than showing nothing.
+ *
+ * Gochar streams in on its own, because it is the only view here that needs a
+ * live provider call. Everything else comes from the stored calculation.
  */
 export function KundliCharts({ result }: { result: KundliResult }) {
   const { rashi, navamsa, moon, warnings } = createChartsFromKundli(result);
+  const moonSign = getSignNumberFromName(result.moonSign);
 
   const tabs = [
     {
@@ -51,6 +59,29 @@ export function KundliCharts({ result }: { result: KundliResult }) {
         <div className="grid gap-5">
           <VedicChart data={moon} label="Moon chart" />
           <PlanetPositionTable caption="Planetary positions from the Moon" data={moon} />
+        </div>
+      ),
+    },
+    {
+      id: "gochar",
+      label: "Gochar",
+      content: (
+        <Suspense fallback={<p className="body-sm text-foreground-muted">Loading current transits…</p>}>
+          <GocharPanel ascendantSign={rashi.ascendantSign} moonSign={moonSign} />
+        </Suspense>
+      ),
+    },
+    {
+      id: "kp",
+      label: "KP",
+      content: (
+        <div className="grid gap-5">
+          <KpPositions data={rashi} />
+          <p className="caption text-foreground-muted">
+            Krishnamurti Paddhati subdivides each nakshatra in Vimshottari proportion. The star, sub and sub-sub
+            lords above are computed from each planet&rsquo;s longitude. Cuspal sub-lords are not shown: KP reads
+            them from Placidus house cusps, which this calculation does not provide.
+          </p>
         </div>
       ),
     },

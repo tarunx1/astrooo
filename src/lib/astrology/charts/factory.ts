@@ -164,3 +164,30 @@ export function createChartsFromKundli(result: KundliResult): {
 
   return { rashi, navamsa, moon: createMoonChart(rashi), warnings: validateChartPlanets(rashi.planets) };
 }
+
+/**
+ * Gochar: transiting planets read against a natal chart.
+ *
+ * The chart keeps the natal ascendant, so a transiting planet appears in the
+ * house it is transiting *for this person* rather than in an abstract sign
+ * position. That reference point is the whole difference between a transit
+ * table and a reading.
+ *
+ * The natal ascendant must be supplied. Deriving one from the current moment
+ * would silently answer a different question - where the planets are now
+ * relative to now - and look identical on screen.
+ */
+export function createTransitChart(input: {
+  natalAscendantSign: number;
+  transits: readonly { planet: PlanetName; longitude: number; retrograde?: boolean }[];
+  calculatedAt?: string;
+}): VedicChartData {
+  return {
+    chartType: "GOCHAR",
+    ascendantSign: normalizeSign(input.natalAscendantSign),
+    planets: input.transits.map((transit) =>
+      toChartPlanet({ planet: transit.planet, longitude: transit.longitude, retrograde: Boolean(transit.retrograde) }),
+    ),
+    calculatedAt: input.calculatedAt,
+  };
+}

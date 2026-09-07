@@ -12,7 +12,13 @@ import {
   normalizeSign,
 } from "@/lib/astrology/charts/signs";
 import { ChartDataError, type ChartPlanet } from "@/lib/astrology/charts/types";
-import { createMoonChart, createNavamsaChart, createRashiChart, validateChartPlanets } from "@/lib/astrology/charts/factory";
+import {
+  createMoonChart,
+  createNavamsaChart,
+  createRashiChart,
+  createTransitChart,
+  validateChartPlanets,
+} from "@/lib/astrology/charts/factory";
 
 /**
  * The chart engine.
@@ -316,5 +322,75 @@ describe("chart factories", () => {
     expect(brokenWarnings.join(" ")).toMatch(/Rahu and Ketu/);
     // The value itself is untouched.
     expect(broken.planets.find((p) => p.planet === "Ketu")!.longitude).toBe(200);
+  });
+});
+
+/**
+ * Gochar.
+ *
+ * The thing that makes a transit chart a reading rather than an almanac is the
+ * natal reference point, so that is what these check: the same sky, read from
+ * two different birth charts, must produce two different house placements.
+ */
+describe("transit chart", () => {
+  const transits = [
+    { planet: "Sun" as const, longitude: 155.4 },
+    { planet: "Saturn" as const, longitude: 340.2, retrograde: true },
+    { planet: "Jupiter" as const, longitude: 65.9 },
+  ];
+
+  it("counts houses from the natal reference, not from the transit positions", () => {
+    // Natal Moon in Aries: Sun at 155.4 is in Virgo (6), so six signs along.
+    const fromAries = createTransitChart({ natalAscendantSign: 1, transits });
+    expect(getHouseFromSign(fromAries.planets[0].sign, fromAries.ascendantSign)).toBe(6);
+
+    // The identical sky, read from a natal Moon in Libra, puts it in the 12th.
+    const fromLibra = createTransitChart({ natalAscendantSign: 7, transits });
+    expect(getHouseFromSign(fromLibra.planets[0].sign, fromLibra.ascendantSign)).toBe(12);
+
+    // Same longitudes either way; only the reference point moved.
+    expect(fromAries.planets.map((planetPosition) => planetPosition.longitude)).toEqual(
+      fromLibra.planets.map((planetPosition) => planetPosition.longitude),
+    );
+  });
+
+  it("places every transiting planet from every natal sign", () => {
+    for (let natal = 1; natal <= SIGNS.length; natal += 1) {
+      const chart = createTransitChart({ natalAscendantSign: natal, transits });
+
+      for (const position of chart.planets) {
+        const house = getHouseFromSign(position.sign, chart.ascendantSign);
+        expect(house).toBeGreaterThanOrEqual(1);
+        expect(house).toBeLessThanOrEqual(12);
+        // The house's sign has to be the sign the planet is actually in.
+        expect(getHouseSign(chart.ascendantSign, house)).toBe(position.sign);
+      }
+    }
+  });
+
+  it("derives sign and degree from longitude and keeps retrograde", () => {
+    const chart = createTransitChart({ natalAscendantSign: 1, transits, calculatedAt: "2026-09-07T00:00:00.000Z" });
+
+    expect(chart.chartType).toBe("GOCHAR");
+    expect(chart.calculatedAt).toBe("2026-09-07T00:00:00.000Z");
+
+    const saturn = chart.planets.find((position) => position.planet === "Saturn")!;
+    expect(getSignName(saturn.sign)).toBe("Pisces");
+    expect(saturn.degreeInSign).toBeCloseTo(10.2, 6);
+    expect(saturn.retrograde).toBe(true);
+
+    // Absent retrograde is false, never undefined leaking into the chart.
+    expect(chart.planets.find((position) => position.planet === "Sun")!.retrograde).toBe(false);
+  });
+
+  it("normalises an out-of-range natal sign and longitude", () => {
+    const chart = createTransitChart({
+      natalAscendantSign: 13,
+      transits: [{ planet: "Mars" as const, longitude: 380 }],
+    });
+
+    expect(chart.ascendantSign).toBe(1);
+    expect(chart.planets[0].longitude).toBe(20);
+    expect(chart.planets[0].sign).toBe(1);
   });
 });

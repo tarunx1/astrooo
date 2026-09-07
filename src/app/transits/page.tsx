@@ -144,7 +144,12 @@ export default async function TransitsPage() {
               <p>
                 A transit is simply where a planet is now, as opposed to where it was when you were born. Vedic
                 astrology reads transits against your natal chart — particularly against your Moon sign — rather than
-                in isolation.
+                in isolation. That reading is called Gochar, and the{" "}
+                <Link className="font-semibold text-primary underline-offset-4 hover:underline" href="/kundli" prefetch={false}>
+                  free Kundli
+                </Link>{" "}
+                includes it: the same positions shown here, placed in the houses they fall in for your own birth
+                details.
               </p>
               <p>
                 The descriptions beside each planet are traditional significations of that planet in general. They are

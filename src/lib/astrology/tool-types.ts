@@ -1,4 +1,4 @@
-import type { NakshatraName, ZodiacSign } from "@/config/astrology";
+import type { NakshatraName, PlanetName, ZodiacSign } from "@/config/astrology";
 import type { CalculationMetadata, ResolvedLocation } from "@/lib/kundli/types";
 
 /**
@@ -115,7 +115,12 @@ export type PanchangResult = {
 /* ------------------------------------------------------------------ */
 
 export type TransitPlanetPosition = {
-  planet: string;
+  /**
+   * Named, not free text: transits are built by mapping over `PLANETS`, so the
+   * value is always one of the nine. Typing it that way lets a transit position
+   * feed the chart engine without a cast asserting something already true.
+   */
+  planet: PlanetName;
   sign: ZodiacSign;
   degreeInSign: number;
   longitude: number;
