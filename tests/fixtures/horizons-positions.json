@@ -1,0 +1,308 @@
+{
+  "source": "JPL Horizons, https://ssd.jpl.nasa.gov/api/horizons.api",
+  "quantity": "apparent geocentric ecliptic longitude and latitude of date (QUANTITIES=31), degrees",
+  "center": "500@399 (geocentric)",
+  "retrieved": "2026-09-07",
+  "positions": {
+    "1912-04-15 02:20": {
+      "sun": {
+        "longitude": 24.752006,
+        "latitude": -0.0001441
+      },
+      "moon": {
+        "longitude": 355.7806703,
+        "latitude": -2.3017195
+      },
+      "mercury": {
+        "longitude": 25.4714067,
+        "latitude": 2.0471793
+      },
+      "venus": {
+        "longitude": 3.0418466,
+        "latitude": -1.5411039
+      },
+      "mars": {
+        "longitude": 95.2501836,
+        "latitude": 1.7893181
+      },
+      "jupiter": {
+        "longitude": 255.110205,
+        "latitude": 0.8142817
+      },
+      "saturn": {
+        "longitude": 49.7703708,
+        "latitude": -1.9740016
+      }
+    },
+    "1947-08-15 00:00": {
+      "sun": {
+        "longitude": 141.3310464,
+        "latitude": 0.0000189
+      },
+      "moon": {
+        "longitude": 120.5657489,
+        "latitude": 4.4182229
+      },
+      "mercury": {
+        "longitude": 127.2110125,
+        "latitude": 0.8119655
+      },
+      "venus": {
+        "longitude": 135.966048,
+        "latitude": 1.1200771
+      },
+      "mars": {
+        "longitude": 90.7287451,
+        "latitude": 0.2514102
+      },
+      "jupiter": {
+        "longitude": 229.0191265,
+        "latitude": 0.8500772
+      },
+      "saturn": {
+        "longitude": 133.6241416,
+        "latitude": 0.7517105
+      }
+    },
+    "1950-03-14 06:30": {
+      "sun": {
+        "longitude": 353.1126806,
+        "latitude": -0.0002081
+      },
+      "moon": {
+        "longitude": 302.5240276,
+        "latitude": -4.7761932
+      },
+      "mercury": {
+        "longitude": 340.7241978,
+        "latitude": -2.1950947
+      },
+      "venus": {
+        "longitude": 310.883769,
+        "latitude": 4.4052862
+      },
+      "mars": {
+        "longitude": 185.4055553,
+        "latitude": 3.5643523
+      },
+      "jupiter": {
+        "longitude": 323.4012391,
+        "latitude": -0.6875513
+      },
+      "saturn": {
+        "longitude": 165.4895057,
+        "latitude": 2.2237621
+      }
+    },
+    "1969-07-20 20:17": {
+      "sun": {
+        "longitude": 117.9107302,
+        "latitude": -0.0001002
+      },
+      "moon": {
+        "longitude": 187.8737519,
+        "latitude": -1.3631482
+      },
+      "mercury": {
+        "longitude": 115.8428987,
+        "latitude": 1.4588006
+      },
+      "venus": {
+        "longitude": 75.0374087,
+        "latitude": -2.4542347
+      },
+      "mars": {
+        "longitude": 242.7732832,
+        "latitude": -3.3930191
+      },
+      "jupiter": {
+        "longitude": 180.7462243,
+        "latitude": 1.2191714
+      },
+      "saturn": {
+        "longitude": 38.0979955,
+        "latitude": -2.4284393
+      }
+    },
+    "1985-11-02 21:15": {
+      "sun": {
+        "longitude": 220.3948183,
+        "latitude": 0.0001695
+      },
+      "moon": {
+        "longitude": 96.4137455,
+        "latitude": 4.4582527
+      },
+      "mercury": {
+        "longitude": 242.728029,
+        "latitude": -2.6117341
+      },
+      "venus": {
+        "longitude": 201.5684236,
+        "latitude": 1.5258013
+      },
+      "mars": {
+        "longitude": 183.9166491,
+        "latitude": 1.1975375
+      },
+      "jupiter": {
+        "longitude": 308.6226794,
+        "latitude": -0.8432913
+      },
+      "saturn": {
+        "longitude": 238.3337455,
+        "latitude": 1.8252115
+      }
+    },
+    "2000-01-01 12:00": {
+      "sun": {
+        "longitude": 280.3689092,
+        "latitude": 0.0002381
+      },
+      "moon": {
+        "longitude": 223.323786,
+        "latitude": 5.1707422
+      },
+      "mercury": {
+        "longitude": 271.8892699,
+        "latitude": -0.994819
+      },
+      "venus": {
+        "longitude": 241.5657794,
+        "latitude": 2.0663548
+      },
+      "mars": {
+        "longitude": 327.9632921,
+        "latitude": -1.0677752
+      },
+      "jupiter": {
+        "longitude": 25.2530685,
+        "latitude": -1.2621868
+      },
+      "saturn": {
+        "longitude": 40.3956366,
+        "latitude": -2.4448533
+      }
+    },
+    "2012-12-21 11:11": {
+      "sun": {
+        "longitude": 269.9995562,
+        "latitude": 0.0001745
+      },
+      "moon": {
+        "longitude": 14.2375265,
+        "latitude": 3.4599179
+      },
+      "mercury": {
+        "longitude": 254.6982233,
+        "latitude": 0.4067606
+      },
+      "venus": {
+        "longitude": 246.5861329,
+        "latitude": 1.1082564
+      },
+      "mars": {
+        "longitude": 296.4276994,
+        "latitude": -1.1643028
+      },
+      "jupiter": {
+        "longitude": 68.9007756,
+        "latitude": -0.7427915
+      },
+      "saturn": {
+        "longitude": 218.6610314,
+        "latitude": 2.3080183
+      }
+    },
+    "2026-09-07 09:00": {
+      "sun": {
+        "longitude": 164.7699212,
+        "latitude": 0.000123
+      },
+      "moon": {
+        "longitude": 115.3377154,
+        "latitude": 2.9861899
+      },
+      "mercury": {
+        "longitude": 174.3020523,
+        "latitude": 1.074563
+      },
+      "venus": {
+        "longitude": 207.9794617,
+        "latitude": -4.2121382
+      },
+      "mars": {
+        "longitude": 107.4074848,
+        "latitude": 0.6314584
+      },
+      "jupiter": {
+        "longitude": 135.0244321,
+        "latitude": 0.5419386
+      },
+      "saturn": {
+        "longitude": 13.2981149,
+        "latitude": -2.670664
+      }
+    },
+    "2035-02-18 17:45": {
+      "sun": {
+        "longitude": 329.8940995,
+        "latitude": -0.0000937
+      },
+      "moon": {
+        "longitude": 102.2403395,
+        "latitude": -4.6677704
+      },
+      "mercury": {
+        "longitude": 303.4775158,
+        "latitude": 0.3683019
+      },
+      "venus": {
+        "longitude": 288.0323872,
+        "latitude": 1.3582071
+      },
+      "mars": {
+        "longitude": 265.1566705,
+        "latitude": -0.0050627
+      },
+      "jupiter": {
+        "longitude": 13.7633504,
+        "latitude": -1.1276062
+      },
+      "saturn": {
+        "longitude": 119.8050449,
+        "latitude": 0.4282638
+      }
+    },
+    "2050-06-21 00:00": {
+      "sun": {
+        "longitude": 89.8586472,
+        "latitude": -0.0001006
+      },
+      "moon": {
+        "longitude": 109.1459942,
+        "latitude": -4.4148771
+      },
+      "mercury": {
+        "longitude": 90.9898787,
+        "latitude": 1.1759702
+      },
+      "venus": {
+        "longitude": 130.231569,
+        "latitude": 2.0038489
+      },
+      "mars": {
+        "longitude": 323.1644469,
+        "latitude": -4.0013834
+      },
+      "jupiter": {
+        "longitude": 125.2874912,
+        "latitude": 0.5770575
+      },
+      "saturn": {
+        "longitude": 308.0560997,
+        "latitude": -0.4870562
+      }
+    }
+  }
+}
