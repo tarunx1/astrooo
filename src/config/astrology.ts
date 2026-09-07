@@ -49,13 +49,15 @@ export type PlanetName = (typeof PLANETS)[number];
 export type ZodiacSign = (typeof SIGNS)[number];
 export type NakshatraName = (typeof NAKSHATRAS)[number];
 
-export type AstrologyProviderName = "vedastro" | "development";
+export type AstrologyProviderName = "native" | "vedastro" | "development";
 
 export const astrologyCalculationConfig = {
-  version: "ravish-kundli-v1.1",
+  // Bumped when a change would move a placement: charts stored under an older
+  // version were calculated differently and must not be compared to new ones.
+  version: "ravish-kundli-v2.0",
   ayanamsa: "LAHIRI",
   zodiac: "SIDEREAL",
-  houseSystem: "VEDASTRO_DEFAULT",
+  houseSystem: "WHOLE_SIGN",
 } as const;
 
 export const vedAstroConfig = {
@@ -66,12 +68,16 @@ export const vedAstroConfig = {
   retryCount: Number(process.env.VEDASTRO_RETRY_COUNT ?? 1),
 } as const;
 
+/**
+ * Which engine calculates a chart.
+ *
+ * "native" is this repository's own ephemeris and needs no configuration, no
+ * key and no network, so it is the default in every environment including
+ * production. The development fixture stays reachable by explicit opt-in for
+ * tests that want a chart without computing one.
+ */
 export function getConfiguredAstrologyProviderName(): AstrologyProviderName {
   const configured = process.env.ASTROLOGY_PROVIDER;
-  if (configured === "vedastro" || configured === "development") return configured;
-  if (process.env.NODE_ENV === "test") return "development";
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("ASTROLOGY_PROVIDER=vedastro is required in production.");
-  }
-  return "development";
+  if (configured === "native" || configured === "development") return configured;
+  return "native";
 }

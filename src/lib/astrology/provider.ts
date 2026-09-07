@@ -1,5 +1,6 @@
 import { NAKSHATRAS, PLANETS, SIGNS, astrologyCalculationConfig, getConfiguredAstrologyProviderName, vedAstroConfig } from "@/config/astrology";
 import { AstrologyProviderError } from "@/lib/astrology/errors";
+import { NativeAstrologyProvider } from "@/lib/astrology/native-provider";
 import { VedAstroClient } from "@/lib/astrology/providers/vedastro-client";
 import { normalizeVedAstroKundli } from "@/lib/astrology/providers/vedastro-normalize";
 import { toVedAstroTime } from "@/lib/astrology/providers/vedastro-time";
@@ -216,16 +217,18 @@ export class VedAstroProvider implements AstrologyProvider {
 
 export function getAstrologyProvider(): AstrologyProvider {
   const provider = getConfiguredAstrologyProviderName();
-  if (provider === "vedastro") return new VedAstroProvider();
-  if (process.env.NODE_ENV === "production") {
-    throw new AstrologyProviderError({
-      code: "CONFIGURATION",
-      provider: "development",
-      message: "Development astrology provider is disabled in production.",
-      userMessage: "The Kundli calculation service is not configured.",
-    });
+  if (provider === "development") {
+    if (process.env.NODE_ENV === "production") {
+      throw new AstrologyProviderError({
+        code: "CONFIGURATION",
+        provider: "development",
+        message: "Development astrology provider is disabled in production.",
+        userMessage: "The Kundli calculation service is not configured.",
+      });
+    }
+    return new DevelopmentAstrologyProvider();
   }
-  return new DevelopmentAstrologyProvider();
+  return new NativeAstrologyProvider();
 }
 
 function createPlanetPositions(seed: number, ascendantIndex: number): PlanetPosition[] {
