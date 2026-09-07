@@ -135,29 +135,29 @@ describe("secrets are ciphertext at rest", () => {
   });
 
   it("falls back to the environment only when nothing is stored", async () => {
-    await removeSecret("astrology.apiKey");
-    const env = { CONFIG_ENCRYPTION_KEY: KEY, VEDASTRO_API_KEY: "from-environment" } as unknown as NodeJS.ProcessEnv;
+    await removeSecret("payments.razorpayWebhookSecret");
+    const env = { CONFIG_ENCRYPTION_KEY: KEY, RAZORPAY_WEBHOOK_SECRET: "from-environment" } as unknown as NodeJS.ProcessEnv;
 
-    expect(await getSecret("astrology.apiKey", env)).toBe("from-environment");
-    expect((await describeSecret("astrology.apiKey", env)).source).toBe("environment");
+    expect(await getSecret("payments.razorpayWebhookSecret", env)).toBe("from-environment");
+    expect((await describeSecret("payments.razorpayWebhookSecret", env)).source).toBe("environment");
 
-    await setSecret("astrology.apiKey", "from-admin", actorId);
+    await setSecret("payments.razorpayWebhookSecret", "from-admin", actorId);
     // Stored wins, so an operator's replacement is what actually gets used.
-    expect(await getSecret("astrology.apiKey", env)).toBe("from-admin");
-    expect((await describeSecret("astrology.apiKey", env)).source).toBe("admin");
+    expect(await getSecret("payments.razorpayWebhookSecret", env)).toBe("from-admin");
+    expect((await describeSecret("payments.razorpayWebhookSecret", env)).source).toBe("admin");
   });
 
   it("treats an undecryptable secret as absent rather than using the environment", async () => {
     // Silently using a different credential than the operator configured would
     // be worse than being unconfigured.
     await prisma.systemSecret.upsert({
-      where: { key: "astrology.apiKey" },
+      where: { key: "payments.razorpayWebhookSecret" },
       update: { envelope: encryptSecret("value", { CONFIG_ENCRYPTION_KEY: Buffer.alloc(32, 3).toString("base64") } as unknown as NodeJS.ProcessEnv) },
-      create: { key: "astrology.apiKey", envelope: "broken", updatedById: actorId },
+      create: { key: "payments.razorpayWebhookSecret", envelope: "broken", updatedById: actorId },
     });
 
-    const env = { CONFIG_ENCRYPTION_KEY: KEY, VEDASTRO_API_KEY: "from-environment" } as unknown as NodeJS.ProcessEnv;
-    expect(await getSecret("astrology.apiKey", env)).toBeNull();
+    const env = { CONFIG_ENCRYPTION_KEY: KEY, RAZORPAY_WEBHOOK_SECRET: "from-environment" } as unknown as NodeJS.ProcessEnv;
+    expect(await getSecret("payments.razorpayWebhookSecret", env)).toBeNull();
   });
 
   it("refuses an empty replacement, so a secret cannot be blanked by accident", async () => {

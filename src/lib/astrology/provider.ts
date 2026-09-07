@@ -1,9 +1,6 @@
-import { NAKSHATRAS, PLANETS, SIGNS, astrologyCalculationConfig, getConfiguredAstrologyProviderName, vedAstroConfig } from "@/config/astrology";
+import { NAKSHATRAS, PLANETS, SIGNS, astrologyCalculationConfig, getConfiguredAstrologyProviderName } from "@/config/astrology";
 import { AstrologyProviderError } from "@/lib/astrology/errors";
 import { NativeAstrologyProvider } from "@/lib/astrology/native-provider";
-import { VedAstroClient } from "@/lib/astrology/providers/vedastro-client";
-import { normalizeVedAstroKundli } from "@/lib/astrology/providers/vedastro-normalize";
-import { toVedAstroTime } from "@/lib/astrology/providers/vedastro-time";
 import type { KundliResult, NormalizedBirthDetails, PlanetPosition } from "@/lib/kundli/types";
 import { createKundliInputHash } from "@/lib/kundli/normalize";
 
@@ -123,75 +120,6 @@ export class DevelopmentAstrologyProvider implements AstrologyProvider {
         calculatedAt,
       },
     };
-  }
-
-  async getPlanetaryPositions(input: NormalizedBirthDetails) {
-    return (await this.generateBirthChart(input)).planets;
-  }
-
-  async getPanchang(): Promise<never> {
-    throw unsupportedProviderMethod("getPanchang");
-  }
-
-  async getVimshottariDasha(input: NormalizedBirthDetails) {
-    return (await this.generateBirthChart(input)).vimshottariDasha;
-  }
-
-  async getMoonSign(input: NormalizedBirthDetails) {
-    return (await this.generateBirthChart(input)).moonSign;
-  }
-
-  async getNakshatra(input: NormalizedBirthDetails) {
-    return (await this.generateBirthChart(input)).nakshatra;
-  }
-}
-
-export class VedAstroProvider implements AstrologyProvider {
-  private readonly client: VedAstroClient;
-
-  readonly metadata: AstrologyProviderMetadata = {
-    provider: "vedastro",
-    providerVersion: vedAstroConfig.providerVersion,
-    calculationVersion: astrologyCalculationConfig.version,
-    ayanamsa: astrologyCalculationConfig.ayanamsa,
-    houseSystem: astrologyCalculationConfig.houseSystem,
-    isDevelopmentFixture: false,
-    limitations: ["Manglik is calculated by deterministic Mars-house rule in this adapter.", "Yogas are empty until deterministic rules are added."],
-  };
-
-  constructor(client = new VedAstroClient()) {
-    this.client = client;
-  }
-
-  async calculateKundli(input: NormalizedBirthDetails): Promise<KundliResult> {
-    return this.generateBirthChart(input);
-  }
-
-  async generateBirthChart(input: NormalizedBirthDetails): Promise<KundliResult> {
-    const time = toVedAstroTime(input);
-    const basePayload = {
-      Time: time,
-      Ayanamsa: astrologyCalculationConfig.ayanamsa,
-    };
-    const dashaPayload = {
-      birthTime: time,
-      checkTime: time,
-      Ayanamsa: astrologyCalculationConfig.ayanamsa,
-      levels: 2,
-    };
-    const [planetPayload, housePayload, dasha] = await Promise.all([
-      this.client.calculate("AllPlanetData", { ...basePayload, PlanetName: "All" }),
-      this.client.calculate("AllHouseData", { ...basePayload, HouseName: "All" }),
-      this.client.calculate("DasaAtTime", dashaPayload),
-    ]);
-
-    return normalizeVedAstroKundli({
-      input,
-      planetPayload,
-      housePayload,
-      dashaPayload: dasha,
-      providerVersion: this.metadata.providerVersion,
-    });
   }
 
   async getPlanetaryPositions(input: NormalizedBirthDetails) {

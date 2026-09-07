@@ -92,7 +92,7 @@ export default async function AdminSystemPage() {
                   <p className="body-sm text-foreground">{label}</p>
                   <p className="caption text-foreground-muted">
                     {status.configured
-                      ? `${status.source === "admin" ? "Configured here" : status.source === "environment" ? "Configured via environment" : "Available"}${status.detail ? ` · ${status.detail}` : ""}`
+                      ? `${status.source === "admin" ? "Configured here" : status.source === "environment" ? "Configured via environment" : status.source === "built-in" ? "Built in, nothing to configure" : "Available"}${status.detail ? ` · ${status.detail}` : ""}`
                       : "Not configured"}
                   </p>
                 </div>

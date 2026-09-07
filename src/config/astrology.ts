@@ -60,14 +60,6 @@ export const astrologyCalculationConfig = {
   houseSystem: "WHOLE_SIGN",
 } as const;
 
-export const vedAstroConfig = {
-  baseUrl: process.env.VEDASTRO_API_BASE_URL ?? "https://api.vedastro.org/api",
-  apiKey: process.env.VEDASTRO_API_KEY,
-  providerVersion: "vedastro-rest-v1",
-  timeoutMs: Number(process.env.VEDASTRO_TIMEOUT_MS ?? 10000),
-  retryCount: Number(process.env.VEDASTRO_RETRY_COUNT ?? 1),
-} as const;
-
 /**
  * Which engine calculates a chart.
  *

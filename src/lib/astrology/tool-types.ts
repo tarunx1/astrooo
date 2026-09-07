@@ -4,8 +4,8 @@ import type { CalculationMetadata, ResolvedLocation } from "@/lib/kundli/types";
 /**
  * Provider-neutral domain types for the Phase 6 tools.
  *
- * VedAstro response shapes stop at the adapter. Nothing in this file mentions a
- * provider field name, so a UI component can never depend on one.
+ * Nothing in this file mentions how a value is calculated, so a UI component
+ * can never depend on the engine that produced it.
  */
 
 /* ------------------------------------------------------------------ */

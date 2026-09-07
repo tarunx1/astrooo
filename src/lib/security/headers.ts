@@ -16,7 +16,7 @@
  * - `images.unsplash.com`, `plus.unsplash.com` — the image hosts already
  *   declared in `next.config.ts` by the homepage redesign.
  *
- * Deliberately absent: `api.vedastro.org` and
+ * Deliberately absent: any astrology API host - charts are calculated in-app - and
  * `generativelanguage.googleapis.com`. Both are called only from server code,
  * so neither belongs in a browser `connect-src`. Adding them would widen the
  * policy for no reason.

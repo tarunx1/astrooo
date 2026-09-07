@@ -15,7 +15,13 @@ import { describeSecret, getSecret, getSettings } from "@/lib/settings/service";
  */
 export type IntegrationStatus = {
   configured: boolean;
-  source: "admin" | "environment" | "none";
+  /**
+   * Where the configuration came from. "built-in" means there is nothing to
+   * configure because the capability is compiled into the application, which
+   * is a different thing from "none" - an operator seeing "none" would go
+   * looking for a setting that does not exist.
+   */
+  source: "admin" | "environment" | "none" | "built-in";
   /** True only when the operator has also switched it on. */
   enabled: boolean;
   detail?: string;
@@ -116,37 +122,20 @@ export async function getAIStatus(env: NodeJS.ProcessEnv = process.env): Promise
   };
 }
 
-export type AstrologyRuntimeConfig = {
-  apiKey: string | null;
-  timeoutMs: number;
-  retryCount: number;
-};
-
 /**
- * VedAstro configuration.
+ * Astrology status.
  *
- * Unlike the others this provider works without a key on its free tier, so it
- * is reported as available rather than missing when none is set. The status
- * says which of the two it is instead of implying a capability that has not
- * been confirmed.
+ * There is nothing to configure. Charts are calculated in this application
+ * from VSOP87 and ELP 2000-82B rather than fetched from a service, so there is
+ * no key, no endpoint and no quota - and nothing that can be misconfigured or
+ * go down. The row stays on the integrations page because its absence would be
+ * read as "not set up" rather than "not needed".
  */
-export async function getAstrologyConfig(env: NodeJS.ProcessEnv = process.env): Promise<AstrologyRuntimeConfig> {
-  const settings = await getSettings(["astrology.timeoutMs", "astrology.retryCount"]);
-
-  return {
-    apiKey: await getSecret("astrology.apiKey", env),
-    timeoutMs: settings["astrology.timeoutMs"],
-    retryCount: settings["astrology.retryCount"],
-  };
-}
-
-export async function getAstrologyStatus(env: NodeJS.ProcessEnv = process.env): Promise<IntegrationStatus> {
-  const secret = await describeSecret("astrology.apiKey", env);
-
+export async function getAstrologyStatus(): Promise<IntegrationStatus> {
   return {
     configured: true,
-    source: secret.source,
+    source: "built-in",
     enabled: true,
-    detail: secret.configured ? "API key configured" : "Anonymous free-tier access",
+    detail: "Calculated in-app (VSOP87D, ELP 2000-82B, Lahiri ayanamsa)",
   };
 }

@@ -5,7 +5,7 @@ import type { CalculationMetadata } from "@/lib/kundli/types";
 /**
  * Sade Sati classification.
  *
- * VedAstro has no Sade Sati calculator, so this is a documented deterministic
+ * The engine has no dedicated Sade Sati routine, so this is a documented deterministic
  * rule over two provider-supplied positions: the natal Moon sign and Saturn's
  * current sidereal sign. The astronomy is entirely the provider's; only the
  * classification below is ours, and the page states the rule it applied.

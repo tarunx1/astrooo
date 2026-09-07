@@ -185,7 +185,6 @@ export const SECRETS = {
   "payments.razorpayKeySecret": { envFallback: "RAZORPAY_KEY_SECRET", label: "Razorpay key secret" },
   "payments.razorpayWebhookSecret": { envFallback: "RAZORPAY_WEBHOOK_SECRET", label: "Razorpay webhook secret" },
   "ai.apiKey": { envFallback: "AI_PROVIDER_API_KEY", label: "AI provider API key" },
-  "astrology.apiKey": { envFallback: "VEDASTRO_API_KEY", label: "VedAstro API key" },
 } as const;
 
 export type SecretKey = keyof typeof SECRETS;

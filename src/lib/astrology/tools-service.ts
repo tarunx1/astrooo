@@ -20,7 +20,8 @@ import type { KundliResult, NormalizedBirthDetails, ResolvedLocation } from "@/l
 /**
  * Tool services.
  *
- * Two rules drive the caching here, both because the VedAstro free tier allows
+ * Two rules drive the caching here. Calculation is now local and cheap, so the
+ * point is no longer a provider quota but a stable, shareable answer: the
  * only 5 requests a minute:
  *
  * 1. Birth-based calculators (Moon sign, Nakshatra, Lagna, Sade Sati) never call

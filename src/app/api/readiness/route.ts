@@ -9,7 +9,7 @@ import { getRateLimitStore } from "@/lib/security/rate-limit-store";
  * Answers whether this instance can actually serve traffic right now, by
  * checking the dependencies a request cannot proceed without.
  *
- * Deliberately excluded: Razorpay, VedAstro and the AI provider. They are
+ * Deliberately excluded: Razorpay and the AI provider. They are
  * rate-limited third parties, and polling them on every readiness probe would
  * consume quota, add their latency to ours, and let someone else's outage pull
  * this app out of the load balancer even though most of it still works.
