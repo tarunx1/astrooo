@@ -8,11 +8,10 @@ import { ServicesSection } from "@/components/sections/services-section";
 import { ShopSection } from "@/components/sections/shop-section";
 import { TrustSection } from "@/components/sections/trust-section";
 import { createOrganizationJsonLd, createWebsiteJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
-import { ZodiacScroll } from "@/components/visuals/zodiac-scroll";
-import { ZodiacBand } from "@/components/sections/zodiac-band";
+import { ZodiacReveal, ZodiacRevealProvider } from "@/components/visuals/zodiac-reveal";
 
 export const metadata: Metadata = {
-  title: "Ravish Astro",
+  title: "Tarun Astro",
   description:
     "Generate a free Kundli, explore personalized astrology reports, consult verified astrologers, and shop gemstones through a premium Vedic astrology platform.",
 };
@@ -27,18 +26,30 @@ export default function HomePage() {
        
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <ZodiacScroll />
       <HeroSection />
-      <ServicesSection />
-      <CalculatorAndPanchang />
-      <ZodiacBand />
-      <ReportsSection />
-      <ZodiacBand />
-      <ShopSection />
-      <ConsultationSection />
-      <ZodiacBand />
-      <TrustSection />
-      <InsightsSection />
+      {/* Each wrapped section steps aside in turn - left, then right, and on
+          down the page - so the sign forms in the half it frees. */}
+      <ZodiacRevealProvider>
+        <ZodiacReveal index={0}>
+          <ServicesSection />
+        </ZodiacReveal>
+        <ZodiacReveal index={1}>
+          <CalculatorAndPanchang />
+        </ZodiacReveal>
+        <ZodiacReveal index={2}>
+          <ReportsSection />
+        </ZodiacReveal>
+        <ZodiacReveal index={3}>
+          <ShopSection />
+        </ZodiacReveal>
+        <ZodiacReveal index={4}>
+          <ConsultationSection />
+        </ZodiacReveal>
+        <ZodiacReveal index={5}>
+          <TrustSection />
+        </ZodiacReveal>
+        <InsightsSection />
+      </ZodiacRevealProvider>
     </>
   );
 }
