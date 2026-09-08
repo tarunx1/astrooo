@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useStarFieldSource } from "@/components/visuals/star-field-source";
-import { ALIGN_MIN_WIDTH } from "@/lib/star-image/formation";
+import { ALIGN_MIN_WIDTH, formationHalfHeightFraction } from "@/lib/star-image/formation";
 import { ZODIAC_SIGNS, zodiacShapeFor } from "@/lib/star-image/zodiac-shapes";
 import { cn } from "@/lib/utils";
 
@@ -68,11 +68,15 @@ export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
       const middle = window.innerHeight / 2;
       const sections = [...document.querySelectorAll<HTMLElement>("[data-zodiac-reveal]")];
 
-      // Exactly one section can hold the middle of the viewport, so whichever
-      // does is the active one. No tie to break and no overlap to resolve.
+      // The sign forms centred in the viewport, so the section has to clear
+      // that whole band - not merely touch the middle of it. Sections have
+      // opaque backgrounds: a section that only overlaps the centre leaves the
+      // top or bottom of the glyph behind the neighbouring one, which is why
+      // the sign appeared cut in half against a section boundary.
+      const margin = window.innerHeight * (formationHalfHeightFraction() + 0.02);
       const active = sections.find((section) => {
         const rect = section.getBoundingClientRect();
-        return rect.top <= middle && rect.bottom >= middle;
+        return rect.top <= middle - margin && rect.bottom >= middle + margin;
       });
 
       if (!active) {
@@ -129,14 +133,21 @@ export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
 /**
  * Wraps a section so it can step aside.
  *
- * The shift is a transform rather than a width change: a width change reflows
- * the grid inside on every frame of the animation, which turns a four-column
- * row into two and back while it travels. A transform moves what is already
- * laid out, so the section arrives narrower without ever re-wrapping.
+ * The section gives up half its width to one side rather than sliding across
+ * it. Two earlier attempts were worse: scaling it down shrank the type with
+ * it, so it read as minimised rather than moved; translating it kept the type
+ * full size but carried the leading edge off the screen, taking a card and a
+ * half of real content with it.
  *
- * Scaling from the outer edge rather than the centre is what actually frees a
- * side. Scaling from the centre would pull both edges inward and leave the
- * space split in two halves, neither wide enough to hold a sign.
+ * Padding does both jobs. The content box narrows toward one edge, so the
+ * section moves and everything in it stays on screen at full size. The column
+ * counts here are keyed to the viewport rather than the container, so the
+ * cards narrow rather than re-wrapping mid-animation.
+ *
+ * How far it gives way is a negotiation with the sign, not a free choice. Take
+ * too much and a card gets too narrow to set its own heading; take too little
+ * and the sign has nowhere to be. The sign was made smaller and pushed further
+ * out to meet this at 38%.
  */
 export function ZodiacReveal({ index, children }: { index: number; children: ReactNode }) {
   const { activeIndex, side } = useContext(ZodiacRevealContext);
@@ -146,9 +157,9 @@ export function ZodiacReveal({ index, children }: { index: number; children: Rea
     <div data-zodiac-reveal={index}>
       <div
         className={cn(
-          "transition-transform duration-500 ease-out motion-reduce:transition-none",
-          active && side === "left" && "md:origin-left md:scale-[0.62]",
-          active && side === "right" && "md:origin-right md:scale-[0.62]",
+          "transition-[padding] duration-500 ease-out motion-reduce:transition-none",
+          active && side === "left" && "md:pr-[38%]",
+          active && side === "right" && "md:pl-[38%]",
         )}
       >
         {children}

@@ -8,10 +8,23 @@
 export const CAMERA_Z = 18;
 export const CAMERA_FOV = 52;
 
-/** Fraction of the shorter visible dimension a formed shape occupies. */
-export const FORMATION_FILL = 0.62;
-/** How far off centre an aligned shape sits, as a fraction of visible width. */
-export const FORMATION_SHIFT = 0.24;
+/**
+ * Fraction of the shorter visible dimension a formed shape occupies.
+ *
+ * Sized to sit beside a section rather than to fill the screen. A larger sign
+ * looks better on its own but forces the section next to it into columns too
+ * narrow to set their own headings.
+ */
+export const FORMATION_FILL = 0.5;
+/**
+ * How far off centre an aligned shape sits, as a fraction of visible width.
+ *
+ * Sized against the distance a section travels when it steps aside. The
+ * section shifts rather than shrinks, so it keeps its full width and only its
+ * trailing edge clears - the sign has to sit far enough out to be beside it
+ * rather than under it.
+ */
+export const FORMATION_SHIFT = 0.3;
 /**
  * Below this the viewport is too narrow to hold a shape beside anything, so an
  * aligned formation moves up rather than sideways.
