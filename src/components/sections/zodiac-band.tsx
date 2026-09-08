@@ -48,6 +48,7 @@ export function ZodiacBand() {
             aria-live="polite"
             className={cn(
               "max-w-sm heading-lg text-premium",
+              "transition-[margin] duration-200 ease-out motion-reduce:transition-none",
               copyOnRight ? "md:ml-auto md:text-right" : "md:mr-auto",
             )}
           >

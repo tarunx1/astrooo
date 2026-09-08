@@ -51,6 +51,21 @@ const SPREAD = 44;
 const FORMATION_DEPTH = 0.3;
 
 /**
+ * How quickly a formation gathers, as the rate of an exponential approach.
+ *
+ * Deliberately fast. A sign only holds while its band crosses the middle of
+ * the viewport, and the original rate of 1.3 spent a good part of that window
+ * still travelling - the reader saw the approach to a shape more often than
+ * the shape. Snapping instead fixed that but cost the thing worth keeping:
+ * stars in flight are most of what makes the sky look alive.
+ *
+ * At this rate the morph is about 95% done in 200ms, which is a dozen frames
+ * at 60Hz - long enough to read as movement, short enough that the band's
+ * window is spent showing the formed sign rather than the journey to it.
+ */
+const MORPH_SPEED = 15;
+
+/**
  * Size of a particle that is drawing the sign, relative to a free star.
  *
  * Finer than the surrounding sky on purpose: at full size the stroke reads as a
@@ -443,7 +458,7 @@ function MorphingStars({
     return () => window.removeEventListener("pointermove", onPointerMove);
   }, [reduceMotion]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const geometry = geometryRef.current;
     const material = materialRef.current;
     const points = pointsRef.current;
@@ -458,18 +473,21 @@ function MorphingStars({
       const positions = positionAttribute.array as Float32Array;
       const colors = colorAttribute.array as Float32Array;
 
-      // Formations snap rather than drift. A sign only holds while its band
-      // crosses the middle of the viewport, and easing spent a good part of
-      // that window mid-morph - the reader saw the approach to a shape more
-      // often than the shape. Arriving at once means the whole window shows
-      // the finished figure.
-      positions.set(nextPositions);
-      colors.set(nextColors);
+      // Frame-rate independent: the same journey takes the same time on a
+      // 60Hz and a 144Hz display. Clamped so a long stall - a background tab
+      // returning, say - resolves in one step instead of overshooting.
+      const damping = reduceMotion ? 1 : 1 - Math.exp(-MORPH_SPEED * Math.min(delta, 0.05));
+
+      for (let i = 0; i < positions.length; i += 1) {
+        positions[i] += (nextPositions[i] - positions[i]) * damping;
+        colors[i] += (nextColors[i] - colors[i]) * damping;
+      }
 
       positionAttribute.needsUpdate = true;
       colorAttribute.needsUpdate = true;
 
-      material.uniforms.uShapeStrength.value = shapeStrength.current;
+      const strength = material.uniforms.uShapeStrength;
+      strength.value += (shapeStrength.current - strength.value) * damping;
     }
 
     if (reduceMotion) return;
