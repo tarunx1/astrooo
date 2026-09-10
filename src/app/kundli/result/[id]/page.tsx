@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PageContainer, Section } from "@/components/layout/primitives";
+import { AstrologyPageShell } from "@/components/astrology/page-shell";
 import {
   CalculationMetadata,
   CoreAstrologySummary,
@@ -12,6 +12,7 @@ import {
   PlanetaryPositionsTable,
 } from "@/components/kundli/result-sections";
 import { KundliCharts } from "@/components/astrology/kundli-charts";
+import { DashaTable } from "@/components/astrology/dasha-table";
 import { SaveKundliCard } from "@/components/kundli/save-kundli";
 import { getKundliResult } from "@/lib/kundli/service";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -41,8 +42,7 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
   ]);
 
   return (
-    <Section className="star-field">
-      <PageContainer className="grid gap-6 px-0">
+    <AstrologyPageShell>
         <KundliOverview result={result} />
         <SaveKundliCard
           calculationId={id}
@@ -52,9 +52,15 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
         />
         <FixtureNotice result={result} />
         <CoreAstrologySummary result={result} />
-        <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <KundliCharts result={result} />
-          <PlanetaryPositionsTable result={result} />
+        <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="min-w-0"><KundliCharts result={result} /></div>
+          {/* The positions table is short and the charts beside it are tall, so
+              the dasha sits under it rather than leaving that column empty
+              half way down the page. */}
+          <div className="grid min-w-0 gap-6 self-start">
+            <PlanetaryPositionsTable result={result} />
+            <DashaTable result={result} />
+          </div>
         </section>
         <section className="grid gap-6 lg:grid-cols-2">
           <DashaSummary result={result} />
@@ -62,7 +68,6 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
         </section>
         <InsightPreview />
         <CalculationMetadata result={result} />
-      </PageContainer>
-    </Section>
+    </AstrologyPageShell>
   );
 }
