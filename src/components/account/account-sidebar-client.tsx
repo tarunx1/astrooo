@@ -77,14 +77,14 @@ export function AccountDesktopShell({
 
       <nav
         aria-label="Account navigation"
-        className="z-30 hidden w-[var(--account-sidebar-width)] transition-[width] duration-200 lg:sticky lg:top-[var(--header-height)] lg:-mt-[var(--section-space-md)] lg:block lg:self-start"
+        className="z-30 hidden w-[var(--account-sidebar-width)] transition-[width] duration-200 lg:sticky lg:top-[var(--header-height)] lg:-mt-[var(--section-space-md)] lg:block lg:h-[calc(100dvh-var(--header-height))] lg:self-start"
       >
         <Card
           // Glass by class rather than by variant. The variant routes through
           // GlassCard, which wraps its children in a `relative overflow-hidden`
           // client element - that clips a nav which needs to scroll, and adds
           // pointer tracking to a panel that is never hovered for effect.
-          className="flex flex-col rounded-l-none rounded-tl-none border-l-0 border-t-0 border-white/15 bg-surface-raised/80 p-2 backdrop-blur-2xl"
+          className="flex h-full flex-col rounded-l-none rounded-tl-none border-b-0 border-l-0 border-t-0 border-white/15 bg-surface-raised/80 p-2 backdrop-blur-2xl"
         >
           <button
             aria-expanded={!collapsed}
@@ -102,7 +102,7 @@ export function AccountDesktopShell({
             <ToggleIcon aria-hidden="true" className="shrink-0" size={18} />
           </button>
 
-          <ul className="grid gap-1">
+          <ul className="grid gap-1 overflow-y-auto">
             {accountNavigation.map((item) => {
               const active = currentPath === item.href;
               const planned = item.status === "planned";
