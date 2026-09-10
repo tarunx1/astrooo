@@ -38,14 +38,14 @@ export default async function AccountOverviewPage() {
 
       <AccountSection description="A quick summary of what you have saved." title="Overview">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Card className="p-5">
+          <Card className="p-5" variant="glass">
             <p className="body-sm text-foreground-muted">Birth profiles</p>
             <p className="mt-2 font-display text-4xl leading-none">{profiles.length}</p>
             <Button className="mt-4" href="/account/birth-profiles" size="sm" variant="outline">
               Manage profiles
             </Button>
           </Card>
-          <Card className="p-5">
+          <Card className="p-5" variant="glass">
             <p className="body-sm text-foreground-muted">Saved Kundlis</p>
             <p className="mt-2 font-display text-4xl leading-none">{kundlis.length}</p>
             <Button className="mt-4" href="/account/kundlis" size="sm" variant="outline">
@@ -53,7 +53,7 @@ export default async function AccountOverviewPage() {
             </Button>
           </Card>
           {moonSign ? (
-            <Card className="p-5 sm:col-span-2" variant="premium">
+            <Card className="p-5 sm:col-span-2" variant="glass-premium">
               <p className="body-sm text-foreground-muted">Your Moon sign</p>
               <p className="mt-2 font-display text-4xl leading-none">{moonSign}</p>
               <p className="mt-3 body-sm text-foreground-secondary">

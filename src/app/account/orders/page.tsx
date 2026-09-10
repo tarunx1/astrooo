@@ -38,7 +38,7 @@ export default async function AccountOrdersPage() {
           <ul className="grid gap-3">
             {orders.map((order) => (
               <li key={order.id}>
-                <Card className="p-5" variant="interactive">
+                <Card className="p-5" variant="glass">
                   <div className="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">

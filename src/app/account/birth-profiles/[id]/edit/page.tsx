@@ -26,7 +26,7 @@ export default async function EditBirthProfilePage({ params }: { params: Promise
       title="Edit Birth Profile"
     >
       <AccountSection description="Update the details and save." title={profile.name}>
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 sm:p-6" variant="glass">
           <BirthDetailsForm
             action={updateBirthProfileAction}
             defaults={{

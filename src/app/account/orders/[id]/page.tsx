@@ -46,7 +46,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
               const variant = (item.variantSnapshot ?? null) as VariantSnapshot | null;
               return (
                 <li key={item.id}>
-                  <Card className="p-4">
+                  <Card className="p-4" variant="glass-subtle">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="heading-sm">{item.title}</p>
@@ -72,7 +72,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
 
       {order.carrierName || order.trackingNumber || order.shippedAt ? (
         <AccountSection description="Provided by our team when your order was dispatched." title="Delivery">
-          <Card className="grid gap-2 p-5">
+          <Card className="grid gap-2 p-5" variant="glass">
             {order.carrierName ? <Row label="Carrier" value={order.carrierName} /> : null}
             {order.trackingNumber ? <Row label="Tracking number" value={order.trackingNumber} /> : null}
             {order.shippedAt ? (
@@ -102,7 +102,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
 
       <div className="grid gap-8 lg:grid-cols-2">
         <AccountSection description="Where this order was sent." title="Shipping address">
-          <Card className="p-5">
+          <Card className="p-5" variant="glass">
             {addressLines.length > 0 ? (
               <address className="grid gap-1 not-italic body-sm text-foreground-secondary">
                 {addressLines.map((line) => (
@@ -119,7 +119,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
         </AccountSection>
 
         <AccountSection description="What you paid." title="Payment">
-          <Card className="p-5">
+          <Card className="p-5" variant="glass">
             <dl className="grid gap-2.5">
               <Row label="Subtotal" value={formatMoneyMinor(order.subtotalPaise, order.currency)} />
               {order.discountPaise > 0 ? (

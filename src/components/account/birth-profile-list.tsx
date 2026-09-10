@@ -26,7 +26,7 @@ export function BirthProfileCard({ profile }: { profile: BirthProfileSummary }) 
   const [state, formAction, pending] = useActionState(viewProfileKundliAction, INITIAL);
 
   return (
-    <Card className="p-5" variant="interactive">
+    <Card className="p-5" variant="glass">
       <div className="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
         <div className="min-w-0">
           <h3 className="heading-sm truncate">{profile.name}</h3>

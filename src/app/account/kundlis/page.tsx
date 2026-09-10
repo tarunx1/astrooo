@@ -44,7 +44,7 @@ export default async function SavedKundlisPage() {
           <ul className="grid gap-3">
             {kundlis.map((kundli) => (
               <li key={kundli.id}>
-                <Card className="p-5" variant="interactive">
+                <Card className="p-5" variant="glass">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0">
                       <h3 className="heading-sm truncate">{kundli.profileName}</h3>

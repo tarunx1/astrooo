@@ -15,11 +15,11 @@ export default async function AccountSettingsPage() {
   return (
     <AccountLayout
       currentPath="/account/settings"
-      description="How you appear across Ravish Astro."
+      description="How you appear across Tarun Astro."
       title="Settings"
     >
       <AccountSection description="Taken from the account you signed in with." title="Profile">
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 sm:p-6" variant="glass">
           <div className="flex flex-wrap items-center gap-4">
             {user.image ? (
               <Image
@@ -65,7 +65,7 @@ export default async function AccountSettingsPage() {
       </AccountSection>
 
       <AccountSection description="You can sign back in at any time." title="Session">
-        <Card className="flex flex-wrap items-center justify-between gap-4 p-5">
+        <Card className="flex flex-wrap items-center justify-between gap-4 p-5" variant="glass">
           <p className="body-sm text-foreground-secondary">Sign out of this device.</p>
           <SignOutButton />
         </Card>

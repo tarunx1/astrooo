@@ -3,7 +3,16 @@ import { GlassCard } from "@/components/ui/glass-card";
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
-  variant?: "default" | "interactive" | "premium" | "commerce" | "astrology" | "glass" | "glass-raised" | "glass-premium";
+  variant?:
+    | "default"
+    | "interactive"
+    | "premium"
+    | "commerce"
+    | "astrology"
+    | "glass"
+    | "glass-raised"
+    | "glass-premium"
+    | "glass-subtle";
   spotlight?: boolean;
   className?: string;
 };
@@ -17,11 +26,18 @@ const variants = {
   glass: "border-white/10 bg-surface/75 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]",
   "glass-raised": "border-white/15 bg-surface-raised/80 backdrop-blur-2xl shadow-[0_12px_40px_0_rgba(0,0,0,0.45)]",
   "glass-premium": "border-premium/40 bg-surface/80 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(214,181,109,0.15)]",
+  // The lightest of the four, for a panel nested inside another glass card -
+  // stacking two full-strength blurs reads as muddy rather than layered.
+  "glass-subtle": "border-white/5 bg-surface/50 backdrop-blur-md",
 };
 
 export function Card({ children, variant = "default", spotlight = false, className, ...props }: CardProps) {
   if (variant.startsWith("glass") || spotlight) {
-    const glassVariant = (variant.startsWith("glass") ? variant : "glass") as "glass" | "glass-raised" | "glass-premium";
+    const glassVariant = (variant.startsWith("glass") ? variant : "glass") as
+      | "glass"
+      | "glass-raised"
+      | "glass-premium"
+      | "glass-subtle";
     return (
       <GlassCard variant={glassVariant} spotlight={spotlight} className={className} {...props}>
         {children}

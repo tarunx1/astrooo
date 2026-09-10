@@ -15,11 +15,11 @@ export default async function NewBirthProfilePage() {
   return (
     <AccountLayout
       currentPath="/account/birth-profiles"
-      description="The same birth details used for every Ravish Astro calculation."
+      description="The same birth details used for every Tarun Astro calculation."
       title="Add Birth Profile"
     >
       <AccountSection description="Birth time and place decide the chart, so enter them as precisely as you can." title="Birth details">
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 sm:p-6" variant="glass">
           <BirthDetailsForm
             action={createBirthProfileAction}
             pendingLabel="Saving birth profile..."
