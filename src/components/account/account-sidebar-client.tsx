@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
-import { useState } from "react";
+import { ChevronsLeft, ChevronsRight, Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { accountNavigation } from "@/config/account-navigation";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 function NavLabel({
@@ -21,12 +20,69 @@ function NavLabel({
   return (
     <>
       <Icon aria-hidden="true" className={cn("shrink-0", active ? "text-primary" : "text-foreground-muted")} size={20} />
-      <span className={cn("truncate transition-opacity", collapsed ? "sr-only" : "opacity-100")}>{item.label}</span>
+      <span className={cn("truncate", collapsed && "sr-only")}>{item.label}</span>
     </>
   );
 }
 
-export function AccountDesktopShell({
+function AccountNavItems({
+  currentPath,
+  collapsed,
+  onNavigate,
+}: {
+  currentPath: string;
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <ul className="grid gap-1">
+      {accountNavigation.map((item) => {
+        const active = currentPath === item.href;
+        const planned = item.status === "planned";
+
+        return (
+          <li key={item.href}>
+            {planned ? (
+              <span
+                aria-disabled="true"
+                className={cn(
+                  "flex min-h-11 cursor-not-allowed items-center rounded-md text-sm font-medium text-foreground-muted/55",
+                  collapsed ? "justify-center px-2" : "gap-3 px-3",
+                )}
+                title={collapsed ? `${item.label} - coming soon` : "Coming in a later release"}
+              >
+                <NavLabel active={false} collapsed={collapsed} item={item} />
+                {collapsed ? null : (
+                  <span className="ml-auto text-[10px] uppercase tracking-wider text-foreground-muted/70">Soon</span>
+                )}
+              </span>
+            ) : (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex min-h-11 items-center rounded-md text-sm font-medium transition",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
+                  collapsed ? "justify-center px-2" : "gap-3 px-3",
+                  active
+                    ? "bg-surface-raised text-foreground shadow-[inset_3px_0_0_var(--primary)]"
+                    : "text-foreground-secondary hover:bg-surface-hover hover:text-foreground",
+                )}
+                href={item.href}
+                onClick={onNavigate}
+                prefetch={false}
+                title={collapsed ? item.label : undefined}
+              >
+                <NavLabel active={active} collapsed={collapsed} item={item} />
+              </Link>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function AccountDashboardShell({
   currentPath,
   children,
 }: {
@@ -34,65 +90,43 @@ export function AccountDesktopShell({
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const toggleLabel = collapsed ? "Expand account sidebar" : "Minimize account sidebar";
   const ToggleIcon = collapsed ? ChevronsRight : ChevronsLeft;
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mobileOpen]);
 
   return (
     <div
       className={cn(
-        "grid gap-4 lg:relative lg:left-1/2 lg:w-screen lg:-translate-x-1/2 lg:grid-cols-[var(--account-sidebar-width)_minmax(0,1fr)] lg:gap-0",
-        collapsed
-          ? "lg:[--account-sidebar-offset:88px] lg:[--account-sidebar-width:64px]"
-          : "lg:[--account-sidebar-offset:288px] lg:[--account-sidebar-width:248px]",
+        "min-h-[calc(100vh-var(--header-height))] lg:grid lg:transition-[grid-template-columns] lg:duration-200",
+        collapsed ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[264px_minmax(0,1fr)]",
       )}
     >
-      <nav aria-label="Account navigation" className="overflow-hidden lg:hidden">
-        <ul className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {accountNavigation
-            .filter((item) => item.status === "available")
-            .map((item) => {
-              const active = currentPath === item.href;
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "flex items-center gap-2 whitespace-nowrap rounded-md border px-3.5 py-2 text-sm font-medium transition",
-                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
-                      active
-                        ? "border-primary bg-surface-raised text-foreground"
-                        : "border-border bg-surface text-foreground-muted",
-                    )}
-                    href={item.href}
-                    prefetch={false}
-                  >
-                    <NavLabel active={active} collapsed={false} item={item} />
-                  </Link>
-                </li>
-              );
-            })}
-        </ul>
-      </nav>
-
-      <nav
-        aria-label="Account navigation"
-        className="z-30 hidden w-[var(--account-sidebar-width)] transition-[width] duration-200 lg:sticky lg:top-[var(--header-height)] lg:-mt-[var(--section-space-md)] lg:block lg:h-[calc(100dvh-var(--header-height))] lg:self-start"
-      >
-        <Card
-          // Glass by class rather than by variant. The variant routes through
-          // GlassCard, which wraps its children in a `relative overflow-hidden`
-          // client element - that clips a nav which needs to scroll, and adds
-          // pointer tracking to a panel that is never hovered for effect.
-          className="flex h-full flex-col rounded-l-none rounded-tl-none border-b-0 border-l-0 border-t-0 border-white/15 bg-surface-raised/80 p-2 backdrop-blur-2xl"
-        >
+      <aside className="hidden border-r border-white/10 bg-surface/70 backdrop-blur-xl lg:block">
+        <div className="sticky top-[var(--header-height)] flex h-[calc(100vh-var(--header-height))] flex-col overflow-y-auto px-4 py-5">
           <button
             aria-expanded={!collapsed}
             aria-label={toggleLabel}
             className={cn(
-              "mb-2 flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-foreground-muted transition hover:bg-surface-hover hover:text-foreground",
+              "mb-5 flex min-h-10 items-center rounded-md text-sm font-semibold text-foreground-muted transition hover:bg-surface-hover hover:text-foreground",
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
-              collapsed ? "justify-center" : "justify-between",
+              collapsed ? "justify-center px-2" : "justify-between px-3",
             )}
             onClick={() => setCollapsed((value) => !value)}
             title={toggleLabel}
@@ -102,55 +136,59 @@ export function AccountDesktopShell({
             <ToggleIcon aria-hidden="true" className="shrink-0" size={18} />
           </button>
 
-          <ul className="grid gap-1 overflow-y-auto">
-            {accountNavigation.map((item) => {
-              const active = currentPath === item.href;
-              const planned = item.status === "planned";
+          <nav aria-label="Account navigation">
+            <AccountNavItems collapsed={collapsed} currentPath={currentPath} />
+          </nav>
+        </div>
+      </aside>
 
-              return (
-                <li key={item.href}>
-                  {planned ? (
-                    <span
-                      aria-disabled="true"
-                      className={cn(
-                        "flex cursor-not-allowed items-center rounded-md py-2.5 text-sm font-medium text-foreground-muted/60",
-                        collapsed ? "justify-center px-2" : "gap-3 px-3",
-                      )}
-                      title={collapsed ? `${item.label} - coming soon` : "Coming in a later release"}
-                    >
-                      <NavLabel active={false} collapsed={collapsed} item={item} />
-                      {collapsed ? null : (
-                        <span className="ml-auto text-[10px] uppercase tracking-wider text-foreground-muted/70">Soon</span>
-                      )}
-                    </span>
-                  ) : (
-                    <Link
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "flex items-center rounded-md py-2.5 text-sm font-medium transition",
-                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
-                        collapsed ? "justify-center px-2" : "gap-3 px-3",
-                        active
-                          ? "bg-surface-raised text-foreground"
-                          : "text-foreground-muted hover:bg-surface-hover hover:text-foreground",
-                      )}
-                      href={item.href}
-                      prefetch={false}
-                      title={collapsed ? item.label : undefined}
-                    >
-                      <NavLabel active={active} collapsed={collapsed} item={item} />
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      </nav>
-
-      <div className="min-w-0 px-5 transition-[padding] duration-200 sm:px-8 lg:mx-auto lg:w-full lg:max-w-[calc(var(--container-xl)-var(--account-sidebar-offset))] lg:px-0 lg:pl-10">
-        {children}
+      <div className="border-b border-border bg-surface/75 px-4 py-3 backdrop-blur-xl sm:px-6 lg:hidden">
+        <button
+          aria-expanded={mobileOpen}
+          aria-label="Open account navigation"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border-strong px-3 text-sm font-semibold text-foreground transition hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+          onClick={() => setMobileOpen(true)}
+          type="button"
+        >
+          <Menu aria-hidden="true" size={18} />
+          Account menu
+        </button>
       </div>
+
+      {mobileOpen ? (
+        <div
+          className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+          role="presentation"
+        >
+          <aside
+            aria-label="Account navigation"
+            aria-modal="true"
+            className="h-full w-[min(22rem,calc(100vw-2rem))] overflow-y-auto border-r border-border bg-surface px-4 py-5 shadow-[var(--shadow-lg)]"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <div className="mb-5 flex min-h-10 items-center justify-between gap-3 px-3">
+              <span className="text-sm font-semibold text-foreground-muted">Account</span>
+              <button
+                aria-label="Close account navigation"
+                className="grid size-9 place-items-center rounded-md text-foreground-muted transition hover:bg-surface-hover hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+                onClick={() => setMobileOpen(false)}
+                type="button"
+              >
+                <X aria-hidden="true" size={18} />
+              </button>
+            </div>
+            <nav aria-label="Account navigation">
+              <AccountNavItems collapsed={false} currentPath={currentPath} onNavigate={() => setMobileOpen(false)} />
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+
+      <main className="min-w-0 px-4 py-8 sm:px-6 md:px-8 lg:px-10 lg:py-10">
+        <div className="mx-auto w-full max-w-[var(--container-lg)]">{children}</div>
+      </main>
     </div>
   );
 }
