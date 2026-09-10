@@ -40,7 +40,7 @@ export function AccountDesktopShell({
   return (
     <div
       className={cn(
-        "grid gap-4",
+        "grid gap-4 lg:relative lg:left-1/2 lg:w-screen lg:-translate-x-1/2 lg:grid-cols-[var(--account-sidebar-width)_minmax(0,1fr)] lg:gap-0",
         collapsed
           ? "lg:[--account-sidebar-offset:88px] lg:[--account-sidebar-width:64px]"
           : "lg:[--account-sidebar-offset:288px] lg:[--account-sidebar-width:248px]",
@@ -77,10 +77,15 @@ export function AccountDesktopShell({
 
       <nav
         aria-label="Account navigation"
-        className="fixed bottom-[var(--section-space-md)] top-[calc(var(--header-height)+var(--section-space-md))] z-30 hidden w-[var(--account-sidebar-width)] transition-[width] duration-200 lg:block"
-        style={{ left: "max(0px, calc((100vw - var(--container-xl)) / 2))" }}
+        className="z-30 hidden w-[var(--account-sidebar-width)] transition-[width] duration-200 lg:sticky lg:top-[var(--header-height)] lg:-mt-[var(--section-space-md)] lg:block lg:self-start"
       >
-        <Card className="flex h-full flex-col p-2" variant="glass-raised">
+        <Card
+          // Glass by class rather than by variant. The variant routes through
+          // GlassCard, which wraps its children in a `relative overflow-hidden`
+          // client element - that clips a nav which needs to scroll, and adds
+          // pointer tracking to a panel that is never hovered for effect.
+          className="flex flex-col rounded-l-none rounded-tl-none border-l-0 border-t-0 border-white/15 bg-surface-raised/80 p-2 backdrop-blur-2xl"
+        >
           <button
             aria-expanded={!collapsed}
             aria-label={toggleLabel}
@@ -143,7 +148,9 @@ export function AccountDesktopShell({
         </Card>
       </nav>
 
-      <div className="min-w-0 transition-[padding] duration-200 lg:pl-[var(--account-sidebar-offset)]">{children}</div>
+      <div className="min-w-0 px-5 transition-[padding] duration-200 sm:px-8 lg:mx-auto lg:w-full lg:max-w-[calc(var(--container-xl)-var(--account-sidebar-offset))] lg:px-0 lg:pl-10">
+        {children}
+      </div>
     </div>
   );
 }

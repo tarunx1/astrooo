@@ -7,7 +7,7 @@ import { astrologers } from "@/data/home";
 
 export function ConsultationSection() {
   return (
-    <Section className="bg-background-subtle" id="consultations">
+    <Section id="consultations">
       <SectionHeader
         action={<Button href="/consultations" variant="secondary">Book Consultation</Button>}
         title="Consult verified astrologers"
