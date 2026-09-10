@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PageContainer, Section } from "@/components/layout/primitives";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAVIGATION, type AdminNavItem } from "@/config/admin-navigation";
@@ -35,26 +34,31 @@ export async function AdminLayout({
   const navigation = ADMIN_NAVIGATION.filter((item) => !item.superAdminOnly || identity?.isSuperAdmin);
 
   return (
-    <Section className="py-[var(--section-space-sm)]">
-      <PageContainer className="px-0">
+    <section className="star-field min-h-[calc(100vh-var(--header-height))] lg:grid lg:grid-cols-[236px_minmax(0,1fr)]">
+      {/* A rail rather than a floating card, matching the account dashboard:
+          it runs from under the site header to the bottom of the viewport and
+          stays there while a long table scrolls past it. */}
+      <aside className="hidden border-r border-white/10 bg-surface/70 backdrop-blur-xl lg:block">
+        <div className="sticky top-[var(--header-height)] flex h-[calc(100dvh-var(--header-height))] flex-col gap-3 overflow-y-auto px-3 py-5">
+          <p className="px-3 caption uppercase tracking-[0.2em] text-premium">Operations</p>
+          <AdminSidebar currentPath={currentPath} items={navigation} />
+        </div>
+      </aside>
+
+      <div className="min-w-0 px-4 py-8 sm:px-6 lg:px-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-          <p className="caption uppercase tracking-[0.2em] text-premium">Ravish Astro Operations</p>
-          <p className="caption text-foreground-muted">Signed in as {adminName}</p>
+          <p className="caption uppercase tracking-[0.2em] text-premium lg:hidden">Tarun Astro Operations</p>
+          <p className="caption text-foreground-muted lg:ml-auto">Signed in as {adminName}</p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
-          <div className="grid gap-4 lg:gap-0">
-            <AdminSidebar currentPath={currentPath} items={navigation} />
-            <AdminMobileNav currentPath={currentPath} items={navigation} />
-          </div>
+        <AdminMobileNav currentPath={currentPath} items={navigation} />
 
-          <div className="min-w-0">
-            <AdminHeader actions={actions} description={description} title={title} />
-            <div className="grid gap-8">{children}</div>
-          </div>
+        <div className="mt-4 lg:mt-0">
+          <AdminHeader actions={actions} description={description} title={title} />
+          <div className="grid gap-8">{children}</div>
         </div>
-      </PageContainer>
-    </Section>
+      </div>
+    </section>
   );
 }
 
@@ -67,8 +71,7 @@ export function AdminSidebar({
 }) {
   return (
     <nav aria-label="Admin navigation" className="hidden lg:block">
-      <Card className="p-2">
-        <ul className="grid gap-0.5">
+      <ul className="grid gap-0.5">
           {items.map((item) => {
             const active = currentPath === item.href;
             const Icon = item.icon;
@@ -91,10 +94,9 @@ export function AdminSidebar({
                   <span className="truncate">{item.label}</span>
                 </Link>
               </li>
-            );
-          })}
-        </ul>
-      </Card>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
@@ -233,7 +235,7 @@ export function AdminTable<Row>({
 }) {
   if (rows.length === 0) {
     return (
-      <Card className="p-6 text-center">
+      <Card className="p-6 text-center" variant="glass">
         <p className="body-sm text-foreground-muted">{emptyMessage}</p>
       </Card>
     );
@@ -241,7 +243,7 @@ export function AdminTable<Row>({
 
   return (
     <>
-      <Card className="hidden overflow-x-auto md:block">
+      <Card className="hidden overflow-x-auto md:block" variant="glass">
         <table className="w-full border-collapse text-left">
           <caption className="sr-only">{caption}</caption>
           <thead>
@@ -280,7 +282,7 @@ export function AdminTable<Row>({
       <ul className="grid gap-3 md:hidden">
         {rows.map((row) => (
           <li key={getKey(row)}>
-            <Card className="p-4">{renderCard(row)}</Card>
+            <Card className="p-4" variant="glass">{renderCard(row)}</Card>
           </li>
         ))}
       </ul>
