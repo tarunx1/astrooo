@@ -7,7 +7,7 @@ import { SmoothInput } from "@/components/ui/smooth-input";
 
 export function CalculatorAndPanchang() {
   return (
-    <Section className="bg-[linear-gradient(180deg,transparent,var(--background-subtle),transparent)]">
+    <Section>
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1fr_0.9fr]">
         <GlassCard variant="glass" spotlight={true} className="p-6">
           <h2 className="heading-xl">
@@ -19,7 +19,7 @@ export function CalculatorAndPanchang() {
               <label className="grid gap-2 caption text-foreground-secondary" key={label}>
                 {label}
                 <SmoothInput
-                  className="min-h-11 rounded-md border border-white/10 bg-background/60 px-3 body-sm text-foreground outline-none transition focus:border-accent-cyan focus:bg-background/80"
+                  className="form-control"
                   placeholder={label === "Birth place" ? "City or place of birth" : label}
                 />
               </label>
