@@ -104,6 +104,21 @@ export function buildDashaTimeline(birth: Date, moonLongitude: number, depth = 2
   };
 }
 
+/** How deep the tradition names the divisions, outermost first. */
+export const DASHA_LEVELS = ["Mahadasha", "Antardasha", "Pratyantardasha", "Sookshma"] as const;
+
+/**
+ * The next level down inside one period, computed on demand.
+ *
+ * Four levels deep is over seven thousand periods, and a reader opens a
+ * handful of them. Subdividing a single period when it is opened costs
+ * nothing and keeps the whole tree from being built - or sent to a browser -
+ * so that a few rows can be read.
+ */
+export function subdivideDasha(period: DashaPeriod): DashaPeriod[] {
+  return subdivide(period.start, period.end, period.lord, 1);
+}
+
 /** The innermost period containing an instant, from the outermost inwards. */
 export function dashaChainAt(timeline: DashaTimeline, at: Date): DashaPeriod[] {
   const chain: DashaPeriod[] = [];
