@@ -38,8 +38,26 @@ function denied(reason?: string): AdminActionState {
   return { ok: false, error: reason ?? "You are not authorised to perform this action.", fieldErrors: {} };
 }
 
-function failure(error: string, fieldErrors: Record<string, string[]> = {}): AdminActionState {
-  return { ok: false, error, fieldErrors };
+/**
+ * Everything the operator typed, as plain strings.
+ *
+ * Files are skipped: their contents have no business travelling back through
+ * the action state, and a file input cannot be repopulated from script anyway.
+ */
+function submittedValues(formData: FormData): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const [name, value] of formData.entries()) {
+    if (typeof value === "string") values[name] = value;
+  }
+  return values;
+}
+
+function failure(
+  error: string,
+  fieldErrors: Record<string, string[]> = {},
+  formData?: FormData,
+): AdminActionState {
+  return { ok: false, error, fieldErrors, values: formData ? submittedValues(formData) : undefined };
 }
 
 function success(message: string): AdminActionState {
@@ -92,10 +110,10 @@ export async function createProductAction(_state: AdminActionState, formData: Fo
   if (!auth.ok) return denied(auth.error);
 
   const parsed = readProductForm(formData);
-  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
+  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors, formData);
 
   const result = await createProduct(auth.admin.id, parsed.data);
-  if (!result.ok) return failure(result.message, result.fieldErrors);
+  if (!result.ok) return failure(result.message, result.fieldErrors, formData);
 
   revalidatePath("/admin/products");
   revalidatePath("/shop");
@@ -110,10 +128,10 @@ export async function updateProductAction(_state: AdminActionState, formData: Fo
   if (!productId.success) return failure("That product could not be found.");
 
   const parsed = readProductForm(formData);
-  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
+  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors, formData);
 
   const result = await updateProduct(auth.admin.id, productId.data, parsed.data);
-  if (!result.ok) return failure(result.message, result.fieldErrors);
+  if (!result.ok) return failure(result.message, result.fieldErrors, formData);
 
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${productId.data}`);
@@ -149,14 +167,14 @@ export async function upsertVariantAction(_state: AdminActionState, formData: Fo
     sku: formData.get("sku"),
     pricePaise: rupeesToPaise(formData.get("price")),
   });
-  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
+  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors, formData);
 
   const result = await upsertVariant(auth.admin.id, {
     productId: productId.data,
     variantId: optionalText(formData.get("variantId")),
     data: parsed.data,
   });
-  if (!result.ok) return failure(result.message, result.fieldErrors);
+  if (!result.ok) return failure(result.message, result.fieldErrors, formData);
 
   revalidatePath(`/admin/products/${productId.data}`);
   return success("Variant saved.");
@@ -186,7 +204,7 @@ export async function adjustInventoryAction(_state: AdminActionState, formData: 
       productVariantId: optionalText(formData.get("productVariantId")) ?? undefined,
     });
 
-  if (!parsed.success) return failure("Enter a whole number and a reason.", parsed.error.flatten().fieldErrors);
+  if (!parsed.success) return failure("Enter a whole number and a reason.", parsed.error.flatten().fieldErrors, formData);
 
   const target = parsed.data.productVariantId
     ? { productVariantId: parsed.data.productVariantId }
@@ -293,7 +311,7 @@ export async function updateReportDefinitionAction(
     sectionsIncluded: sections,
   });
 
-  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
+  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors, formData);
 
   const result = await updateReportDefinition(auth.admin.id, definitionId.data, parsed.data);
   if (!result.ok) return failure(result.message);
@@ -352,7 +370,7 @@ export async function createCouponAction(_state: AdminActionState, formData: For
   if (!auth.ok) return denied(auth.error);
 
   const parsed = readCouponForm(formData);
-  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
+  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors, formData);
 
   const result = await createCoupon(auth.admin.id, parsed.data);
   if (!result.ok) return failure(result.message);
@@ -369,7 +387,7 @@ export async function updateCouponAction(_state: AdminActionState, formData: For
   if (!couponId.success) return failure("That coupon could not be found.");
 
   const parsed = readCouponForm(formData);
-  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors);
+  if (!parsed.success) return failure("Check the highlighted fields.", parsed.error.flatten().fieldErrors, formData);
 
   const result = await updateCoupon(auth.admin.id, couponId.data, parsed.data);
   if (!result.ok) return failure(result.message);

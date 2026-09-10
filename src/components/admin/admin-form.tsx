@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { FormField } from "@/components/ui/form-field";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { INITIAL_ADMIN_STATE, type AdminActionState } from "@/lib/admin/action-state";
@@ -28,12 +29,49 @@ export function AdminForm({
   confirm?: string;
 }) {
   const [state, formAction] = useActionState(action, INITIAL_ADMIN_STATE);
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  /**
+   * Puts back what was typed after a rejected submit.
+   *
+   * React clears a form once its action resolves, which is right after a
+   * success and wrong after a failure: the operator was left with validation
+   * errors pointing at fields that had just been emptied. The server returns
+   * the submitted values with the failure and they are written back here.
+   *
+   * Restoring rather than making every field controlled keeps the forms as
+   * plain uncontrolled inputs, which is what the rest of them rely on.
+   */
+  useEffect(() => {
+    const form = formRef.current;
+    const values = state.values;
+    if (!form || state.ok || !values) return;
+
+    for (const element of Array.from(form.elements)) {
+      if (!(element instanceof HTMLInputElement
+        || element instanceof HTMLTextAreaElement
+        || element instanceof HTMLSelectElement)) continue;
+      if (!element.name || element.type === "file" || element.type === "submit") continue;
+
+      if (element instanceof HTMLInputElement && (element.type === "checkbox" || element.type === "radio")) {
+        // An unticked box sends nothing at all, so presence is the state.
+        element.checked = element.type === "checkbox"
+          ? Object.hasOwn(values, element.name)
+          : values[element.name] === element.value;
+        continue;
+      }
+
+      const value = values[element.name];
+      if (value !== undefined) element.value = value;
+    }
+  }, [state]);
 
   return (
     <form
       action={formAction}
       className="grid gap-4"
       noValidate
+      ref={formRef}
       onSubmit={(event) => {
         if (confirm && !window.confirm(confirm)) event.preventDefault();
       }}
@@ -89,21 +127,10 @@ export function AdminField({
   error?: string;
 }) {
   return (
-    <div className="grid gap-1.5">
-      <label className="caption text-foreground-secondary" htmlFor={name}>
-        {label}
-      </label>
+    <FormField error={error} id={name} label={label} hint={hint}>
       {children}
-      {error ? (
-        <p className="caption text-danger" role="alert">
-          {error}
-        </p>
-      ) : hint ? (
-        <p className="caption text-foreground-muted">{hint}</p>
-      ) : null}
-    </div>
+    </FormField>
   );
 }
 
-export const adminInputClass =
-  "min-h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan";
+export const adminInputClass = "form-control";

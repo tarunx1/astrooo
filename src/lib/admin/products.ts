@@ -17,8 +17,8 @@ import { productAttributesSchema } from "@/lib/shop/attributes";
 const slugSchema = z
   .string()
   .trim()
-  .min(3)
-  .max(120)
+  .min(3, "A slug needs at least 3 characters.")
+  .max(120, "A slug cannot be longer than 120 characters.")
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase words separated by single hyphens.");
 
 const moneySchema = z
@@ -29,16 +29,23 @@ const moneySchema = z
 
 export const productInputSchema = z
   .object({
-    title: z.string().trim().min(3).max(200),
+    title: z.string().trim().min(3, "Give the product a title of at least 3 characters.").max(200, "A title cannot be longer than 200 characters."),
     slug: slugSchema,
-    description: z.string().trim().min(10).max(5000),
-    categoryId: z.string().trim().min(1).max(64).nullable().optional(),
-    sku: z.string().trim().max(64).nullable().optional(),
+    description: z
+      .string()
+      .trim()
+      .min(10, "Describe the product in at least 10 characters.")
+      .max(5000, "A description cannot be longer than 5000 characters."),
+    categoryId: z.string().trim().min(1, "Choose a category.").max(64, "That category reference is too long.").nullable().optional(),
+    sku: z.string().trim().max(64, "A SKU cannot be longer than 64 characters.").nullable().optional(),
     pricePaise: moneySchema,
     salePricePaise: moneySchema.nullable().optional(),
     active: z.boolean(),
     attributes: productAttributesSchema.optional(),
-    imageUrls: z.array(z.string().trim().url()).max(8).optional(),
+    imageUrls: z
+      .array(z.string().trim().url("Each image reference must be a full URL."))
+      .max(8, "Up to 8 image references.")
+      .optional(),
   })
   .superRefine((value, context) => {
     if (value.salePricePaise != null && value.salePricePaise >= value.pricePaise) {
