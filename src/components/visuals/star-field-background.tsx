@@ -37,6 +37,23 @@ export function StarFieldBackground() {
     return () => query.removeEventListener("change", apply);
   }, []);
 
+  /**
+   * Tells the document the real sky is up.
+   *
+   * `.star-field` paints an opaque background with a dot pattern, which is the
+   * whole star field for a reduced-motion visitor and is exactly right for
+   * them. For everyone else it sits on top of the canvas and hides it - which
+   * is why the hero, the one section that carries the class, had no stars in
+   * it at all while every other section did.
+   */
+  useEffect(() => {
+    if (!animate) return;
+    document.documentElement.dataset.starfield = "live";
+    return () => {
+      delete document.documentElement.dataset.starfield;
+    };
+  }, [animate]);
+
   if (!animate) return null;
 
   return <StarFieldCanvas align={align} maskMode="alpha" source={source} threshold={0.1} />;
