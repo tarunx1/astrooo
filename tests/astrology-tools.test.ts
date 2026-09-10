@@ -16,9 +16,9 @@ import type { CalculationMetadata, ResolvedLocation } from "@/lib/kundli/types";
  * astronomy-engine.test.ts.
  */
 const METADATA: CalculationMetadata = {
-  provider: "ravish-engine",
+  provider: "Tarun-engine",
   providerVersion: "vsop87d+elp2000-82b",
-  calculationVersion: "ravish-kundli-v2.0",
+  calculationVersion: "tarun-kundli-v2.0",
   ayanamsa: "LAHIRI",
   houseSystem: "WHOLE_SIGN",
   calculatedAt: "2026-09-07T00:00:00.000Z",

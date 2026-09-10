@@ -45,7 +45,7 @@ On-demand checkpoint before a migration:
 
 ```bash
 pg_dump --format=custom --no-owner --no-acl \
-  --file="ravish-$(date -u +%Y%m%dT%H%M%SZ).dump" "$DATABASE_URL"
+  --file="Tarun-$(date -u +%Y%m%dT%H%M%SZ).dump" "$DATABASE_URL"
 ```
 
 Record the resulting filename and the deployed commit together. A backup whose
@@ -57,8 +57,8 @@ matching application version is unknown is much harder to use in an incident.
    Restoring underneath a live app produces a split-brain state.
 2. **Restore into a new database first**, never over the live one:
    ```bash
-   createdb ravish_restore
-   pg_restore --no-owner --no-acl --dbname=ravish_restore ravish-<timestamp>.dump
+   createdb Tarun_restore
+   pg_restore --no-owner --no-acl --dbname=Tarun_restore Tarun-<timestamp>.dump
    ```
 3. **Verify the restored database** before pointing anything at it:
    ```bash

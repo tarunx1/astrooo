@@ -2,7 +2,7 @@
 
 ## Decision
 
-Ravish Astro uses the existing `PaymentProvider` abstraction with a Razorpay implementation for the paid-report payment foundation.
+Tarun Astro uses the existing `PaymentProvider` abstraction with a Razorpay implementation for the paid-report payment foundation.
 
 Only Razorpay is installed/wired for this phase. Checkout is disabled by default with `REPORT_CHECKOUT_ENABLED=false` so production cannot accept payment until report fulfilment is ready.
 

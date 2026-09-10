@@ -81,7 +81,7 @@ describe("Chaldean letter system", () => {
   });
 
   it("normalises names to plain letters", () => {
-    expect(normalizeNameForNumerology("Ravish Sharma")).toBe("RAVISHSHARMA");
+    expect(normalizeNameForNumerology("Tarun Sharma")).toBe("TARUNSHARMA");
     expect(normalizeNameForNumerology("O'Brien-Smith")).toBe("OBRIENSMITH");
     expect(normalizeNameForNumerology("José")).toBe("JOSE");
     expect(normalizeNameForNumerology("R2-D2")).toBe("RD");
@@ -184,7 +184,7 @@ describe("full result", () => {
   });
 
   it("includes all five numbers when a name is supplied", () => {
-    const result = calculateNumerology({ dateOfBirth: "1992-08-14", name: "Ravish Sharma" });
+    const result = calculateNumerology({ dateOfBirth: "1992-08-14", name: "Tarun Sharma" });
 
     expect(result.numbers.map((number) => number.key)).toEqual([
       "lifePath",
@@ -194,7 +194,7 @@ describe("full result", () => {
       "personality",
     ]);
     expect(result.unavailable).toHaveLength(0);
-    expect(result.name).toBe("Ravish Sharma");
+    expect(result.name).toBe("Tarun Sharma");
   });
 
   it("shows its working for every number", () => {

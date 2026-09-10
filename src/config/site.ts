@@ -11,7 +11,7 @@ export type FeatureFlags = {
 export const siteConfig = {
   defaultPageSize: 24,
   containerWidth: "var(--container-xl)",
-  supportEmail: "support@ravishastro.com",
+  supportEmail: "support@tarunastro.com",
   features: {
     commerce: false,
     reports: false,

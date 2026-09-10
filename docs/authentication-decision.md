@@ -5,7 +5,7 @@ Scope: authentication, customer account, saved birth profiles, saved Kundlis
 
 ## Decision
 
-Ravish Astro uses **Better Auth 1.7.2** with the Prisma adapter and database-backed sessions.
+Tarun Astro uses **Better Auth 1.7.2** with the Prisma adapter and database-backed sessions.
 
 ## Why Better Auth and not Auth.js
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createKundliInputHash, normalizeBirthDetails } from "@/lib/kundli/normalize";
 
 const baseInput = {
-  name: "  Ravish   Sharma ",
+  name: "  Tarun   Sharma ",
   gender: "",
   dateOfBirth: "1992-08-14",
   timeOfBirth: "06:35",
@@ -21,7 +21,7 @@ describe("Kundli normalization and hash", () => {
   it("normalizes names and coordinates", () => {
     const normalized = normalizeBirthDetails(baseInput);
 
-    expect(normalized.name).toBe("Ravish Sharma");
+    expect(normalized.name).toBe("Tarun Sharma");
     expect(normalized.location.latitude).toBe(31.634);
     expect(normalized.location.longitude).toBe(74.8723);
   });
@@ -39,12 +39,12 @@ describe("Kundli normalization and hash", () => {
     const changedVersionHash = createKundliInputHash(input, {
       ayanamsa: "LAHIRI",
       houseSystem: "WHOLE_SIGN",
-      version: "ravish-kundli-v2",
+      version: "tarun-kundli-v2",
     });
     const changedAyanamsaHash = createKundliInputHash(input, {
       ayanamsa: "RAMAN",
       houseSystem: "WHOLE_SIGN",
-      version: "ravish-kundli-v1",
+      version: "tarun-kundli-v1",
     });
 
     expect(changedVersionHash).not.toBe(currentHash);

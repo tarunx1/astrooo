@@ -23,7 +23,7 @@ describe("return URL validation", () => {
       "http://evil.example.com/account",
       "//evil.example.com",
       "///evil.example.com",
-      "https://ravish-astro.internal.evil.example.com",
+      "https://tarun-astro.internal.evil.example.com",
     ];
 
     for (const value of blocked) {

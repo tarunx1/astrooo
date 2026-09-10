@@ -38,7 +38,7 @@ The canonical app config is in `src/config/astrology.ts`:
 - `ayanamsa: "LAHIRI"`
 - `zodiac: "SIDEREAL"`
 - `houseSystem: "VEDASTRO_DEFAULT"`
-- `version: "ravish-kundli-v1.1"`
+- `version: "tarun-kundli-v1.1"`
 
 The deterministic cache hash includes birth date, normalized birth time, time accuracy, latitude, longitude, IANA timezone, ayanamsa, house system and calculation version. Any config/version change invalidates cached calculations.
 

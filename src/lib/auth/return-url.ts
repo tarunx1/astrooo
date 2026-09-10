@@ -38,7 +38,7 @@ export function isSafeReturnTo(value: unknown): value is string {
 
   // Final structural check against a fixed base: the origin must not change.
   try {
-    const base = "https://ravish-astro.internal";
+    const base = "https://tarun-astro.internal";
     const resolved = new URL(value, base);
     if (resolved.origin !== base) return false;
   } catch {

@@ -55,11 +55,16 @@ export class DevelopmentAstrologyProvider implements AstrologyProvider {
 
   async generateBirthChart(input: NormalizedBirthDetails): Promise<KundliResult> {
     const inputHash = createKundliInputHash(input);
+    // Unsigned shifts throughout. The seed is eight hex digits, so it reaches
+    // 4294967295, and a signed shift turns anything with the top bit set into
+    // a negative number - which then indexes an array backwards and yields
+    // undefined. Roughly half of all inputs produced a chart with no moon sign
+    // and a negative nakshatra pada.
     const seed = parseInt(inputHash.slice(0, 8), 16);
     const ascendantIndex = seed % 12;
-    const moonIndex = (seed >> 3) % 12;
-    const sunIndex = (seed >> 7) % 12;
-    const moonNakshatraIndex = (seed >> 5) % NAKSHATRAS.length;
+    const moonIndex = (seed >>> 3) % 12;
+    const sunIndex = (seed >>> 7) % 12;
+    const moonNakshatraIndex = (seed >>> 5) % NAKSHATRAS.length;
     const planets = createPlanetPositions(seed, ascendantIndex);
     const houses = SIGNS.map((_, index) => {
       const sign = SIGNS[(ascendantIndex + index) % 12];
@@ -92,7 +97,7 @@ export class DevelopmentAstrologyProvider implements AstrologyProvider {
       moonSign: SIGNS[moonIndex],
       nakshatra: {
         name: NAKSHATRAS[moonNakshatraIndex],
-        pada: ((seed >> 9) % 4) + 1,
+        pada: ((seed >>> 9) % 4) + 1,
       },
       planets,
       houses,
@@ -102,8 +107,8 @@ export class DevelopmentAstrologyProvider implements AstrologyProvider {
       },
       vimshottariDasha: {
         currentMahadasha: PLANETS[seed % PLANETS.length],
-        currentAntardasha: PLANETS[(seed >> 4) % PLANETS.length],
-        balance: `${((seed >> 8) % 7) + 1} years ${((seed >> 12) % 11) + 1} months`,
+        currentAntardasha: PLANETS[(seed >>> 4) % PLANETS.length],
+        balance: `${((seed >>> 8) % 7) + 1} years ${((seed >>> 12) % 11) + 1} months`,
       },
       manglik: {
         status: [1, 4, 7, 8, 12].includes(planets.find((planet) => planet.planet === "Mars")?.house ?? 0) ? "Requires Review" : "Non-Manglik",
@@ -161,19 +166,19 @@ export function getAstrologyProvider(): AstrologyProvider {
 
 function createPlanetPositions(seed: number, ascendantIndex: number): PlanetPosition[] {
   return PLANETS.map((planet, index) => {
-    const longitude = ((seed >> (index % 12)) + index * 37.42) % 360;
+    const longitude = ((seed >>> (index % 12)) + index * 37.42) % 360;
     const signIndex = Math.floor(longitude / 30);
     const nakshatraIndex = Math.floor(longitude / (360 / 27));
     return {
       planet,
       longitude: roundDegree(longitude),
-      latitude: planet === "Rahu" || planet === "Ketu" ? 0 : roundDegree((((seed >> (index + 2)) % 900) - 450) / 100),
+      latitude: planet === "Rahu" || planet === "Ketu" ? 0 : roundDegree((((seed >>> (index + 2)) % 900) - 450) / 100),
       sign: SIGNS[signIndex],
       degreeInSign: roundDegree(longitude % 30),
       house: ((signIndex - ascendantIndex + 12) % 12) + 1,
       nakshatra: NAKSHATRAS[nakshatraIndex],
       nakshatraPada: (Math.floor((longitude % (360 / 27)) / (360 / 108)) % 4) + 1,
-      retrograde: index > 1 && ((seed >> index) & 1) === 1,
+      retrograde: index > 1 && ((seed >>> index) & 1) === 1,
     };
   });
 }

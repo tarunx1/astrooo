@@ -94,5 +94,5 @@ over 1700-2300 rather than assumed. ELP is kept whole.
 
 ## Calculation version
 
-`ravish-kundli-v2.0`. Charts stored under `v1.1` were calculated by the previous
+`tarun-kundli-v2.0`. Charts stored under `v1.1` were calculated by the previous
 provider and must not be compared with new ones.

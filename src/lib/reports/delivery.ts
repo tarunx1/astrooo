@@ -157,7 +157,7 @@ export async function createReportDownload(
     return { ok: false, reason: "not_ready" };
   }
 
-  const fileName = `ravish-astro-${order.reportSlugSnapshot}-${order.id}.pdf`;
+  const fileName = `tarun-astro-${order.reportSlugSnapshot}-${order.id}.pdf`;
 
   if (storage instanceof LocalStorageProvider) {
     const bytes = await storage.read(report.storageKey);

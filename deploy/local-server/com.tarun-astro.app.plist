@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.tarun-astro.app</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/tarun-astro/bin/start-tarun-astro.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>WorkingDirectory</key>
+  <string>/opt/tarun-astro/current</string>
+
+  <key>StandardOutPath</key>
+  <string>/opt/tarun-astro/logs/app.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/opt/tarun-astro/logs/app-error.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NODE_ENV</key>
+    <string>production</string>
+    <key>PORT</key>
+    <string>3000</string>
+  </dict>
+</dict>
+</plist>

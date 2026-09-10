@@ -54,7 +54,7 @@ export type AstrologyProviderName = "native" | "development";
 export const astrologyCalculationConfig = {
   // Bumped when a change would move a placement: charts stored under an older
   // version were calculated differently and must not be compared to new ones.
-  version: "ravish-kundli-v2.0",
+  version: "tarun-kundli-v2.0",
   ayanamsa: "LAHIRI",
   zodiac: "SIDEREAL",
   houseSystem: "WHOLE_SIGN",

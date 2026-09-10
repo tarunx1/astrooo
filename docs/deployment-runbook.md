@@ -1,6 +1,6 @@
 # Deployment Runbook
 
-Operational procedure for deploying and running Ravish Astro in production.
+Operational procedure for deploying and running Tarun Astro in production.
 
 Everything here is **procedure**, not automation. Nothing in this document has
 been executed against real production infrastructure, because no production
