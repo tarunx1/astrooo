@@ -19,7 +19,7 @@ function NavLabel({
 
   return (
     <>
-      <Icon aria-hidden="true" className={cn("shrink-0", active ? "text-primary" : "text-foreground-muted")} size={20} />
+      <Icon aria-hidden="true" className={cn("shrink-0", active ? "text-blue-600" : "text-slate-400")} size={20} />
       <span className={cn("truncate", collapsed && "sr-only")}>{item.label}</span>
     </>
   );
@@ -46,14 +46,14 @@ function AccountNavItems({
               <span
                 aria-disabled="true"
                 className={cn(
-                  "flex min-h-11 cursor-not-allowed items-center rounded-md text-sm font-medium text-foreground-muted/55",
+                  "flex min-h-11 cursor-not-allowed items-center rounded-md text-sm font-medium text-slate-400",
                   collapsed ? "justify-center px-2" : "gap-3 px-3",
                 )}
                 title={collapsed ? `${item.label} - coming soon` : "Coming in a later release"}
               >
                 <NavLabel active={false} collapsed={collapsed} item={item} />
                 {collapsed ? null : (
-                  <span className="ml-auto text-[10px] uppercase tracking-wider text-foreground-muted/70">Soon</span>
+                  <span className="ml-auto text-[10px] uppercase tracking-wider text-blue-300">Soon</span>
                 )}
               </span>
             ) : (
@@ -61,11 +61,11 @@ function AccountNavItems({
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex min-h-11 items-center rounded-md text-sm font-medium transition",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                   collapsed ? "justify-center px-2" : "gap-3 px-3",
                   active
-                    ? "bg-surface-raised text-foreground shadow-[inset_3px_0_0_var(--primary)]"
-                    : "text-foreground-secondary hover:bg-surface-hover hover:text-foreground",
+                    ? "bg-white font-semibold text-blue-700 shadow-[inset_3px_0_0_#1e3a8a]"
+                    : "text-blue-100 hover:bg-blue-600 hover:text-white",
                 )}
                 href={item.href}
                 onClick={onNavigate}
@@ -114,18 +114,18 @@ export function AccountDashboardShell({
   return (
     <div
       className={cn(
-        "min-h-[calc(100vh-var(--header-height))] lg:grid lg:transition-[grid-template-columns] lg:duration-200",
-        collapsed ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[264px_minmax(0,1fr)]",
+        "min-h-[calc(100vh-var(--header-height))] xl:grid xl:transition-[grid-template-columns] xl:duration-200",
+        collapsed ? "xl:grid-cols-[76px_minmax(0,1fr)]" : "xl:grid-cols-[264px_minmax(0,1fr)]",
       )}
     >
-      <aside className="hidden border-r border-white/10 bg-surface/70 backdrop-blur-xl lg:block">
+      <aside className="hidden border-r border-blue-800 bg-blue-700 xl:block">
         <div className="sticky top-[var(--header-height)] flex h-[calc(100vh-var(--header-height))] flex-col overflow-y-auto px-4 py-5">
           <button
             aria-expanded={!collapsed}
             aria-label={toggleLabel}
             className={cn(
-              "mb-5 flex min-h-10 items-center rounded-md text-sm font-semibold text-foreground-muted transition hover:bg-surface-hover hover:text-foreground",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
+              "mb-5 flex min-h-10 items-center rounded-md text-sm font-semibold text-blue-100 transition hover:bg-blue-600 hover:text-white",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
               collapsed ? "justify-center px-2" : "justify-between px-3",
             )}
             onClick={() => setCollapsed((value) => !value)}
@@ -142,11 +142,11 @@ export function AccountDashboardShell({
         </div>
       </aside>
 
-      <div className="border-b border-border bg-surface/75 px-4 py-3 backdrop-blur-xl sm:px-6 lg:hidden">
+      <div className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 xl:hidden">
         <button
           aria-expanded={mobileOpen}
           aria-label="Open account navigation"
-          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border-strong px-3 text-sm font-semibold text-foreground transition hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           onClick={() => setMobileOpen(true)}
           type="button"
         >
@@ -157,7 +157,7 @@ export function AccountDashboardShell({
 
       {mobileOpen ? (
         <div
-          className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm xl:hidden"
           onClick={() => setMobileOpen(false)}
           role="presentation"
         >
@@ -186,7 +186,7 @@ export function AccountDashboardShell({
         </div>
       ) : null}
 
-      <main className="min-w-0 px-4 py-8 sm:px-6 md:px-8 lg:px-10 lg:py-10">
+      <main className="min-w-0 px-4 py-8 sm:px-6 md:px-8 xl:px-10 xl:py-10" data-surface="light">
         <div className="mx-auto w-full max-w-[var(--container-lg)]">{children}</div>
       </main>
     </div>

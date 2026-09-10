@@ -55,16 +55,30 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+/**
+ * Element defaults belong in a layer.
+ *
+ * `@import "tailwindcss"` puts every utility in `@layer utilities`, and an
+ * unlayered rule beats any layered one no matter how specific the layered one
+ * is. Left unlayered, `color: inherit` here silently defeated every Tailwind
+ * text colour on a link, app-wide - a nav item styled text-blue-700 simply
+ * inherited whatever its container had - and `font: inherit` did the same to
+ * font sizes on buttons and inputs. Inside `@layer base` they still apply by
+ * default and a utility can still override them, which is the whole point of
+ * having them.
+ */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
 }
 
 ::selection {
@@ -125,6 +139,63 @@ textarea {
   }
   @media (prefers-reduced-motion: reduce) {
     .form-control { transition: none; }
+  }
+
+  .admin-main {
+    --background: #ffffff;
+    --background-subtle: #f8fafc;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-hover: #f8fafc;
+    --foreground: #0f172a;
+    --foreground-secondary: #475569;
+    --foreground-muted: #64748b;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-active: #1e40af;
+    --primary-foreground: #ffffff;
+    --accent: #2563eb;
+    --accent-cyan: #2563eb;
+    --premium: #b45309;
+    --premium-muted: #8a641e;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.07), 0 2px 4px -2px rgb(15 23 42 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.04);
+    background-color: #ffffff;
+    color: #0f172a;
+    color-scheme: light;
+  }
+
+  .admin-main .form-control {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    color-scheme: light;
+  }
+
+  .admin-main .form-control:hover:not(:disabled) {
+    border-color: #94a3b8;
+  }
+
+  .admin-main .form-control:focus {
+    border-color: #2563eb;
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  .admin-main .form-control option {
+    background: #ffffff;
+    color: #0f172a;
+  }
+
+  .admin-main .form-control:-webkit-autofill {
+    -webkit-text-fill-color: #0f172a;
+    box-shadow: inset 0 0 0 1000px #ffffff;
   }
 }
 
@@ -297,4 +368,35 @@ textarea {
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/**
+ * A light surface, scoped.
+ *
+ * The dashboards are white while the rest of the site is a night sky. Rather
+ * than rewrite every component for two grounds, or paint white broadly and
+ * have it leak into the header and public pages, the design tokens are
+ * remapped inside this attribute. Anything within it that already says
+ * text-foreground or bg-surface comes out light without knowing why.
+ */
+[data-surface="light"] {
+  color-scheme: light;
+  --background: #ffffff;
+  --background-subtle: #f8fafc;
+  --surface: #ffffff;
+  --surface-raised: #f8fafc;
+  --surface-hover: #f1f5f9;
+  --foreground: #0f172a;
+  --foreground-secondary: #334155;
+  --foreground-muted: #64748b;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* The star field never shows through a light surface. */
+[data-surface="light"] .star-field {
+  background-color: var(--background);
+  background-image: none;
 }
