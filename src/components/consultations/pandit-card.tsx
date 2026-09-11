@@ -1,5 +1,5 @@
+import { ContentImage } from "@/components/ui/content-image";
 import Link from "next/link";
-import Image from "next/image";
 import { ConsultationMode } from "@prisma/client";
 import { BadgeCheck, CalendarCheck, MessageSquare, Phone, Star, Video } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -76,7 +76,7 @@ export function PanditCard({ pandit }: { pandit: DirectoryPandit }) {
         <div className="flex items-start gap-4">
           <div className="relative size-16 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
             {pandit.profileImageUrl ? (
-              <Image
+              <ContentImage
                 alt=""
                 className="size-full object-cover"
                 height={128}

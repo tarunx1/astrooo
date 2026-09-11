@@ -1,5 +1,5 @@
+import { ContentImage } from "@/components/ui/content-image";
 import Link from "next/link";
-import Image from "next/image";
 import { CourseLevel } from "@prisma/client";
 import { BookOpen, Clock, GraduationCap } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -29,7 +29,7 @@ export function CourseCard({ course }: { course: CourseCardData }) {
       >
         <div className="relative aspect-[16/9] overflow-hidden bg-surface-raised">
           {course.coverImageUrl ? (
-            <Image
+            <ContentImage
               alt=""
               className="size-full object-cover transition duration-[var(--motion-normal)] group-hover:scale-105"
               height={360}

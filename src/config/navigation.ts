@@ -13,9 +13,13 @@ import {
  * Global navigation.
  *
  * `planned: true` marks a destination that does not exist yet. Those entries
- * render as disabled rather than linking to a 404 — the information
+ * render as disabled rather than linking to a 404 - the information
  * architecture is preserved without shipping a dead link. Remove the flag when
- * the route ships.
+ * the route ships, and only then.
+ *
+ * Every entry below is currently a real, working route. If you add one that is
+ * not, flag it: a dead link in the primary navigation is worse than an absent
+ * one, because it reads as a broken site rather than an unfinished one.
  */
 export const navigation = [
   {

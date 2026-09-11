@@ -1,6 +1,6 @@
+import { ContentImage } from "@/components/ui/content-image";
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { Clock, Flame } from "lucide-react";
 import { PageContainer, Section, SectionHeader } from "@/components/layout/primitives";
 import { Card } from "@/components/ui/card";
@@ -51,7 +51,7 @@ export default async function PujaPage() {
                   >
                     <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised">
                       {puja.imageUrl ? (
-                        <Image
+                        <ContentImage
                           alt=""
                           className="size-full object-cover transition duration-[var(--motion-normal)] group-hover:scale-105"
                           height={400}

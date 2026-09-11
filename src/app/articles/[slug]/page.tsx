@@ -1,5 +1,5 @@
+import { ContentImage } from "@/components/ui/content-image";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock } from "lucide-react";
@@ -95,7 +95,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
           {article.coverImageUrl ? (
             <div className="mt-8 overflow-hidden rounded-lg border border-border">
-              <Image
+              <ContentImage
                 alt=""
                 className="aspect-[16/9] w-full object-cover"
                 height={720}

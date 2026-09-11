@@ -28,12 +28,45 @@ value.
 | `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` | server-only secret | Required when `REPORT_CHECKOUT_ENABLED=true` |
 | `AI_PROVIDER_API_KEY` | server-only secret | Required when `AI_PROVIDER=gemini` |
 | `JOBS_SECRET` | server-only secret | Report worker; worker disabled when unset |
-| `STORAGE_*` | server-only secret | Report PDF object storage |
+| `STORAGE_BUCKET` / `STORAGE_ACCESS_KEY_ID` / `STORAGE_SECRET_ACCESS_KEY` | server-only secret | **Required in production.** Report PDFs *and* practitioner verification documents |
+| `CONFIG_ENCRYPTION_KEY` | server-only secret | **Required in production.** Encrypts stored provider credentials and practitioner payout details |
+| `CALL_PROVIDER_APP_ID` / `CALL_PROVIDER_APP_SECRET` | server-only secret | Optional. Must be set together or neither. No adapter implemented yet |
+| `PAYOUT_PROVIDER_KEY_ID` / `PAYOUT_PROVIDER_KEY_SECRET` | server-only secret | Optional. Must be set together or neither. No adapter implemented yet |
 | `TRUSTED_PROXY_HOPS`, `LOG_LEVEL` | optional | Defaults documented in `.env.example` |
 
 Secrets belong in the hosting platform's secret store or a managed secret
 manager. They must never be committed, printed in logs, or exposed through
 `NEXT_PUBLIC_*`.
+
+## External provider status
+
+An honest split between what is built and what is connected. "Code ready" means
+the interface, configuration, state machine and tests exist and a credential is
+all that is missing. It does **not** mean the integration has been exercised
+against the real provider.
+
+| Provider | Status | What works without it |
+| --- | --- | --- |
+| Razorpay (payments) | CODE READY — TEST MODE ONLY | Nothing; checkout needs it |
+| Object storage (S3 / R2) | CODE READY — CREDENTIALS REQUIRED | Local filesystem in development only; production refuses to start |
+| Upstash (rate limiting) | CODE READY — CREDENTIALS REQUIRED | In-process limiter in development; production refuses to start |
+| AI provider (report prose) | CODE READY — CREDENTIALS REQUIRED | Deterministic calculations are unaffected; report generation fails and is retryable |
+| Calling provider (voice/video) | NOT IMPLEMENTED — no adapter | Chat consultations work fully. Voice and video sessions render an explicit "not connected" state |
+| Payout provider (RazorpayX etc.) | NOT IMPLEMENTED — no adapter | Ledger, batching, states and audit all work. Transfers are made by an operator and recorded against a bank reference |
+| Email / SMS / WhatsApp | NOT IMPLEMENTED — no adapter | No transactional messaging is sent |
+
+### The payout rule
+
+When a payout adapter is added it must observe one rule, enforced by the
+interface in `src/lib/payouts/provider.ts`: requesting a transfer returns
+`accepted` and moves the payout to `PROCESSING`. It never returns `paid`. Only a
+provider confirmation — webhook or status poll, applied through
+`applyProviderStatus` — moves a payout to `PAID`, and that write settles the
+earning rows in the same transaction so the ledger and the payout can never
+disagree.
+
+The idempotency key is derived from the payout id, so retrying the same payout
+collapses at the provider instead of sending twice.
 
 ## Proxy trust
 
@@ -175,7 +208,49 @@ its rationale is declared in that one table.
 | One distributed bucket shared across instances | **PRODUCTION-LIKE VERIFIED** — two processes, one store |
 | Spoofed `X-Forwarded-For` yields no extra buckets | **PRODUCTION-LIKE VERIFIED** |
 | Backup and restore | **REAL-INFRASTRUCTURE VERIFIED** — see `docs/database-operations.md` |
+| Consultation double-booking prevented under concurrency | **AUTOMATED TESTED** — four concurrent attempts, one winner, against real Postgres |
+| Consultation payment confirmation is idempotent | **AUTOMATED TESTED** — callback and webhook together confirm once |
+| Commission snapshot survives a later rate change | **AUTOMATED TESTED** |
+| Unpaid slot holds expire and return to the calendar | **AUTOMATED TESTED** |
+| Puja Sankalp is unreachable except by customer and assigned practitioner | **AUTOMATED TESTED** |
+| Draft articles and unlisted practitioners absent from search | **AUTOMATED TESTED** |
+| Verification document access is authorized per request | **STRUCTURALLY VERIFIED** — signed URL minted per read, every reviewer read audited |
+| Voice/video session reports "not connected" rather than failing silently | **STRUCTURALLY VERIFIED** — no provider credentials exist to test against |
+| Payout provider adapter | **NOT IMPLEMENTED** — interface and state machine only |
+| Live-mode Razorpay | **NOT EXECUTED** — test mode only, no live merchant credentials |
 
+
+## Post-deployment verification
+
+Run these after a deploy, in order. Each is a real check, not a smoke test.
+
+1. **Health and readiness.** `GET /api/health` returns `200`; `GET /api/readiness`
+   returns `200`. A `503` from readiness names the failed check and nothing else.
+
+2. **Migrations applied.** `pnpm exec prisma migrate status` reports no pending
+   migrations.
+
+3. **Public surfaces render.** `/`, `/consultations`, `/puja`, `/articles`,
+   `/courses`, `/shop`, `/search` all return `200`. An empty catalogue renders
+   its empty state rather than an error.
+
+4. **Private surfaces refuse.** Signed out, `/admin`, `/employee`, `/pandit`,
+   `/account/*` all return `404` or redirect to sign-in. Never `200`.
+
+5. **Role separation.** Sign in as each of customer, pandit, employee, admin and
+   super admin, and confirm the access matrix in
+   `tests/pandit-authorization.test.ts` holds in the running application.
+
+6. **Payments.** With Razorpay test credentials, complete one consultation
+   booking end to end and confirm: the consultation reaches `CONFIRMED`, exactly
+   one `Payment` row exists, and re-delivering the webhook changes nothing.
+
+7. **Private documents.** Upload a practitioner verification document and
+   confirm it is not reachable without authentication, that a reviewer's read
+   appears in the audit log, and that the URL expires.
+
+8. **Rate limiting.** Confirm the distributed store is in use — see below. A
+   restart must not reset a bucket.
 
 ## Verifying the distributed rate-limit store
 

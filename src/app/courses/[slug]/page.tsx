@@ -1,5 +1,5 @@
+import { ContentImage } from "@/components/ui/content-image";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock, GraduationCap, User } from "lucide-react";
@@ -84,7 +84,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
             {course.coverImageUrl ? (
               <div className="overflow-hidden rounded-lg border border-border">
-                <Image
+                <ContentImage
                   alt=""
                   className="aspect-[16/9] w-full object-cover"
                   height={720}

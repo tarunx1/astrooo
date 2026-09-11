@@ -23,6 +23,19 @@ const serverEnvSchema = z.object({
   STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   EMAIL_PROVIDER_API_KEY: z.string().optional(),
+  SMS_PROVIDER_API_KEY: z.string().optional(),
+  WHATSAPP_PROVIDER_API_KEY: z.string().optional(),
+  // Voice and video consultations. Both halves are required together; a key id
+  // from one place and a secret from another is a pair that never existed.
+  CALL_PROVIDER_APP_ID: z.string().optional(),
+  CALL_PROVIDER_APP_SECRET: z.string().optional(),
+  // Automated practitioner disbursement.
+  PAYOUT_PROVIDER_KEY_ID: z.string().optional(),
+  PAYOUT_PROVIDER_KEY_SECRET: z.string().optional(),
+  PAYOUT_PROVIDER_WEBHOOK_SECRET: z.string().optional(),
+  MAPS_PROVIDER_API_KEY: z.string().optional(),
+  ANALYTICS_PROVIDER_API_KEY: z.string().optional(),
+  PUSH_PROVIDER_API_KEY: z.string().optional(),
   // Distributed rate limit store. Both are server-only credentials.
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
@@ -92,7 +105,55 @@ export function assertProductionAuthEnv(env: NodeJS.ProcessEnv = process.env): v
     missing.push("TRUSTED_PROXY_PLATFORM (set to the hosting platform, or 'generic' behind your own proxy)");
   }
 
+  /**
+   * The encryption root.
+   *
+   * Required in production now that practitioners store payout details. Without
+   * it the application refuses to store bank details at all - which is the
+   * right refusal, but discovering it when a practitioner first tries to get
+   * paid is the wrong time.
+   */
+  if (!env.CONFIG_ENCRYPTION_KEY || env.CONFIG_ENCRYPTION_KEY.length < 32) {
+    missing.push("CONFIG_ENCRYPTION_KEY (protects stored payout and provider credentials)");
+  }
+
+  /**
+   * Private document storage.
+   *
+   * Practitioner verification documents are identity documents. In production
+   * they must go to object storage, not the local filesystem, because a
+   * filesystem on an ephemeral instance loses them and a shared one is not
+   * access-controlled. `getStorageProvider` refuses in production anyway; this
+   * turns that into a startup failure rather than a first-upload failure.
+   */
+  const storageParts = [
+    env.STORAGE_BUCKET,
+    env.STORAGE_ACCESS_KEY_ID,
+    env.STORAGE_SECRET_ACCESS_KEY,
+  ];
+
+  if (storageParts.some((part) => !part)) {
+    missing.push("STORAGE_BUCKET, STORAGE_ACCESS_KEY_ID and STORAGE_SECRET_ACCESS_KEY (private document storage)");
+  }
+
+  // Half-configured provider bundles are worse than none: they fail at the
+  // provider, at the worst moment, in a way nobody can reason about.
+  assertPair(env.CALL_PROVIDER_APP_ID, env.CALL_PROVIDER_APP_SECRET, "CALL_PROVIDER_APP_ID and CALL_PROVIDER_APP_SECRET", missing);
+  assertPair(env.PAYOUT_PROVIDER_KEY_ID, env.PAYOUT_PROVIDER_KEY_SECRET, "PAYOUT_PROVIDER_KEY_ID and PAYOUT_PROVIDER_KEY_SECRET", missing);
+
   if (missing.length > 0) {
     throw new Error(`Missing required production environment configuration: ${missing.join(", ")}`);
+  }
+}
+
+/** Both halves of a credential pair, or neither. */
+function assertPair(
+  first: string | undefined,
+  second: string | undefined,
+  label: string,
+  missing: string[],
+): void {
+  if (Boolean(first) !== Boolean(second)) {
+    missing.push(`${label} must be set together`);
   }
 }

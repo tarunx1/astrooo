@@ -1,6 +1,6 @@
+import { ContentImage } from "@/components/ui/content-image";
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { AccountLayout } from "@/components/account/account-shell";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -50,7 +50,7 @@ export default async function WishlistPage() {
               <article className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-xs">
                 <div className="relative size-20 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
                   {item.imageUrl ? (
-                    <Image alt="" className="size-full object-cover" height={160} src={item.imageUrl} width={160} />
+                    <ContentImage alt="" className="size-full object-cover" height={160} src={item.imageUrl} width={160} />
                   ) : (
                     <span aria-hidden="true" className="grid size-full place-items-center text-slate-300">
                       <Sparkles size={20} />

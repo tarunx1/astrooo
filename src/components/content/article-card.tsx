@@ -1,5 +1,5 @@
+import { ContentImage } from "@/components/ui/content-image";
 import Link from "next/link";
-import Image from "next/image";
 import { BookOpen, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import type { ArticleCardData } from "@/lib/content/articles";
@@ -15,7 +15,7 @@ export function ArticleCard({ article }: { article: ArticleCardData }) {
       >
         <div className="relative aspect-[16/9] overflow-hidden bg-surface-raised">
           {article.coverImageUrl ? (
-            <Image
+            <ContentImage
               alt=""
               className="size-full object-cover transition duration-[var(--motion-normal)] group-hover:scale-105"
               height={360}

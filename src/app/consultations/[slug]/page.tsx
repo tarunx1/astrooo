@@ -1,5 +1,5 @@
+import { ContentImage } from "@/components/ui/content-image";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConsultationMode } from "@prisma/client";
@@ -84,7 +84,7 @@ export default async function PanditProfilePage({ params }: { params: Promise<{ 
             <header className="flex flex-col gap-5 sm:flex-row sm:items-start">
               <div className="relative size-24 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
                 {pandit.profileImageUrl ? (
-                  <Image
+                  <ContentImage
                     alt=""
                     className="size-full object-cover"
                     height={192}

@@ -95,6 +95,15 @@ export const INTEGRATIONS: readonly IntegrationDefinition[] = [
     notImplemented: true,
   },
   {
+    id: "payouts",
+    label: "Payout provider",
+    category: "payments",
+    description:
+      "Automated transfers to practitioners. The ledger, states and audit trail work without it; only the transfer rail is missing.",
+    secrets: ["payouts.providerKeyId", "payouts.providerKeySecret", "payouts.providerWebhookSecret"],
+    notImplemented: true,
+  },
+  {
     id: "storage",
     label: "Object storage",
     category: "storage",

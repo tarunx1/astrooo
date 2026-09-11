@@ -296,6 +296,9 @@ export const SECRETS = {
   "maps.apiKey": { envFallback: "MAPS_PROVIDER_API_KEY", label: "Maps/geocoding API key" },
   "analytics.apiKey": { envFallback: "ANALYTICS_PROVIDER_API_KEY", label: "Analytics provider API key" },
   "push.apiKey": { envFallback: "PUSH_PROVIDER_API_KEY", label: "Push notification API key" },
+  "payouts.providerKeyId": { envFallback: "PAYOUT_PROVIDER_KEY_ID", label: "Payout provider key id" },
+  "payouts.providerKeySecret": { envFallback: "PAYOUT_PROVIDER_KEY_SECRET", label: "Payout provider key secret" },
+  "payouts.providerWebhookSecret": { envFallback: "PAYOUT_PROVIDER_WEBHOOK_SECRET", label: "Payout provider webhook secret" },
 } as const;
 
 export type SecretKey = keyof typeof SECRETS;
