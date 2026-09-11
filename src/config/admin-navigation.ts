@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Coins,
   FileText,
+  Flame,
   Gem,
   KeyRound,
   LayoutDashboard,
@@ -68,6 +69,7 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavGroup[] = [
       { label: "Applications", href: "/admin/pandits/applications", icon: UserCheck, permissions: ["pandits.view"] },
       { label: "Verification queue", href: "/admin/pandits/verification", icon: ShieldCheck, permissions: ["pandits.review", "pandits.verify"] },
       { label: "Consultations", href: "/admin/consultations", icon: CalendarClock, permissions: ["consultations.view"] },
+      { label: "Puja bookings", href: "/admin/puja/bookings", icon: Flame, permissions: ["services.manage"] },
     ],
   },
   {

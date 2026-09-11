@@ -1,4 +1,4 @@
-import { CalendarHeart, LayoutDashboard, Package, ScrollText, Settings, Star, Users } from "lucide-react";
+import { CalendarHeart, Flame, LayoutDashboard, Package, ScrollText, Settings, Star, Users } from "lucide-react";
 
 /**
  * Single source of truth for customer account navigation.
@@ -56,6 +56,13 @@ export const accountNavigation: readonly AccountNavItem[] = [
     href: "/account/reports",
     icon: ScrollText,
     description: "Purchased astrology reports",
+    status: "available",
+  },
+  {
+    label: "Pujas",
+    href: "/account/puja",
+    icon: Flame,
+    description: "Rituals booked on your behalf",
     status: "available",
   },
   {

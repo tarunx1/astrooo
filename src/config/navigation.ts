@@ -85,9 +85,11 @@ export const navigation = [
   {
     label: "Puja",
     href: "/puja",
-    planned: true,
     icon: Sparkles,
-    items: [{ label: "Online Puja", href: "/puja", description: "Book rituals with transparent details", planned: true }],
+    items: [
+      { label: "Online Puja", href: "/puja", description: "Book rituals with transparent details" },
+      { label: "My Pujas", href: "/account/puja", description: "Rituals you have booked" },
+    ],
   },
   {
     label: "Learn",

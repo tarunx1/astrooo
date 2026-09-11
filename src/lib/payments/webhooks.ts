@@ -11,6 +11,11 @@ import {
   findConsultationByProviderOrderId,
   recordFailedConsultationPayment,
 } from "@/lib/consultations/checkout";
+import {
+  applyVerifiedPujaPayment,
+  findPujaBookingByProviderOrderId,
+  recordFailedPujaPayment,
+} from "@/lib/puja/bookings";
 import type { PaymentProvider, ProviderPayment } from "@/lib/payments/provider";
 import { logger, reportIncident } from "@/lib/observability/logger";
 
@@ -162,6 +167,30 @@ export async function processRazorpayWebhook(
       return { ok: true, duplicate: false };
     }
 
+    // Puja bookings are the fourth purchase kind, routed the same way.
+    const pujaBooking = payment ? await findPujaBookingByProviderOrderId(payment.orderId) : null;
+
+    if (payment && pujaBooking) {
+      if (eventType === "payment.failed") {
+        await recordFailedPujaPayment(pujaBooking.id, payment);
+      } else {
+        await applyVerifiedPujaPayment(pujaBooking.id, payment);
+      }
+
+      await prisma.paymentWebhookEvent.update({
+        where: { providerEventId },
+        data: { processedAt: new Date() },
+      });
+
+      logger.info("payment_webhook_processed", {
+        provider: "razorpay",
+        eventType,
+        providerEventId,
+        kind: "puja",
+      });
+      return { ok: true, duplicate: false };
+    }
+
     const reportOrder = payment
       ? await prisma.reportOrder.findUnique({
           where: { providerOrderId: payment.orderId },
@@ -203,11 +232,13 @@ export async function processRazorpayWebhook(
       // PAID by payment.captured; nothing further is needed for them here.
       const physical = await findOrderByProviderOrderId(providerOrderId);
       const consultationOrder = physical ? null : await findConsultationByProviderOrderId(providerOrderId);
+      const puja =
+        physical || consultationOrder ? null : await findPujaBookingByProviderOrderId(providerOrderId);
 
-      // order.paid carries no payment entity, so it cannot confirm a
-      // consultation on its own - payment.captured already did that. It is
-      // matched here only so it is not mistaken for a report order.
-      if (!physical && !consultationOrder) await markProviderOrderPaid(providerOrderId);
+      // order.paid carries no payment entity, so it cannot confirm anything on
+      // its own - payment.captured already did that. The other kinds are
+      // matched here only so they are not mistaken for a report order.
+      if (!physical && !consultationOrder && !puja) await markProviderOrderPaid(providerOrderId);
     }
   }
 

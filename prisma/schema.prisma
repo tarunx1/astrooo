@@ -145,6 +145,7 @@ model User {
   ticketsReported    Ticket[]         @relation("TicketReporter")
   ticketsAssigned    Ticket[]         @relation("TicketAssignee")
   ticketMessages     TicketMessage[]  @relation("TicketAuthor")
+  pujaAssignments    PujaBooking[]    @relation("PujaAssigner")
 
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -452,6 +453,7 @@ model Payment {
   orderId           String?
   reportOrderId     String?
   consultationId    String?
+  pujaBookingId     String?
   provider          String
   providerOrderId   String?
   providerPaymentId String?       @unique
@@ -465,6 +467,7 @@ model Payment {
   order             Order?        @relation(fields: [orderId], references: [id])
   reportOrder       ReportOrder?  @relation(fields: [reportOrderId], references: [id])
   consultation      Consultation? @relation(fields: [consultationId], references: [id])
+  pujaBooking       PujaBooking?  @relation(fields: [pujaBookingId], references: [id])
   refunds           Refund[]
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -473,6 +476,7 @@ model Payment {
   @@index([orderId])
   @@index([reportOrderId])
   @@index([consultationId])
+  @@index([pujaBookingId])
   @@index([providerOrderId])
   @@index([status])
 }
@@ -678,33 +682,122 @@ model Consultation {
   @@index([scheduledStart])
 }
 
-model Puja {
-  id          String        @id @default(cuid())
-  title       String
-  slug        String        @unique
-  description String
-  pricePaise  Int
-  active      Boolean       @default(false)
-  bookings    PujaBooking[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+/// How a Puja is performed on the customer's behalf.
+enum PujaMode {
+  /// Performed at a temple or the practitioner's own space, streamed or recorded.
+  ONLINE
+  /// Performed at the customer's home or a venue they arrange.
+  IN_PERSON
+  /// Performed at a named temple without the customer attending.
+  TEMPLE
 }
 
+/// Where a Puja booking stands.
+///
+/// Replaces the free-form string the original model carried. Every comparison
+/// in the application is against this enum, so a typo is a compile error rather
+/// than a booking that silently never matches a filter.
+enum PujaBookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  PANDIT_PENDING
+  ASSIGNED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model Puja {
+  id               String        @id @default(cuid())
+  title            String
+  slug             String        @unique
+  description      String
+  /// One line for cards and search results.
+  shortDescription String        @default("")
+  /// What this ritual is traditionally performed for. Descriptive, never a promise.
+  purpose          String?
+  /// Traditionally associated benefits. Presented as tradition, not as outcome.
+  benefits         String[]
+  /// What the customer must provide or prepare.
+  requirements     String[]
+  /// Ritual materials, as structured entries rather than prose in a component.
+  samagri          Json?
+  /// The steps of the ritual, as structured entries.
+  vidhi            Json?
+  durationMinutes  Int?
+  pricePaise       Int
+  currency         String        @default("INR")
+  imageUrls        String[]
+  modes            PujaMode[]
+  sortOrder        Int           @default(0)
+  active           Boolean       @default(false)
+  bookings         PujaBooking[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+/// One customer's booking of a Puja.
+///
+/// `sankalpJson` holds the family and intention details a ritual needs - gotra,
+/// names, birth details. That is private customer data of the same kind as a
+/// birth profile: it is never selected by a public query, never rendered
+/// outside the customer's own account and the assigned practitioner's view, and
+/// never written to an audit entry.
 model PujaBooking {
-  id        String   @id @default(cuid())
-  userId    String
-  orderId   String?
-  pujaId    String
-  date      DateTime?
-  status    String   @default("REQUESTED")
-  user      User     @relation(fields: [userId], references: [id])
-  order     Order?   @relation(fields: [orderId], references: [id])
-  puja      Puja     @relation(fields: [pujaId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id      String            @id @default(cuid())
+  /// Human-facing reference shown to the customer and support.
+  bookingNumber String      @unique
+  userId  String
+  orderId String?
+  pujaId  String
+  status  PujaBookingStatus @default(PENDING_PAYMENT)
+  mode    PujaMode          @default(ONLINE)
+
+  /// When the ritual is to be performed. Null until an operator schedules it.
+  scheduledAt DateTime?
+  timezone    String        @default("Asia/Kolkata")
+  /// The date the customer asked for, kept even after scheduling moves it.
+  requestedDate DateTime?
+
+  /// Purchase snapshots, frozen at booking. A later catalogue edit never
+  /// rewrites what a customer was charged or what they believed they bought.
+  titleSnapshot String
+  pricePaise    Int
+  currency      String       @default("INR")
+
+  /// Private. See the model comment.
+  sankalpJson Json?
+
+  /// The practitioner who will perform it. Assigned by an operator.
+  panditProfileId String?
+  assignedAt      DateTime?
+  assignedById    String?
+
+  providerOrderId String?   @unique
+  paidAt          DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  cancellationReason String?
+  /// Operator-visible notes about fulfilment. Never shown to the customer.
+  operatorNote    String?
+
+  user       User           @relation(fields: [userId], references: [id])
+  order      Order?         @relation(fields: [orderId], references: [id])
+  puja       Puja           @relation(fields: [pujaId], references: [id])
+  pandit     PanditProfile? @relation(fields: [panditProfileId], references: [id], onDelete: SetNull)
+  assignedBy User?          @relation("PujaAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+  payments   Payment[]
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
   @@index([userId])
   @@index([pujaId])
+  @@index([status])
+  @@index([panditProfileId])
 }
 
 model Course {
@@ -1005,6 +1098,14 @@ enum AuditAction {
   EARNING_ADJUSTED
   TICKET_ASSIGNED
   TICKET_STATUS_CHANGED
+  PUJA_PANDIT_ASSIGNED
+  PUJA_BOOKING_STATUS_CHANGED
+  PUJA_CREATED
+  PUJA_UPDATED
+  ARTICLE_CREATED
+  ARTICLE_UPDATED
+  ARTICLE_PUBLISHED
+  ARTICLE_UNPUBLISHED
 }
 
 /// Append-only record of sensitive operator actions.
@@ -1240,6 +1341,7 @@ model PanditProfile {
   payouts       Payout[]
   payoutAccount PayoutAccount?
   reviews       Review[]
+  pujaBookings  PujaBooking[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
