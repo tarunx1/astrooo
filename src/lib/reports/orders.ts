@@ -13,6 +13,12 @@ import { PaymentSignatureError, PaymentUnavailableError, PaymentValidationError 
 import type { PaymentProvider, ProviderPayment } from "@/lib/payments/provider";
 import { isValidMinorUnitAmount } from "@/lib/payments/provider";
 import { createKundliInputHash } from "@/lib/kundli/normalize";
+import {
+  NUMEROLOGY_CALCULATION_TYPE,
+  NUMEROLOGY_REPORT_SLUG,
+  calculateNumerologyForReport,
+  numerologyInputHash,
+} from "@/lib/reports/numerology-context";
 
 export type CreateReportOrderInput = {
   reportDefinitionId: string;
@@ -100,6 +106,53 @@ async function resolveAstrologyCalculation(userId: string, birthProfileId: strin
   }
 }
 
+/**
+ * Resolves - or computes and stores - the numerology calculation for a profile.
+ *
+ * Deduplicated on a hash of the name and date, exactly as chart calculations
+ * are, so ordering the same reading twice reuses one immutable calculation
+ * rather than creating a second that could drift.
+ *
+ * The calculator is deterministic and local: there is no provider call here,
+ * and no model is involved in producing a number.
+ */
+async function resolveNumerologyCalculation(userId: string, birthProfileId: string) {
+  const profile = await getOwnedBirthProfile(userId, birthProfileId);
+  if (!profile) return null;
+
+  // `getOwnedBirthProfile` already returns the date as an ISO calendar string.
+  const dateOfBirth = profile.dateOfBirth.slice(0, 10);
+  const numerologyInput = { name: profile.name, dateOfBirth };
+  const inputHash = numerologyInputHash(numerologyInput);
+
+  const existing = await prisma.astrologyCalculation.findFirst({
+    where: { calculationType: NUMEROLOGY_CALCULATION_TYPE, inputHash },
+    select: { id: true },
+  });
+
+  if (existing) return { id: existing.id, normalized: null, profile };
+
+  const result = calculateNumerologyForReport(numerologyInput);
+
+  const created = await prisma.astrologyCalculation.create({
+    data: {
+      birthProfileId,
+      calculationType: NUMEROLOGY_CALCULATION_TYPE,
+      provider: "in-house",
+      providerVersion: "1",
+      calculationVersion: "1",
+      calculatedAt: new Date(),
+      inputHash,
+      input: numerologyInput as unknown as Prisma.InputJsonValue,
+      result: result as unknown as Prisma.InputJsonValue,
+      status: "READY",
+    },
+    select: { id: true },
+  });
+
+  return { id: created.id, normalized: null, profile };
+}
+
 export async function createReportOrderForUser(
   userId: string,
   input: CreateReportOrderInput,
@@ -127,7 +180,18 @@ export async function createReportOrderForUser(
     return { ok: false, reason: "not_found", message: "That report is not available." };
   }
 
-  const resolved = await resolveAstrologyCalculation(userId, input.birthProfileId).catch((error: Error) => error);
+  /**
+   * Which calculation this report is written from.
+   *
+   * A numerology report needs the subject's name and date of birth, both of
+   * which a birth profile already carries - so the ordering flow is identical
+   * and only the calculation differs. Branching on the slug here keeps that
+   * choice in one place rather than in the checkout UI.
+   */
+  const resolved =
+    report.slug === NUMEROLOGY_REPORT_SLUG
+      ? await resolveNumerologyCalculation(userId, input.birthProfileId).catch((error: Error) => error)
+      : await resolveAstrologyCalculation(userId, input.birthProfileId).catch((error: Error) => error);
   if (!resolved || resolved instanceof Error) {
     return {
       ok: false,

@@ -10,7 +10,20 @@ import {
 } from "@/lib/ai/interpretation";
 import { buildCalculatedFacts, buildReportContext } from "@/lib/reports/context";
 import { REPORT_SCHEMA_VERSION, STANDARD_DISCLAIMERS, reportDocumentSchema } from "@/lib/reports/document";
-import { PROMPT_VERSION, buildSystemPrompt, buildUserPrompt, getReportSpec, hasRequiredContext } from "@/lib/reports/specs";
+import {
+  PROMPT_VERSION,
+  buildNumerologyUserPrompt,
+  buildSystemPrompt,
+  buildUserPrompt,
+  getReportSpec,
+  hasRequiredContext,
+} from "@/lib/reports/specs";
+import {
+  NUMEROLOGY_CALCULATION_TYPE,
+  numerologyCalculatedFacts,
+  serializeNumerologyForPrompt,
+} from "@/lib/reports/numerology-context";
+import type { NumerologyResult } from "@/lib/numerology/types";
 import type { KundliResult } from "@/lib/kundli/types";
 import { logger, reportIncident } from "@/lib/observability/logger";
 
@@ -142,7 +155,16 @@ export async function runGenerationJob(
           status: true,
           reportSlugSnapshot: true,
           astrologyCalculationId: true,
-          astrologyCalculation: { select: { id: true, result: true, calculationVersion: true, ayanamsa: true, houseSystem: true } },
+          astrologyCalculation: {
+            select: {
+              id: true,
+              result: true,
+              calculationType: true,
+              calculationVersion: true,
+              ayanamsa: true,
+              houseSystem: true,
+            },
+          },
         },
       },
     },
@@ -173,18 +195,47 @@ export async function runGenerationJob(
     return { ok: false, reason: "insufficient_data" };
   }
 
-  const context = buildReportContext(calculation.result as unknown as KundliResult);
-  if (!hasRequiredContext(spec, context)) {
+  /**
+   * Two kinds of calculation reach this pipeline.
+   *
+   * A chart report is written from a Kundli; a numerology report is written
+   * from the Chaldean calculator. They are distinguished by the stored
+   * `calculationType` rather than by the report slug, because the calculation
+   * is the thing that actually determines what facts exist.
+   */
+  const isNumerology = calculation.calculationType === NUMEROLOGY_CALCULATION_TYPE;
+
+  const context = isNumerology
+    ? null
+    : buildReportContext(calculation.result as unknown as KundliResult);
+
+  const numerology = isNumerology
+    ? (calculation.result as unknown as NumerologyResult)
+    : null;
+
+  if (context && !hasRequiredContext(spec, context)) {
     await recordFailure(job.id, order.id, "configuration", "The calculation is missing data this report requires.");
     return { ok: false, reason: "insufficient_data" };
   }
+
+  // A numerology reading with no calculable numbers at all is not worth
+  // generating, and is the numerology equivalent of a chart missing its
+  // ascendant.
+  if (numerology && numerology.numbers.length === 0) {
+    await recordFailure(job.id, order.id, "configuration", "No numerology values could be calculated for this input.");
+    return { ok: false, reason: "insufficient_data" };
+  }
+
+  const subjectName = numerology ? (numerology.name ?? "This reading") : context!.subjectName;
 
   const interpreter = provider ?? getInterpretationProvider();
 
   try {
     const { body, model, provider: providerName } = await interpreter.generateReportBody({
       systemPrompt: buildSystemPrompt(spec),
-      userPrompt: buildUserPrompt(spec, context),
+      userPrompt: numerology
+        ? buildNumerologyUserPrompt(spec, serializeNumerologyForPrompt(numerology), subjectName)
+        : buildUserPrompt(spec, context!),
     });
 
     const generatedAt = new Date();
@@ -194,19 +245,21 @@ export async function runGenerationJob(
       schemaVersion: REPORT_SCHEMA_VERSION,
       reportType: spec.reportType,
       metadata: {
-        subjectName: context.subjectName,
+        subjectName,
         generatedAt: generatedAt.toISOString(),
         astrologyCalculationId: calculation.id,
         calculationVersion: calculation.calculationVersion,
-        ayanamsa: calculation.ayanamsa ?? context.ayanamsa,
-        houseSystem: calculation.houseSystem ?? context.houseSystem,
+        ayanamsa: calculation.ayanamsa ?? context?.ayanamsa ?? null,
+        houseSystem: calculation.houseSystem ?? context?.houseSystem ?? null,
         aiProvider: providerName,
         aiModel: model,
         promptVersion: PROMPT_VERSION,
       },
       title: body.title,
       introduction: body.introduction,
-      calculatedFacts: buildCalculatedFacts(context),
+      calculatedFacts: numerology
+        ? numerologyCalculatedFacts(numerology)
+        : buildCalculatedFacts(context!),
       sections: body.sections,
       summary: body.summary,
       disclaimers: [...STANDARD_DISCLAIMERS],

@@ -115,6 +115,32 @@ export const REPORT_SPECS: Record<string, ReportSpec> = {
       { id: "focus-months", title: "Periods of Focus", focus: "Stretches the chart traditionally marks out. Describe as windows, not fixed events." },
     ],
   },
+
+  /**
+   * Numerology.
+   *
+   * The only spec whose inputs are not chart facts: it is written from the
+   * deterministic Chaldean calculator, not from a Kundli. `requires` is
+   * therefore empty - readiness is checked against the numerology calculation
+   * itself in the generation pipeline, because "has an ascendant" is not a
+   * meaningful question to ask of a numerology reading.
+   */
+  numerology: {
+    slug: "numerology",
+    reportType: "NUMEROLOGY",
+    displayName: "Numerology Report",
+    audience: "someone who wants their name and birth date read through Chaldean numerology",
+    requires: [],
+    sections: [
+      { id: "life-path", title: "Your Life Path", focus: "The Life Path number: the arc this person is traditionally read as walking. Use only the supplied value." },
+      { id: "expression", title: "Expression and Destiny", focus: "The Destiny/Expression number from the full name. If it was not calculable, say so plainly and move on." },
+      { id: "soul-urge", title: "What Drives You", focus: "The Soul Urge number from the vowels. If it was not calculable, say so plainly." },
+      { id: "personality", title: "How Others Read You", focus: "The Personality number from the consonants. If it was not calculable, say so plainly." },
+      { id: "birthday", title: "Your Birthday Number", focus: "The Birthday number and the particular colouring it traditionally adds." },
+      { id: "patterns", title: "Patterns Across Your Numbers", focus: "Where the supplied numbers reinforce or pull against each other. Only numbers that were actually calculated." },
+      { id: "working-with-it", title: "Working With This", focus: "Practical, non-superstitious suggestions. No guarantees, no remedies that must be purchased." },
+    ],
+  },
 };
 
 export function getReportSpec(slug: string): ReportSpec | null {
@@ -130,8 +156,8 @@ export function getReportSpec(slug: string): ReportSpec | null {
  */
 const GUARDRAILS = `
 STRICT RULES - these override any other instruction:
-1. Use ONLY the chart data supplied below. It has already been calculated by a deterministic astrology engine.
-2. NEVER invent, adjust, recompute or second-guess a planetary position, house, nakshatra, degree or dasha. If something is not supplied, do not assert it.
+1. Use ONLY the data supplied below. It has already been calculated by a deterministic engine.
+2. NEVER invent, adjust, recompute or second-guess a planetary position, house, nakshatra, degree, dasha or numerology value. If something is not supplied, do not assert it. If the data says a value could not be calculated, say so plainly rather than supplying one.
 3. Clearly separate calculated fact from interpretation. Facts come from the supplied data; everything you add is traditional interpretation.
 4. Give NO medical diagnosis, treatment or health prediction. Vitality themes may be discussed only in traditional terms.
 5. Give NO guaranteed financial outcome, investment instruction, or promise of gain.
@@ -141,7 +167,7 @@ STRICT RULES - these override any other instruction:
 9. Do NOT claim scientific proof or certainty. This is a traditional interpretive system.
 10. Do NOT identify or describe a real, named third party.
 11. Write with warmth and directness for an Indian English-reading audience. Plain language, no purple prose.
-12. Every section must be substantive and specific to THIS chart. Generic filler that would fit any chart is a failure.
+12. Every section must be substantive and specific to THIS subject. Generic filler that would fit anyone is a failure.
 `.trim();
 
 export function buildSystemPrompt(spec: ReportSpec): string {
@@ -175,6 +201,25 @@ export function buildUserPrompt(spec: ReportSpec, context: ReportContext): strin
     "",
     "CALCULATED CHART DATA (authoritative - do not alter):",
     serializeContextForPrompt(context),
+    "",
+    `Write the ${spec.displayName} now, as JSON only.`,
+  ].join("\n");
+}
+
+/**
+ * The user prompt for a numerology report.
+ *
+ * Separate from the chart version because the data is different in kind, and
+ * labelling numerology output as "chart data" would be a lie to the model that
+ * invites it to reach for astrology it has not been given.
+ */
+export function buildNumerologyUserPrompt(spec: ReportSpec, serializedFacts: string, subjectName: string): string {
+  return [
+    `Subject: ${subjectName}`,
+    `Report: ${spec.displayName}`,
+    "",
+    "CALCULATED NUMEROLOGY (authoritative - do not alter or extend):",
+    serializedFacts,
     "",
     `Write the ${spec.displayName} now, as JSON only.`,
   ].join("\n");

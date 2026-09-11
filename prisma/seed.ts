@@ -121,10 +121,19 @@ const REPORT_DEFINITIONS = [
     estimatedPages: 16,
     sortOrder: 6,
     reportType: "NUMEROLOGY",
-    // Numerology needs its own deterministic engine, so it stays inactive
-    // until that engine lands rather than being sold and generated thin.
-    isActive: false,
-    sectionsIncluded: ["Core Numbers", "Name Analysis", "Personal Year", "Guidance"],
+    // Active now that the deterministic Chaldean calculator backs it: the
+    // numbers are computed in-house and stored on an immutable calculation,
+    // and the model narrates them without deriving any.
+    isActive: true,
+    sectionsIncluded: [
+      "Your Life Path",
+      "Expression and Destiny",
+      "What Drives You",
+      "How Others Read You",
+      "Your Birthday Number",
+      "Patterns Across Your Numbers",
+      "Working With This",
+    ],
   },
 ];
 

@@ -54,7 +54,7 @@ export const navigation = [
       { label: "Love & Marriage", href: "/reports/love-marriage", description: "Relationship patterns and remedies" },
       { label: "Finance", href: "/reports/finance", description: "Wealth potential and caution periods" },
       { label: "Year Forecast", href: "/reports/year-forecast", description: "A focused 12-month guide" },
-      { label: "Numerology", href: "/reports/numerology", description: "Name and number interpretation", planned: true },
+      { label: "Numerology", href: "/reports/numerology", description: "Name and number interpretation" },
     ],
   },
   {
