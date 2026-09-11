@@ -6,6 +6,11 @@ import { getPaymentProvider } from "@/lib/payments/config";
 import { PaymentSignatureError } from "@/lib/payments/errors";
 import { applyVerifiedProviderPayment, markProviderOrderPaid } from "@/lib/reports/orders";
 import { applyVerifiedOrderPayment, findOrderByProviderOrderId } from "@/lib/shop/orders";
+import {
+  applyVerifiedConsultationPayment,
+  findConsultationByProviderOrderId,
+  recordFailedConsultationPayment,
+} from "@/lib/consultations/checkout";
 import type { PaymentProvider, ProviderPayment } from "@/lib/payments/provider";
 import { logger, reportIncident } from "@/lib/observability/logger";
 
@@ -131,6 +136,32 @@ export async function processRazorpayWebhook(
       return { ok: true, duplicate: false };
     }
 
+    // Consultations are the third purchase kind on this endpoint. Routing is by
+    // provider order id exactly as it is for the other two, so there is one
+    // signature check, one replay guard and one place a payment becomes real.
+    const consultation = payment ? await findConsultationByProviderOrderId(payment.orderId) : null;
+
+    if (payment && consultation) {
+      if (eventType === "payment.failed") {
+        await recordFailedConsultationPayment(consultation.id, payment);
+      } else {
+        await applyVerifiedConsultationPayment(consultation.id, payment);
+      }
+
+      await prisma.paymentWebhookEvent.update({
+        where: { providerEventId },
+        data: { processedAt: new Date() },
+      });
+
+      logger.info("payment_webhook_processed", {
+        provider: "razorpay",
+        eventType,
+        providerEventId,
+        kind: "consultation",
+      });
+      return { ok: true, duplicate: false };
+    }
+
     const reportOrder = payment
       ? await prisma.reportOrder.findUnique({
           where: { providerOrderId: payment.orderId },
@@ -171,7 +202,12 @@ export async function processRazorpayWebhook(
       // captured payment already recorded. Physical orders are already moved to
       // PAID by payment.captured; nothing further is needed for them here.
       const physical = await findOrderByProviderOrderId(providerOrderId);
-      if (!physical) await markProviderOrderPaid(providerOrderId);
+      const consultationOrder = physical ? null : await findConsultationByProviderOrderId(providerOrderId);
+
+      // order.paid carries no payment entity, so it cannot confirm a
+      // consultation on its own - payment.captured already did that. It is
+      // matched here only so it is not mistaken for a report order.
+      if (!physical && !consultationOrder) await markProviderOrderPaid(providerOrderId);
     }
   }
 

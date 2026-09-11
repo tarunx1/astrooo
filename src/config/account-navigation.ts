@@ -63,7 +63,7 @@ export const accountNavigation: readonly AccountNavItem[] = [
     href: "/account/consultations",
     icon: CalendarHeart,
     description: "Sessions booked with astrologers",
-    status: "planned",
+    status: "available",
   },
 ] as const;
 

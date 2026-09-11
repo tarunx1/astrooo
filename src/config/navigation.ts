@@ -60,11 +60,14 @@ export const navigation = [
   {
     label: "Consult",
     href: "/consultations",
-    planned: true,
     icon: HeartHandshake,
     items: [
-      { label: "Astrologers", href: "/consultations", description: "Verified experts for life questions", planned: true },
-      { label: "Book Consultation", href: "/consultations/book", description: "Call, chat or video session", planned: true },
+      { label: "Astrologers", href: "/consultations", description: "Verified experts for life questions" },
+      {
+        label: "My Consultations",
+        href: "/account/consultations",
+        description: "Your upcoming and past sessions",
+      },
     ],
   },
   {

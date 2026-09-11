@@ -128,6 +128,7 @@ export async function settleConsultation(input: {
           currency: true,
           completedAt: true,
           panditProfileId: true,
+          commissionPercent: true,
           pandit: { select: { commissionPercent: true } },
           earning: { select: { id: true } },
         },
@@ -143,8 +144,15 @@ export async function settleConsultation(input: {
         return { ok: false as const, message: "Only a completed consultation produces an earning." };
       }
 
+      // The rate the customer was charged at, in order of authority: the
+      // snapshot frozen when they paid, then the Pandit's agreed override, then
+      // the platform default. The snapshot wins because it is the only one that
+      // cannot have changed since the money was taken. The fallbacks exist for
+      // consultations booked before paid checkout, which carry no snapshot.
       const commissionPercent =
-        consultation.pandit.commissionPercent ?? settings["payouts.platformCommissionPercent"];
+        consultation.commissionPercent ??
+        consultation.pandit.commissionPercent ??
+        settings["payouts.platformCommissionPercent"];
 
       const split = splitEarning({
         grossAmountPaise: consultation.grossAmountPaise,

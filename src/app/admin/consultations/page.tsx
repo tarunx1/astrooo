@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ConsultationStatus } from "@prisma/client";
+import {
+  CONSULTATION_STATUS_LABEL as STATUS_LABEL,
+  CONSULTATION_STATUS_TONE as TONE,
+} from "@/lib/consultations/status";
 import { AdminLayout } from "@/components/admin/admin-shell";
 import { DataTable, FilterBar, MetricCard, MetricGrid, Pagination, StatusBadge } from "@/components/dashboard/dashboard-shell";
 import { requirePermission } from "@/lib/auth/access";
@@ -11,15 +15,6 @@ import { prisma } from "@/lib/db/prisma";
 export const metadata: Metadata = { title: "Consultations" };
 
 const PAGE_SIZE = 50;
-
-const TONE: Record<ConsultationStatus, "positive" | "warning" | "danger" | "neutral" | "info"> = {
-  [ConsultationStatus.REQUESTED]: "warning",
-  [ConsultationStatus.CONFIRMED]: "info",
-  [ConsultationStatus.IN_PROGRESS]: "info",
-  [ConsultationStatus.COMPLETED]: "positive",
-  [ConsultationStatus.CANCELLED]: "neutral",
-  [ConsultationStatus.NO_SHOW]: "danger",
-};
 
 /**
  * Consultations across the platform.
@@ -124,7 +119,7 @@ export default async function AdminConsultationsPage({
             <p className="caption text-slate-500">
               {row.pandit.displayName} · {row.user.name || row.user.email}
             </p>
-            <StatusBadge label={row.status} tone={TONE[row.status]} />
+            <StatusBadge label={STATUS_LABEL[row.status]} tone={TONE[row.status]} />
           </div>
         )}
         renderCell={(row, key) => {
@@ -151,7 +146,7 @@ export default async function AdminConsultationsPage({
             default:
               return (
                 <span className="grid gap-1">
-                  <StatusBadge label={row.status} tone={TONE[row.status]} />
+                  <StatusBadge label={STATUS_LABEL[row.status]} tone={TONE[row.status]} />
                   {row.earning ? (
                     <span className="caption text-slate-500">Settled: {row.earning.status}</span>
                   ) : null}

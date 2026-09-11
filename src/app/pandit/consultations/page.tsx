@@ -1,152 +1,99 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ConsultationStatus } from "@prisma/client";
-import { DataTable, FilterBar, StatusBadge } from "@/components/dashboard/dashboard-shell";
 import { PanditLayout } from "@/components/pandit/pandit-shell";
-import { SimpleActionForm } from "@/components/pandit/pandit-forms";
+import { DashboardSection, EmptyState, MetricCard, MetricGrid } from "@/components/dashboard/dashboard-shell";
+import { BookingList } from "@/components/consultations/booking-list";
 import { requireApprovedPandit } from "@/lib/pandit/guard";
-import { MODE_LABEL } from "@/lib/pandit/catalog";
-import { formatPaise } from "@/lib/payouts/ledger";
-import { prisma } from "@/lib/db/prisma";
-import { completeConsultationAction } from "@/app/pandit/actions";
+import { listPanditBookings, type BookingScope } from "@/lib/consultations/bookings";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Consultations" };
 
-const TONE: Record<ConsultationStatus, "positive" | "warning" | "danger" | "neutral" | "info"> = {
-  [ConsultationStatus.REQUESTED]: "warning",
-  [ConsultationStatus.CONFIRMED]: "info",
-  [ConsultationStatus.IN_PROGRESS]: "info",
-  [ConsultationStatus.COMPLETED]: "positive",
-  [ConsultationStatus.CANCELLED]: "neutral",
-  [ConsultationStatus.NO_SHOW]: "danger",
-};
+const TABS: ReadonlyArray<{ scope: BookingScope | "today"; label: string }> = [
+  { scope: "today", label: "Today" },
+  { scope: "upcoming", label: "Upcoming" },
+  { scope: "completed", label: "Completed" },
+  { scope: "cancelled", label: "Cancelled" },
+];
 
 /**
- * The Pandit's own consultations.
+ * The Pandit's own bookings.
  *
- * Scoped by `panditProfileId` in the query, so another Pandit's sessions are
- * not something this page has to remember to exclude.
+ * Scoped through `pandit: { userId }` in the query, so another practitioner's
+ * sessions are not something this page has to remember to exclude - they are
+ * not in the result set.
  */
 export default async function PanditConsultationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ tab?: string | string[] }>;
 }) {
   const identity = await requireApprovedPandit("/pandit/consultations");
   const params = await searchParams;
 
-  const status =
-    params.status && params.status in ConsultationStatus
-      ? (params.status as ConsultationStatus)
-      : undefined;
+  const raw = Array.isArray(params.tab) ? params.tab[0] : params.tab;
+  const scope = TABS.some((tab) => tab.scope === raw)
+    ? (raw as BookingScope | "today")
+    : "today";
 
-  const rows = await prisma.consultation.findMany({
-    where: { panditProfileId: identity.profileId, ...(status ? { status } : {}) },
-    select: {
-      id: true,
-      mode: true,
-      status: true,
-      scheduledStart: true,
-      durationMinutes: true,
-      grossAmountPaise: true,
-      user: { select: { name: true, email: true } },
-      earning: { select: { id: true, netPayablePaise: true } },
-      _count: { select: { kundliAccess: true } },
-    },
-    orderBy: { scheduledStart: "desc" },
-    take: 100,
-  });
+  const [bookings, todayCount, upcomingCount] = await Promise.all([
+    listPanditBookings({ panditUserId: identity.userId, scope }),
+    listPanditBookings({ panditUserId: identity.userId, scope: "today" }).then((rows) => rows.length),
+    listPanditBookings({ panditUserId: identity.userId, scope: "upcoming" }).then((rows) => rows.length),
+  ]);
 
   return (
     <PanditLayout
       currentPath="/pandit/consultations"
-      description="Sessions booked with you, newest first."
+      description="Sessions customers have booked with you."
       eyebrow="Consultations"
       identity={identity}
       title="Your consultations"
     >
-      <FilterBar
-        basePath="/pandit/consultations"
-        current={status}
-        options={[
-          { label: "All", value: undefined },
-          { label: "Requested", value: ConsultationStatus.REQUESTED },
-          { label: "Confirmed", value: ConsultationStatus.CONFIRMED },
-          { label: "Completed", value: ConsultationStatus.COMPLETED },
-          { label: "Cancelled", value: ConsultationStatus.CANCELLED },
-        ]}
-      />
+      <MetricGrid>
+        <MetricCard label="Today" value={todayCount} />
+        <MetricCard label="Upcoming" value={upcomingCount} />
+      </MetricGrid>
 
-      <DataTable
-        caption="Consultations"
-        columns={[
-          { key: "when", label: "When" },
-          { key: "client", label: "Client" },
-          { key: "mode", label: "Type" },
-          { key: "status", label: "Status" },
-          { key: "amount", label: "Amount", align: "right" },
-          { key: "action", label: "", align: "right" },
-        ]}
-        emptyMessage="No consultations yet."
-        getKey={(row) => row.id}
-        renderCard={(row) => (
-          <div className="grid gap-1.5">
-            <p className="body-sm font-semibold text-slate-900">
-              {row.scheduledStart.toLocaleString("en-IN", {
-                day: "numeric",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-            <p className="caption text-slate-500">{row.user.name || row.user.email}</p>
-            <StatusBadge label={row.status} tone={TONE[row.status]} />
-            <p className="caption text-slate-500">
-              {MODE_LABEL[row.mode]} · {row.durationMinutes} min · {formatPaise(row.grossAmountPaise)}
-            </p>
-            {row._count.kundliAccess > 0 ? (
-              <Link className="caption font-semibold text-blue-700 underline" href="/pandit/kundli">
-                Chart shared
-              </Link>
-            ) : null}
-          </div>
+      <nav aria-label="Consultation filters">
+        <ul className="flex flex-wrap gap-2">
+          {TABS.map((tab) => {
+            const active = tab.scope === scope;
+            return (
+              <li key={tab.scope}>
+                <Link
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "inline-flex min-h-10 items-center rounded-md border px-4 body-sm font-medium transition",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
+                    active
+                      ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
+                  )}
+                  href={`/pandit/consultations?tab=${tab.scope}`}
+                >
+                  {tab.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <DashboardSection>
+        {bookings.length === 0 ? (
+          <EmptyState
+            description={
+              scope === "today"
+                ? "Nothing is scheduled for today."
+                : `You have no ${scope} consultations.`
+            }
+            title="Nothing to show"
+          />
+        ) : (
+          <BookingList bookings={bookings} side="pandit" />
         )}
-        renderCell={(row, key) => {
-          switch (key) {
-            case "when":
-              return row.scheduledStart.toLocaleString("en-IN", {
-                day: "numeric",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-            case "client":
-              return row.user.name || row.user.email;
-            case "mode":
-              return `${MODE_LABEL[row.mode]} · ${row.durationMinutes} min`;
-            case "status":
-              return <StatusBadge label={row.status} tone={TONE[row.status]} />;
-            case "amount":
-              return row.earning
-                ? `${formatPaise(row.grossAmountPaise)} · you ${formatPaise(row.earning.netPayablePaise)}`
-                : formatPaise(row.grossAmountPaise);
-            default:
-              return row.status === ConsultationStatus.REQUESTED ||
-                row.status === ConsultationStatus.CONFIRMED ||
-                row.status === ConsultationStatus.IN_PROGRESS ? (
-                <SimpleActionForm
-                  action={completeConsultationAction}
-                  confirm="Mark this consultation complete? This settles the earning."
-                  hidden={{ consultationId: row.id }}
-                  label="Mark complete"
-                  pendingLabel="Saving..."
-                  variant="secondary"
-                />
-              ) : null;
-          }
-        }}
-        rows={rows}
-      />
+      </DashboardSection>
     </PanditLayout>
   );
 }

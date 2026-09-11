@@ -4,6 +4,8 @@ import { ConsultationMode, ConsultationStatus, Prisma, RateType } from "@prisma/
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getSettings } from "@/lib/settings/service";
+import { splitEarning } from "@/lib/payouts/ledger";
+import { CONSULTATION_POLICY } from "@/lib/consultations/status";
 import { isBookable } from "@/lib/pandit/onboarding";
 import { BOOKABLE_DURATIONS_MINUTES, SLOT_GRANULARITY_MINUTES } from "@/lib/pandit/catalog";
 
@@ -389,10 +391,18 @@ export type BookingInput = {
   durationMinutes: number;
   birthProfileId?: string | null;
   notes?: string | null;
+  /**
+   * The state the booking starts in.
+   *
+   * A paid booking starts at PENDING_PAYMENT and holds its slot while the
+   * customer is at checkout - otherwise two people could each be taken to pay
+   * for the same time and one would be charged for something already gone.
+   */
+  status?: ConsultationStatus;
 };
 
 export type BookingResult =
-  | { ok: true; consultationId: string }
+  | { ok: true; consultationId: string; grossAmountPaise: number; currency: string }
   | { ok: false; message: string };
 
 /**
@@ -417,11 +427,14 @@ export async function bookConsultation(input: BookingInput): Promise<BookingResu
     "consultations.enabled",
     "consultations.minNoticeMinutes",
     "consultations.maxAdvanceDays",
+    "payouts.platformCommissionPercent",
   ]);
 
   if (!settings["consultations.enabled"]) {
     return { ok: false, message: "Consultations are not open for booking right now." };
   }
+
+  const commissionDefault = settings["payouts.platformCommissionPercent"];
 
   const now = Date.now();
   if (input.start.getTime() < now + settings["consultations.minNoticeMinutes"] * 60_000) {
@@ -442,6 +455,7 @@ export async function bookConsultation(input: BookingInput): Promise<BookingResu
           userId: true,
           status: true,
           timezone: true,
+          commissionPercent: true,
           services: { where: { mode: input.mode }, select: { enabled: true, rateType: true, ratePaise: true, sessionMinutes: true } },
         },
       });
@@ -485,10 +499,19 @@ export async function bookConsultation(input: BookingInput): Promise<BookingResu
         return { ok: false as const, message: "That slot has just been taken. Please pick another." };
       }
 
+      // Price is computed here, on the server, from the Pandit's stored rate.
+      // Nothing the browser sent about price is consulted.
       const grossAmountPaise =
         service.rateType === RateType.PER_MINUTE
           ? service.ratePaise * input.durationMinutes
           : service.ratePaise;
+
+      // The commission split is frozen now, at the moment the customer commits
+      // to the price. Settlement reads this snapshot rather than the live
+      // setting, so changing the platform commission next month reprices future
+      // bookings and rewrites nothing already agreed.
+      const commissionPercent = profile.commissionPercent ?? commissionDefault;
+      const split = splitEarning({ grossAmountPaise, commissionPercent });
 
       const slot = await tx.consultationSlot.create({
         data: { panditProfileId: profile.id, startsAt: input.start, endsAt: end },
@@ -501,7 +524,7 @@ export async function bookConsultation(input: BookingInput): Promise<BookingResu
           panditProfileId: profile.id,
           slotId: slot.id,
           birthProfileId: input.birthProfileId ?? null,
-          status: ConsultationStatus.REQUESTED,
+          status: input.status ?? ConsultationStatus.REQUESTED,
           mode: input.mode,
           timezone: profile.timezone,
           scheduledStart: input.start,
@@ -510,12 +533,20 @@ export async function bookConsultation(input: BookingInput): Promise<BookingResu
           rateType: service.rateType,
           ratePaise: service.ratePaise,
           grossAmountPaise,
+          commissionPercent,
+          platformCommissionPaise: split.platformCommissionPaise,
+          panditEarningPaise: split.netPayablePaise,
           notes: input.notes?.trim().slice(0, 1_000) || null,
         },
-        select: { id: true },
+        select: { id: true, currency: true },
       });
 
-      return { ok: true as const, consultationId: consultation.id };
+      return {
+        ok: true as const,
+        consultationId: consultation.id,
+        grossAmountPaise,
+        currency: consultation.currency,
+      };
     });
   } catch (error) {
     // The unique constraint firing means someone else won the race between our
@@ -575,4 +606,65 @@ export async function cancelConsultation(input: {
 
     return { ok: true as const };
   });
+}
+
+/**
+ * Reclaims slots from bookings that were never paid for.
+ *
+ * A booking holds its slot while the customer is at checkout, which is right -
+ * but a customer who closes the tab must not hold a Pandit's Tuesday morning
+ * forever. After the hold expires the booking is cancelled and its slot row
+ * deleted, which is the same mechanism an explicit cancellation uses.
+ *
+ * Idempotent and safe to run repeatedly: only PENDING_PAYMENT rows older than
+ * the hold are touched, and a booking that has since been paid for has left
+ * that status.
+ */
+export async function releaseExpiredPaymentHolds(now: Date = new Date()): Promise<number> {
+  const cutoff = new Date(now.getTime() - CONSULTATION_POLICY.paymentHoldMinutes * 60_000);
+
+  const expired = await prisma.consultation.findMany({
+    where: {
+      status: ConsultationStatus.PENDING_PAYMENT,
+      createdAt: { lt: cutoff },
+      paidAt: null,
+    },
+    select: { id: true, slotId: true },
+    take: 200,
+  });
+
+  let released = 0;
+
+  for (const consultation of expired) {
+    // One transaction per booking rather than one for the batch: a single
+    // problematic row should not prevent every other slot being freed.
+    await prisma.$transaction(async (tx) => {
+      // Re-checked inside the transaction, because a payment may have landed
+      // between the scan and this write.
+      const current = await tx.consultation.findFirst({
+        where: { id: consultation.id, status: ConsultationStatus.PENDING_PAYMENT, paidAt: null },
+        select: { id: true, slotId: true },
+      });
+
+      if (!current) return;
+
+      await tx.consultation.update({
+        where: { id: current.id },
+        data: {
+          status: ConsultationStatus.CANCELLED,
+          cancelledAt: now,
+          cancellationReason: "Payment was not completed in time.",
+          slotId: null,
+        },
+      });
+
+      if (current.slotId) {
+        await tx.consultationSlot.delete({ where: { id: current.slotId } });
+      }
+
+      released += 1;
+    });
+  }
+
+  return released;
 }
