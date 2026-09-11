@@ -1,4 +1,4 @@
-import { CalendarHeart, Flame, LayoutDashboard, Package, ScrollText, Settings, Star, Users } from "lucide-react";
+import { CalendarHeart, Flame, Heart, LayoutDashboard, Package, ScrollText, Settings, Star, Users } from "lucide-react";
 
 /**
  * Single source of truth for customer account navigation.
@@ -42,6 +42,13 @@ export const accountNavigation: readonly AccountNavItem[] = [
     href: "/account/settings",
     icon: Settings,
     description: "Profile and account preferences",
+    status: "available",
+  },
+  {
+    label: "Wishlist",
+    href: "/account/wishlist",
+    icon: Heart,
+    description: "Items you have saved for later",
     status: "available",
   },
   {

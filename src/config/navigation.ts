@@ -110,8 +110,8 @@ export const navigation = [
 ] as const;
 
 export const utilityNavigation = [
-  { label: "Search", href: "/search", planned: true },
+  { label: "Search", href: "/search" },
   { label: "Account", href: "/account" },
-  { label: "Wishlist", href: "/account/wishlist", planned: true },
+  { label: "Wishlist", href: "/account/wishlist" },
   { label: "Cart", href: "/cart" },
 ] as const;

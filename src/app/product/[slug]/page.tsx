@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { AddToCart } from "@/components/shop/add-to-cart";
+import { WishlistButton } from "@/components/shop/wishlist-button";
+import { getCurrentUser } from "@/lib/auth/session";
+import { isWishlisted } from "@/lib/account/wishlist";
 import { ProductGallery } from "@/components/shop/product-gallery";
 import {
   CertificationPanel,
@@ -42,6 +45,13 @@ export default async function ProductPage({ params }: Params) {
   if (!product) notFound();
 
   const related = await listRelatedProducts(product.id, product.categorySlug);
+
+  // Whether this is already saved. Resolved on the server so the button renders
+  // in its correct state rather than flickering after a client-side fetch.
+  const user = await getCurrentUser();
+  const savedToWishlist = user
+    ? await isWishlisted({ userId: user.id, productId: product.id })
+    : false;
 
   // Structured data describes the verified commercial facts only.
   const productJsonLd = {
@@ -150,6 +160,8 @@ export default async function ProductPage({ params }: Params) {
                 inStock: variant.inStock,
               }))}
             />
+
+            <WishlistButton initialSaved={savedToWishlist} productId={product.id} variant="labelled" />
 
             <CertificationPanel certification={product.certification} traditionalUse={product.traditionalUse} />
           </div>
