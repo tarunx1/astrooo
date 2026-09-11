@@ -454,6 +454,7 @@ model Payment {
   reportOrderId     String?
   consultationId    String?
   pujaBookingId     String?
+  enrollmentId      String?
   provider          String
   providerOrderId   String?
   providerPaymentId String?       @unique
@@ -468,6 +469,7 @@ model Payment {
   reportOrder       ReportOrder?  @relation(fields: [reportOrderId], references: [id])
   consultation      Consultation? @relation(fields: [consultationId], references: [id])
   pujaBooking       PujaBooking?  @relation(fields: [pujaBookingId], references: [id])
+  enrollment        Enrollment?   @relation(fields: [enrollmentId], references: [id])
   refunds           Refund[]
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -477,6 +479,7 @@ model Payment {
   @@index([reportOrderId])
   @@index([consultationId])
   @@index([pujaBookingId])
+  @@index([enrollmentId])
   @@index([providerOrderId])
   @@index([status])
 }
@@ -800,26 +803,66 @@ model PujaBooking {
   @@index([panditProfileId])
 }
 
-model Course {
-  id          String       @id @default(cuid())
-  title       String
-  slug        String       @unique
-  description String
-  pricePaise  Int
-  active      Boolean      @default(false)
-  enrollments Enrollment[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
 }
 
+/// A course.
+///
+/// `syllabus` is a structured outline, not a lesson model. There is
+/// deliberately no Lesson table and no progress tracking: inventing either
+/// would mean showing a learner a completion percentage this application
+/// cannot actually measure. The outline tells them what is covered; when real
+/// lesson delivery exists, it gets its own model.
+model Course {
+  id               String       @id @default(cuid())
+  title            String
+  slug             String       @unique
+  description      String
+  shortDescription String       @default("")
+  level            CourseLevel  @default(BEGINNER)
+  instructorName   String?
+  coverImageUrl    String?
+  /// Structured module outline. Shape validated in `lib/content/courses.ts`.
+  syllabus         Json?
+  /// Total taught time, when it is known.
+  durationMinutes  Int?
+  /// Zero means free: enrolment needs no payment.
+  pricePaise       Int
+  currency         String       @default("INR")
+  sortOrder        Int          @default(0)
+  active           Boolean      @default(false)
+  enrollments      Enrollment[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+/// One learner's enrolment in one course.
+///
+/// The unique constraint on (userId, courseId) is what makes enrolling twice
+/// impossible rather than merely unlikely - a double-submitted free enrolment
+/// or a retried payment produces one row.
 model Enrollment {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  orderId   String?
+  id       String  @id @default(cuid())
+  userId   String
+  courseId String
+  orderId  String?
+
+  /// Purchase snapshot. Zero for a free enrolment.
+  pricePaise Int    @default(0)
+  currency   String @default("INR")
+
+  providerOrderId String?   @unique
+  paidAt          DateTime?
+
   user      User     @relation(fields: [userId], references: [id])
   course    Course   @relation(fields: [courseId], references: [id])
   order     Order?   @relation(fields: [orderId], references: [id])
+  payments  Payment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -97,7 +97,7 @@ export const navigation = [
     icon: BookOpen,
     items: [
       { label: "Articles", href: "/articles", description: "Practical Vedic astrology guides" },
-      { label: "Courses", href: "/courses", description: "Guided astrology learning", planned: true },
+      { label: "Courses", href: "/courses", description: "Guided astrology learning" },
     ],
   },
   {

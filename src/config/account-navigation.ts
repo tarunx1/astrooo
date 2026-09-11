@@ -1,4 +1,4 @@
-import { CalendarHeart, Flame, Heart, LayoutDashboard, Package, ScrollText, Settings, Star, Users } from "lucide-react";
+import { CalendarHeart, Flame, GraduationCap, Heart, LayoutDashboard, Package, ScrollText, Settings, Star, Users } from "lucide-react";
 
 /**
  * Single source of truth for customer account navigation.
@@ -35,6 +35,13 @@ export const accountNavigation: readonly AccountNavItem[] = [
     href: "/account/kundlis",
     icon: Star,
     description: "Charts you have saved to your account",
+    status: "available",
+  },
+  {
+    label: "Courses",
+    href: "/account/courses",
+    icon: GraduationCap,
+    description: "Courses you are enrolled in",
     status: "available",
   },
   {
