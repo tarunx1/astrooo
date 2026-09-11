@@ -27,7 +27,7 @@ export default async function AdminReportDetailPage({ params }: { params: Promis
       title={definition.name}
     >
       <AdminSection>
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 sm:p-6" variant="admin">
           <ReportDefinitionForm
             initial={{
               id: definition.id,
@@ -45,8 +45,8 @@ export default async function AdminReportDetailPage({ params }: { params: Promis
       </AdminSection>
 
       <AdminSection title="Before activating">
-        <Card className="p-5">
-          <p className="body-sm text-foreground-secondary">
+        <Card className="p-5" variant="admin">
+          <p className="body-sm text-slate-600">
             A report should only go on sale once its generation pipeline can actually produce it. The Numerology
             report is deliberately inactive: the calculator exists but the interpretive content the report needs does
             not. Activating it here would put an unfulfillable product on sale.

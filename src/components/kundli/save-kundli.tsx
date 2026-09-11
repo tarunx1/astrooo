@@ -37,7 +37,7 @@ export function SaveKundliCard({
 
   if (saved) {
     return (
-      <Card className="flex flex-wrap items-center gap-3 p-4" variant="premium">
+      <Card className="astro-card flex flex-wrap items-center gap-3 p-4" variant="premium">
         <BookmarkCheck aria-hidden="true" className="text-premium" size={18} />
         <p className="body-sm text-foreground">
           Saved to your account.{" "}
@@ -49,14 +49,12 @@ export function SaveKundliCard({
     );
   }
 
-  const prompt = isAuthenticated
-    ? hasPendingContinuation
-      ? "You are signed in. Save this Kundli to your account."
-      : "Save this Kundli to your account."
-    : "Sign in to save this Kundli to your account.";
+  const prompt = isAuthenticated && hasPendingContinuation
+    ? "You are signed in. Save this Kundli to your account."
+    : "Save this Kundli to your account.";
 
   return (
-    <Card className="flex flex-wrap items-center justify-between gap-4 p-4">
+    <Card className="astro-card flex flex-wrap items-center justify-between gap-4 p-4">
       <div className="flex items-center gap-3">
         <BookmarkPlus aria-hidden="true" className="shrink-0 text-foreground-muted" size={18} />
         <div>

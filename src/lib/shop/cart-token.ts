@@ -11,7 +11,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
  * Kept free of `server-only` and `next/headers` so the hashing rules can be
  * tested directly.
  */
-export const CART_COOKIE_NAME = "ravish_cart";
+export const CART_COOKIE_NAME = "Tarun_cart";
 export const CART_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 export function createCartToken(): string {

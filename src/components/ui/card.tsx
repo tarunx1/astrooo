@@ -9,6 +9,8 @@ type CardProps = React.HTMLAttributes<HTMLDivElement> & {
     | "premium"
     | "commerce"
     | "astrology"
+    | "admin"
+    | "admin-interactive"
     | "glass"
     | "glass-raised"
     | "glass-premium"
@@ -23,6 +25,8 @@ const variants = {
   premium: "border-premium/50 bg-surface shadow-[var(--shadow-md)]",
   commerce: "border-border-strong bg-surface-raised",
   astrology: "border-border bg-background-subtle shadow-[var(--shadow-sm)]",
+  admin: "border-slate-200 bg-white text-slate-900 shadow-xs",
+  "admin-interactive": "border-slate-200 bg-white text-slate-900 shadow-xs transition hover:border-blue-500 hover:shadow-sm",
   glass: "border-white/10 bg-surface/75 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]",
   "glass-raised": "border-white/15 bg-surface-raised/80 backdrop-blur-2xl shadow-[0_12px_40px_0_rgba(0,0,0,0.45)]",
   "glass-premium": "border-premium/40 bg-surface/80 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(214,181,109,0.15)]",

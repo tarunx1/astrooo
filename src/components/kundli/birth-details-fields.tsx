@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import type { LocationSuggestion } from "@/lib/kundli/types";
 import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/ui/form-field";
 import { Select } from "@/components/ui/select";
 
 /**
@@ -193,14 +194,8 @@ export function FormRow({
   label: string;
 }) {
   return (
-    <label className="grid gap-2 caption text-foreground-secondary" htmlFor={htmlFor}>
-      {label}
+    <FormField error={error} id={htmlFor} label={label}>
       {children}
-      {error ? (
-        <span className="body-sm text-danger" role="alert">
-          {error}
-        </span>
-      ) : null}
-    </label>
+    </FormField>
   );
 }

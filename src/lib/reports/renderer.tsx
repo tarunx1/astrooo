@@ -14,7 +14,7 @@ export interface ReportRenderer {
   render(document: ReportDocument): Promise<{ bytes: Uint8Array; mimeType: string; pageCount: number | null }>;
 }
 
-/** Ravish Astro palette, mirrored from the design tokens. */
+/** Tarun Astro palette, mirrored from the design tokens. */
 const COLORS = {
   midnight: "#050814",
   surface: "#0a1020",
@@ -135,7 +135,7 @@ function paragraphsOf(content: string): string[] {
 function RunningHeader({ document }: { document: ReportDocument }) {
   return (
     <View fixed style={styles.runningHeader}>
-      <Text>RAVISH ASTRO</Text>
+      <Text>TARUN ASTRO</Text>
       <Text>{document.metadata.subjectName}</Text>
     </View>
   );
@@ -144,7 +144,7 @@ function RunningHeader({ document }: { document: ReportDocument }) {
 function Footer() {
   return (
     <View fixed style={styles.footer}>
-      <Text>Prepared by Ravish Astro</Text>
+      <Text>Prepared by Tarun Astro</Text>
       <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
     </View>
   );
@@ -153,12 +153,12 @@ function Footer() {
 function ReportPdf({ document }: { document: ReportDocument }) {
   return (
     <Document
-      author="Ravish Astro"
+      author="Tarun Astro"
       subject={document.reportType}
       title={`${document.title} — ${document.metadata.subjectName}`}
     >
       <Page size="A4" style={styles.coverPage}>
-        <Text style={styles.coverBrand}>Ravish Astro</Text>
+        <Text style={styles.coverBrand}>Tarun Astro</Text>
         <Text style={styles.coverTitle}>{document.title}</Text>
         <Text style={styles.coverSubject}>Prepared for {document.metadata.subjectName}</Text>
 

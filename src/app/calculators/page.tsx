@@ -13,12 +13,12 @@ export const metadata: Metadata = {
   title: "Free Astrology Calculators",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/calculators` },
-  openGraph: { title: "Free Astrology Calculators | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/calculators` },
+  openGraph: { title: "Free Astrology Calculators | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/calculators` },
 };
 
 const BREADCRUMB = [{ label: "Home", href: "/" }, { label: "Calculators" }];
 
-export function CalculatorCard({ tool }: { tool: ToolEntry }) {
+function CalculatorCard({ tool }: { tool: ToolEntry }) {
   const Icon = tool.icon;
 
   return (

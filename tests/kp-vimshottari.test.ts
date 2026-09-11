@@ -171,3 +171,40 @@ describe("agreement with the provider", () => {
     }
   });
 });
+
+describe("house significations", () => {
+  it("computes occupied and owned house numbers for planets given ascendant sign", () => {
+    // Gemini Ascendant (Sign 3)
+    // House 1 = Gemini (Mercury)
+    // House 2 = Cancer (Moon)
+    // House 3 = Leo (Sun)
+    // House 4 = Virgo (Mercury)
+    // House 5 = Libra (Venus)
+    // House 6 = Scorpio (Mars)
+    // House 7 = Sagittarius (Jupiter)
+    // House 8 = Capricorn (Saturn)
+    // House 9 = Aquarius (Saturn)
+    // House 10 = Pisces (Jupiter)
+    // House 11 = Aries (Mars)
+    // House 12 = Taurus (Venus)
+
+    const ascendantSign = 3; // Gemini
+    const planets = [
+      { planet: "Sun" as const, sign: 5, longitude: 125 }, // Leo, House 3
+      { planet: "Moon" as const, sign: 4, longitude: 95 }, // Cancer, House 2
+      { planet: "Mars" as const, sign: 1, longitude: 15 }, // Aries, House 11
+    ];
+
+    // Sun: Occupies House 3 (Leo), Owns House 3 (Leo) -> [3]
+    const sunPos = getKpPosition(125, ascendantSign, planets, "Sun");
+    expect(sunPos.planetHouses).toEqual([3]);
+
+    // Moon: Occupies House 2 (Cancer), Owns House 2 (Cancer) -> [2]
+    const moonPos = getKpPosition(95, ascendantSign, planets, "Moon");
+    expect(moonPos.planetHouses).toEqual([2]);
+
+    // Mars: Occupies House 11 (Aries), Owns House 11 (Aries) and House 6 (Scorpio) -> [6, 11]
+    const marsPos = getKpPosition(15, ascendantSign, planets, "Mars");
+    expect(marsPos.planetHouses).toEqual([6, 11]);
+  });
+});

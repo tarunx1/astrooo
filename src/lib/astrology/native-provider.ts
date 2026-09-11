@@ -19,7 +19,7 @@ import type { KundliHouse, KundliResult, NormalizedBirthDetails, PlanetPosition 
  */
 export class NativeAstrologyProvider implements AstrologyProvider {
   readonly metadata: AstrologyProviderMetadata = {
-    provider: "ravish-engine",
+    provider: "Tarun-engine",
     providerVersion: "vsop87d+elp2000-82b",
     calculationVersion: astrologyCalculationConfig.version,
     ayanamsa: astrologyCalculationConfig.ayanamsa,

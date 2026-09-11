@@ -33,7 +33,7 @@ export function InventoryAdjustForm({
           Stock change, positive to add or negative to remove
         </label>
         <input
-          className="min-h-9 w-20 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+          className="form-control w-20"
           defaultValue=""
           id={`delta-${key}`}
           inputMode="numeric"
@@ -47,7 +47,7 @@ export function InventoryAdjustForm({
           Reason for this change
         </label>
         <select
-          className="min-h-9 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+          className="form-control"
           defaultValue="RESTOCK"
           id={`reason-${key}`}
           name="reason"

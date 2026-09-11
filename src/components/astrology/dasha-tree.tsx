@@ -18,13 +18,20 @@ import { cn } from "@/lib/utils";
  * opens perhaps a dozen - building them all, let alone sending them to the
  * browser, would be work done for nothing.
  *
- * The chain running today is open when the page arrives, all the way down to
- * Sookshma. That is the part anyone came to read; everything else is one click
- * away and closed.
+ * The chain running today is open when the page arrives, down to
+ * Pratyantardasha. That is the part anyone came to read; everything else is
+ * one click away and closed.
  */
 const SHORT: Record<string, string> = {
   Sun: "Su", Moon: "Mo", Mars: "Ma", Mercury: "Me",
   Jupiter: "Ju", Venus: "Ve", Saturn: "Sa", Rahu: "Ra", Ketu: "Ke",
+};
+
+const VISIBLE_DASHA_LEVELS = DASHA_LEVELS.slice(0, 3);
+
+export type KpFormulaSelection = {
+  name: string;
+  houses: number[];
 };
 
 type Props = {
@@ -33,6 +40,8 @@ type Props = {
   moonLongitude: number;
   /** Houses each planet signifies, so a lord can be read with its numbers. */
   houses: Record<string, number[]>;
+  activeAtISO?: string;
+  selectedFormula?: KpFormulaSelection | null;
 };
 
 const monthYear = (date: Date) =>
@@ -42,9 +51,9 @@ const monthYear = (date: Date) =>
 const pathOf = (ancestors: DashaPeriod[], period: DashaPeriod) =>
   [...ancestors, period].map((entry) => entry.lord).join("/");
 
-export function DashaTree({ birthISO, moonLongitude, houses }: Props) {
+export function DashaTree({ birthISO, moonLongitude, houses, activeAtISO, selectedFormula }: Props) {
   const birth = useMemo(() => new Date(birthISO), [birthISO]);
-  const now = useMemo(() => new Date(), []);
+  const activeAt = useMemo(() => activeAtISO ? new Date(activeAtISO) : new Date(), [activeAtISO]);
 
   const timeline = useMemo(
     // One level: the rest is built as it is opened.
@@ -63,15 +72,15 @@ export function DashaTree({ birthISO, moonLongitude, houses }: Props) {
     let level = timeline.periods;
     const ancestors: DashaPeriod[] = [];
 
-    for (let depth = 0; depth < DASHA_LEVELS.length - 1; depth += 1) {
-      const running = level.find((period) => now >= period.start && now < period.end);
+    for (let depth = 0; depth < VISIBLE_DASHA_LEVELS.length - 1; depth += 1) {
+      const running = level.find((period) => activeAt >= period.start && activeAt < period.end);
       if (!running) break;
       open.add(pathOf(ancestors, running));
       ancestors.push(running);
       level = subdivideDasha(running);
     }
     return open;
-  }, [timeline, now]);
+  }, [timeline, activeAt]);
 
   const [opened, setOpened] = useState<Set<string>>(openByDefault);
 
@@ -83,10 +92,8 @@ export function DashaTree({ birthISO, moonLongitude, houses }: Props) {
       return next;
     });
 
-  const label = (lord: PlanetName) => {
-    const signifies = houses[lord];
-    return `${lord.toUpperCase()}-${signifies?.length ? signifies.join(",") : "—"}`;
-  };
+  const formulaHouses = selectedFormula?.houses ?? [];
+  const matchesFormula = (lord: PlanetName) => formulaHouses.length > 0 && formulaHouses.every((house) => houses[lord]?.includes(house));
 
   // Nothing that finished before the birth is shown, and the period the birth
   // falls inside starts at the birth rather than where it truly began.
@@ -96,7 +103,7 @@ export function DashaTree({ birthISO, moonLongitude, houses }: Props) {
     <div className="overflow-x-auto rounded-md border border-border">
       <table className="w-full min-w-[22rem] border-collapse text-left">
         <caption className="sr-only">
-          Vimshottari periods from birth, openable to Sookshma, with the houses each lord signifies
+          Vimshottari periods from birth, openable to Pratyantardasha, with the houses each lord signifies
         </caption>
         <thead className="bg-premium text-background">
           <tr>
@@ -105,6 +112,11 @@ export function DashaTree({ birthISO, moonLongitude, houses }: Props) {
                 {heading}
               </th>
             ))}
+            {selectedFormula ? (
+              <th className="px-3 py-2 text-center text-sm font-semibold" scope="col">
+                Match
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -112,9 +124,11 @@ export function DashaTree({ birthISO, moonLongitude, houses }: Props) {
             <Rows
               ancestors={[]}
               birth={birth}
+              formulaHouses={formulaHouses}
+              houses={houses}
               key={period.lord}
-              label={label}
-              now={now}
+              matchesFormula={matchesFormula}
+              activeAt={activeAt}
               onToggle={toggle}
               opened={opened}
               period={period}
@@ -130,24 +144,29 @@ function Rows({
   period,
   ancestors,
   birth,
-  now,
+  formulaHouses,
+  houses,
+  activeAt,
   opened,
   onToggle,
-  label,
+  matchesFormula,
 }: {
   period: DashaPeriod;
   ancestors: DashaPeriod[];
   birth: Date;
-  now: Date;
+  formulaHouses: number[];
+  houses: Record<string, number[]>;
+  activeAt: Date;
   opened: Set<string>;
   onToggle: (path: string) => void;
-  label: (lord: PlanetName) => string;
+  matchesFormula: (lord: PlanetName) => boolean;
 }) {
   const depth = ancestors.length;
   const path = pathOf(ancestors, period);
   const isOpen = opened.has(path);
-  const canOpen = depth < DASHA_LEVELS.length - 1;
-  const running = now >= period.start && now < period.end;
+  const canOpen = depth < VISIBLE_DASHA_LEVELS.length - 1;
+  const running = activeAt >= period.start && activeAt < period.end;
+  const matched = matchesFormula(period.lord);
 
   // The period the birth falls inside is shown from the birth onward: the part
   // before it belongs to a life that had not started.
@@ -169,7 +188,7 @@ function Rows({
             {canOpen ? (
               <button
                 aria-expanded={isOpen}
-                aria-label={`${isOpen ? "Collapse" : "Expand"} ${period.lord} ${DASHA_LEVELS[depth]}`}
+                aria-label={`${isOpen ? "Collapse" : "Expand"} ${period.lord} ${VISIBLE_DASHA_LEVELS[depth]}`}
                 className="grid size-5 shrink-0 place-items-center rounded border border-border text-foreground-muted transition hover:border-premium hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
                 onClick={() => onToggle(path)}
                 type="button"
@@ -186,9 +205,12 @@ function Rows({
               </span>
             ) : null}
 
-            <span className={cn(depth === 0 ? "font-medium text-foreground" : "body-sm text-foreground-secondary")}>
-              {label(period.lord)}
-            </span>
+            <LordHouseLabel
+              className={cn(depth === 0 ? "font-medium text-foreground" : "body-sm text-foreground-secondary")}
+              highlightHouses={formulaHouses}
+              houses={houses[period.lord]}
+              lord={period.lord}
+            />
 
             {running ? (
               <span className="rounded-full border border-premium/60 px-1.5 caption text-premium">now</span>
@@ -198,21 +220,66 @@ function Rows({
         <td className="border-r border-border px-3 py-2 tabular-nums text-foreground-secondary">
           {monthYear(start)}
         </td>
-        <td className="px-3 py-2 tabular-nums text-foreground-secondary">{monthYear(period.end)}</td>
+        <td className={cn("px-3 py-2 tabular-nums text-foreground-secondary", formulaHouses.length > 0 && "border-r border-border")}>
+          {monthYear(period.end)}
+        </td>
+        {formulaHouses.length > 0 ? (
+          <td className="px-3 py-2 text-center text-premium">
+            {matched ? <span aria-label="Formula combination exists">✓</span> : <span aria-hidden="true">—</span>}
+          </td>
+        ) : null}
       </tr>
 
       {children.map((child) => (
         <Rows
           ancestors={[...ancestors, period]}
           birth={birth}
+          formulaHouses={formulaHouses}
+          houses={houses}
           key={`${path}/${child.lord}`}
-          label={label}
-          now={now}
+          matchesFormula={matchesFormula}
+          activeAt={activeAt}
           onToggle={onToggle}
           opened={opened}
           period={child}
         />
       ))}
     </>
+  );
+}
+
+export function LordHouseLabel({
+  lord,
+  houses,
+  highlightHouses = [],
+  className,
+}: {
+  lord: string;
+  houses?: number[];
+  highlightHouses?: number[];
+  className?: string;
+}) {
+  const hasHighlights = highlightHouses.length > 0;
+
+  return (
+    <span className={className}>
+      {lord.toUpperCase()}-
+      {houses?.length ? (
+        houses.map((house, index) => (
+          <span key={`${lord}-${house}`}>
+            {index > 0 ? "," : null}
+            <span
+              className={cn(
+                hasHighlights && highlightHouses.includes(house) && "rounded-sm bg-premium px-0.5 text-background",
+              )}
+            >
+              {house}
+            </span>
+          </span>
+        ))
+      ) : (
+        "—"
+      )}
+    </span>
   );
 }

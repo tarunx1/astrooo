@@ -40,7 +40,7 @@ export const isDevCredentialsEnabled =
   process.env.NODE_ENV !== "production" && process.env.ENABLE_DEV_CREDENTIALS === "true";
 
 export const auth = betterAuth({
-  appName: "Ravish Astro",
+  appName: "Tarun Astro",
   secret: readSecret(),
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   database: prismaAdapter(prisma, { provider: "postgresql" }),

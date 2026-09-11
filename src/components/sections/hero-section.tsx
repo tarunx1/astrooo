@@ -18,7 +18,7 @@ export function HeroSection() {
               <span className="block text-premium">for You.</span>
             </h1>
             <p className="mt-7 max-w-xl body-lg text-foreground-secondary">
-              Ravish Astro blends authentic Vedic astrology structure with modern commerce,
+              Tarun Astro blends authentic Vedic astrology structure with modern commerce,
               secure accounts and expert review so guidance feels clear, calm and usable.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">

@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { GlassAuthCard } from "@/components/account/auth-modal";
 import { getCurrentUser } from "@/lib/auth/session";
-import { sanitizeReturnTo } from "@/lib/auth/return-url";
+import { resolvePostLoginRedirect } from "@/lib/auth/post-login";
+import { buildPostLoginHref, sanitizeReturnTo } from "@/lib/auth/return-url";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -20,12 +21,12 @@ export default async function SignInPage({
 
   const returnTo = sanitizeReturnTo(raw);
   const user = await getCurrentUser();
-  if (user) redirect(returnTo);
+  if (user) redirect(await resolvePostLoginRedirect(returnTo));
 
   return (
     <Section className="star-field flex min-h-[calc(100vh-var(--header-height)-12rem)] items-center justify-center py-12">
       <PageContainer className="flex justify-center px-0">
-        <GlassAuthCard defaultTab="signin" headingLevel="h1" returnTo={returnTo} />
+        <GlassAuthCard defaultTab="signin" headingLevel="h1" returnTo={buildPostLoginHref(returnTo)} />
       </PageContainer>
     </Section>
   );

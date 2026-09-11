@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { birthDetailsSchema, resolvedLocationSchema } from "@/lib/kundli/schema";
 
 const validInput = {
-  name: "Ravish Sharma",
+  name: "Tarun Sharma",
   dateOfBirth: "1992-08-14",
   timeOfBirth: "06:35",
   timeAccuracy: "EXACT",

@@ -29,12 +29,21 @@ export default async function AccountOverviewPage() {
   return (
     <AccountLayout
       currentPath="/account"
-      description="Your saved birth details and charts live here."
-      title={`Namaste, ${firstName}`}
+      description="Your saved birth details, charts and next actions live here."
+      eyebrow="My Account"
+      title={firstName}
     >
       {/* Gathers the shared star field into the visitor's own sign. Renders
           nothing, and releases the sky again when they navigate away. */}
-      {moonSign ? <StarFieldSource label={moonSign} source={zodiacShapeFor(moonSign)} /> : null}
+      {moonSign ? (
+        <StarFieldSource
+          align="right"
+          formationScale={0.78}
+          label={moonSign}
+          source={zodiacShapeFor(moonSign)}
+          verticalOffset={0.2}
+        />
+      ) : null}
 
       <AccountSection description="A quick summary of what you have saved." title="Overview">
         <div className="grid gap-4 sm:grid-cols-2">

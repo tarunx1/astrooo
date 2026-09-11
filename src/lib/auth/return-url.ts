@@ -57,3 +57,8 @@ export function buildSignInHref(returnTo?: unknown): string {
   const safe = isSafeReturnTo(returnTo) ? returnTo : null;
   return safe ? `/sign-in?returnTo=${encodeURIComponent(safe)}` : "/sign-in";
 }
+
+export function buildPostLoginHref(returnTo?: unknown): string {
+  const safe = sanitizeReturnTo(returnTo, "/");
+  return `/post-login?returnTo=${encodeURIComponent(safe)}`;
+}

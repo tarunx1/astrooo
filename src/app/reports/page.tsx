@@ -6,7 +6,7 @@ import { listActiveReportDefinitions } from "@/lib/reports/catalog";
 
 export const metadata: Metadata = {
   title: "Astrology Reports",
-  description: "Personalized Vedic astrology reports prepared from saved Ravish Astro birth profiles.",
+  description: "Personalized Vedic astrology reports prepared from saved Tarun Astro birth profiles.",
 };
 
 export const dynamic = "force-dynamic";

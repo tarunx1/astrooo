@@ -23,12 +23,12 @@ type MemoryStore = {
 };
 
 const globalForKundli = globalThis as typeof globalThis & {
-  ravishKundliStore?: MemoryStore;
+  TarunKundliStore?: MemoryStore;
 };
 
 const memoryStore: MemoryStore =
-  globalForKundli.ravishKundliStore ??
-  (globalForKundli.ravishKundliStore = {
+  globalForKundli.TarunKundliStore ??
+  (globalForKundli.TarunKundliStore = {
     profiles: new Map(),
     calculations: new Map(),
     calculationIdsByHash: new Map(),

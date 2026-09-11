@@ -22,7 +22,7 @@ import { processRazorpayWebhook } from "@/lib/payments/webhooks";
 const RUN = `o${Date.now().toString(36)}`;
 
 const ADDRESS: ShippingAddress = shippingAddressSchema.parse({
-  fullName: "Ravish Sharma",
+  fullName: "Tarun Sharma",
   phone: "9876543210",
   addressLine1: "12 Lake Road",
   addressLine2: "Near the temple",

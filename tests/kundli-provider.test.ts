@@ -5,7 +5,7 @@ import { createKundliInputHash, normalizeBirthDetails } from "@/lib/kundli/norma
 describe("DevelopmentAstrologyProvider", () => {
   it("maps deterministic fixture output into the internal KundliResult shape", async () => {
     const input = normalizeBirthDetails({
-      name: "Ravish Sharma",
+      name: "Tarun Sharma",
       dateOfBirth: "1992-08-14",
       timeOfBirth: "06:35",
       timeAccuracy: "EXACT",

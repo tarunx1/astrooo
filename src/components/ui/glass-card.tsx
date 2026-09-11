@@ -79,6 +79,7 @@ export function GlassCard({
 
   const commonProps = {
     ref: assignRef,
+    "data-glass-card": "",
     className: cn(
       "group relative overflow-hidden rounded-xl border transition-all duration-300",
       variantStyles[variant],

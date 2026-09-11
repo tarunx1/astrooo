@@ -4,6 +4,7 @@ import { useActionState, useEffect, useId, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { calculatePanchangAction } from "@/app/calculators/actions";
 import { INITIAL_PANCHANG_STATE, type PanchangState } from "@/lib/astrology/tool-action-state";
@@ -50,19 +51,12 @@ export function PanchangForm({ defaultDate }: { defaultDate: string }) {
         </div>
       ) : null}
 
-      <label className="grid gap-2 caption text-foreground-secondary" htmlFor={`${uid}-date`}>
-        Date
+      <FormField error={state.fieldErrors.date?.[0]} id={`${uid}-date`} label="Date">
         <Input defaultValue={defaultDate} id={`${uid}-date`} name="date" required type="date" />
-        {state.fieldErrors.date?.[0] ? (
-          <span className="body-sm text-danger" role="alert">
-            {state.fieldErrors.date[0]}
-          </span>
-        ) : null}
-      </label>
+      </FormField>
 
       <div className="relative">
-        <label className="grid gap-2 caption text-foreground-secondary" htmlFor={`${uid}-place`}>
-          Place
+        <FormField error={state.fieldErrors.placeId?.[0]} id={`${uid}-place`} label="Place">
           <Input
             aria-autocomplete="list"
             aria-controls={listId}
@@ -79,12 +73,7 @@ export function PanchangForm({ defaultDate }: { defaultDate: string }) {
             role="combobox"
             value={query}
           />
-          {state.fieldErrors.placeId?.[0] ? (
-            <span className="body-sm text-danger" role="alert">
-              {state.fieldErrors.placeId[0]}
-            </span>
-          ) : null}
-        </label>
+        </FormField>
 
         {suggestions.length ? (
           <div

@@ -20,7 +20,7 @@ export const accountNavigation: readonly AccountNavItem[] = [
     label: "Overview",
     href: "/account",
     icon: LayoutDashboard,
-    description: "Your Ravish Astro account at a glance",
+    description: "Your Tarun Astro account at a glance",
     status: "available",
   },
   {

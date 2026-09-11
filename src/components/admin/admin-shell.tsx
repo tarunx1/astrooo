@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAVIGATION, type AdminNavItem } from "@/config/admin-navigation";
 import { getAdminIdentity } from "@/lib/auth/admin";
@@ -34,21 +33,21 @@ export async function AdminLayout({
   const navigation = ADMIN_NAVIGATION.filter((item) => !item.superAdminOnly || identity?.isSuperAdmin);
 
   return (
-    <section className="star-field min-h-[calc(100vh-var(--header-height))] lg:grid lg:grid-cols-[236px_minmax(0,1fr)]">
+    <section className="min-h-[calc(100vh-var(--header-height))] bg-slate-100 text-slate-900 lg:grid lg:grid-cols-[236px_minmax(0,1fr)]">
       {/* A rail rather than a floating card, matching the account dashboard:
           it runs from under the site header to the bottom of the viewport and
           stays there while a long table scrolls past it. */}
-      <aside className="hidden border-r border-white/10 bg-surface/70 backdrop-blur-xl lg:block">
+      <aside className="hidden border-r border-slate-200 bg-slate-50 lg:block">
         <div className="sticky top-[var(--header-height)] flex h-[calc(100dvh-var(--header-height))] flex-col gap-3 overflow-y-auto px-3 py-5">
-          <p className="px-3 caption uppercase tracking-[0.2em] text-premium">Operations</p>
+          <p className="px-3 caption uppercase tracking-[0.2em] text-slate-400 font-semibold">Operations</p>
           <AdminSidebar currentPath={currentPath} items={navigation} />
         </div>
       </aside>
 
-      <div className="min-w-0 px-4 py-8 sm:px-6 lg:px-10">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-          <p className="caption uppercase tracking-[0.2em] text-premium lg:hidden">Tarun Astro Operations</p>
-          <p className="caption text-foreground-muted lg:ml-auto">Signed in as {adminName}</p>
+      <div className="admin-main min-w-0 bg-white px-4 py-8 text-slate-900 sm:px-6 lg:px-10">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <p className="caption uppercase tracking-[0.2em] text-slate-400 font-semibold lg:hidden">Tarun Astro Operations</p>
+          <p className="caption text-slate-500 lg:ml-auto">Signed in as {adminName}</p>
         </div>
 
         <AdminMobileNav currentPath={currentPath} items={navigation} />
@@ -82,15 +81,15 @@ export function AdminSidebar({
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
                     active
-                      ? "bg-surface-raised text-foreground"
-                      : "text-foreground-muted hover:bg-surface-hover hover:text-foreground",
+                      ? "bg-blue-50 text-blue-700 font-semibold shadow-xs"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
                   )}
                   href={item.href}
                   prefetch={false}
                 >
-                  <Icon aria-hidden="true" className={cn("shrink-0", active && "text-primary")} size={16} />
+                  <Icon aria-hidden="true" className={cn("shrink-0", active ? "text-blue-600" : "text-slate-400")} size={16} />
                   <span className="truncate">{item.label}</span>
                 </Link>
               </li>
@@ -121,10 +120,10 @@ export function AdminMobileNav({
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2 whitespace-nowrap rounded-md border px-3 py-2 text-sm font-medium transition",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
                   active
-                    ? "border-primary bg-surface-raised text-foreground"
-                    : "border-border bg-surface text-foreground-muted",
+                    ? "border-blue-600 bg-blue-50 text-blue-700 font-semibold shadow-xs"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                 )}
                 href={item.href}
                 prefetch={false}
@@ -152,8 +151,8 @@ export function AdminHeader({
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="heading-lg">{title}</h1>
-        {description ? <p className="mt-2 body-sm text-foreground-secondary">{description}</p> : null}
+        <h1 className="heading-lg text-slate-900">{title}</h1>
+        {description ? <p className="mt-2 body-sm text-slate-600">{description}</p> : null}
       </div>
       {actions}
     </div>
@@ -176,8 +175,8 @@ export function AdminSection({
       {title ? (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="heading-sm">{title}</h2>
-            {description ? <p className="mt-1 caption text-foreground-muted">{description}</p> : null}
+            <h2 className="heading-sm text-slate-900">{title}</h2>
+            {description ? <p className="mt-1 caption text-slate-500">{description}</p> : null}
           </div>
           {actions}
         </div>
@@ -190,11 +189,11 @@ export function AdminSection({
 export type AdminStatusTone = "positive" | "warning" | "danger" | "neutral" | "info";
 
 const TONE_CLASS: Record<AdminStatusTone, string> = {
-  positive: "border-success/50 text-success",
-  warning: "border-warning/60 text-warning",
-  danger: "border-danger/50 text-danger",
-  info: "border-primary/60 text-primary",
-  neutral: "border-border text-foreground-muted",
+  positive: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  warning: "border-amber-200 bg-amber-50 text-amber-800",
+  danger: "border-rose-200 bg-rose-50 text-rose-700",
+  info: "border-blue-200 bg-blue-50 text-blue-700",
+  neutral: "border-slate-200 bg-slate-50 text-slate-600",
 };
 
 export function AdminStatusBadge({ label, tone = "neutral" }: { label: string; tone?: AdminStatusTone }) {
@@ -235,23 +234,23 @@ export function AdminTable<Row>({
 }) {
   if (rows.length === 0) {
     return (
-      <Card className="p-6 text-center" variant="glass">
-        <p className="body-sm text-foreground-muted">{emptyMessage}</p>
-      </Card>
+      <div className="rounded-lg border border-slate-200 bg-white p-8 text-center shadow-xs">
+        <p className="body-sm text-slate-500">{emptyMessage}</p>
+      </div>
     );
   }
 
   return (
     <>
-      <Card className="hidden overflow-x-auto md:block" variant="glass">
+      <div className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-xs md:block">
         <table className="w-full border-collapse text-left">
           <caption className="sr-only">{caption}</caption>
           <thead>
-            <tr className="border-b border-border">
+            <tr className="border-b border-slate-200 bg-slate-50/80">
               {columns.map((column) => (
                 <th
                   className={cn(
-                    "px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted",
+                    "px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500",
                     column.align === "right" && "text-right",
                   )}
                   key={column.key}
@@ -262,12 +261,12 @@ export function AdminTable<Row>({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {rows.map((row) => (
-              <tr className="border-b border-border last:border-b-0 hover:bg-surface-hover" key={getKey(row)}>
+              <tr className="transition hover:bg-slate-50/70" key={getKey(row)}>
                 {columns.map((column) => (
                   <td
-                    className={cn("px-4 py-3 body-sm text-foreground-secondary", column.align === "right" && "text-right")}
+                    className={cn("px-4 py-3.5 body-sm text-slate-700", column.align === "right" && "text-right")}
                     key={column.key}
                   >
                     {renderCell(row, column.key)}
@@ -277,12 +276,12 @@ export function AdminTable<Row>({
             ))}
           </tbody>
         </table>
-      </Card>
+      </div>
 
       <ul className="grid gap-3 md:hidden">
         {rows.map((row) => (
           <li key={getKey(row)}>
-            <Card className="p-4" variant="glass">{renderCard(row)}</Card>
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs">{renderCard(row)}</div>
           </li>
         ))}
       </ul>
@@ -318,13 +317,13 @@ export function AdminPagination({
 
   return (
     <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-3">
-      <p className="caption text-foreground-muted">
+      <p className="caption text-slate-500">
         Page {page} of {pageCount} · {total} total
       </p>
       <div className="flex gap-2">
         {page > 1 ? (
           <Link
-            className="min-h-9 rounded-md border border-border-strong bg-surface px-3 py-2 text-xs font-semibold transition hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+            className="min-h-9 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
             href={href(page - 1)}
             prefetch={false}
             rel="prev"
@@ -334,7 +333,7 @@ export function AdminPagination({
         ) : null}
         {page < pageCount ? (
           <Link
-            className="min-h-9 rounded-md border border-border-strong bg-surface px-3 py-2 text-xs font-semibold transition hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+            className="min-h-9 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
             href={href(page + 1)}
             prefetch={false}
             rel="next"
@@ -376,7 +375,7 @@ export function AdminSearch({
         type="search"
       />
       <button
-        className="min-h-10 rounded-md border border-border-strong bg-surface px-4 py-2 text-sm font-semibold transition hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+        className="min-h-10 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         type="submit"
       >
         Search

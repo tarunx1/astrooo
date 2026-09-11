@@ -41,6 +41,8 @@ export type StarFieldCanvasProps = {
   /** Image to gather into. Null means open sky. */
   source?: string | null;
   align?: StarFieldAlign;
+  formationScale?: number;
+  verticalOffset?: number;
   maskMode?: ImageMaskMode;
   threshold?: number;
   useImageColors?: boolean;
@@ -347,6 +349,8 @@ function initialiseGeometry(geometry: BufferGeometry, count: number) {
 function MorphingStars({
   source,
   align = "center",
+  formationScale = 1,
+  verticalOffset = 0,
   maskMode,
   threshold,
   useImageColors,
@@ -455,8 +459,9 @@ function MorphingStars({
 
       try {
         const shaped = Math.floor(count * SHAPE_SHARE);
-        const scale = formationScaleForViewport();
+        const scale = formationScaleForViewport() * formationScale;
         const offset = formationOffsetForViewport(align);
+        offset.y += visibleExtent().height * verticalOffset;
         const sampled = await sampleImageToParticles(source, {
           count: shaped,
           mode: maskMode,
@@ -521,7 +526,7 @@ function MorphingStars({
     return () => {
       cancelled = true;
     };
-  }, [source, align, maskMode, threshold, invertMask, useImageColors, onImageError, invalidate]);
+  }, [source, align, formationScale, verticalOffset, maskMode, threshold, invertMask, useImageColors, onImageError, invalidate]);
 
   useEffect(() => {
     if (reduceMotion) return;

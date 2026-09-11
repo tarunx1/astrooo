@@ -20,7 +20,15 @@ type StarFieldSourceValue = {
   label: string | null;
   /** Which side of the frame the shape gathers on, so copy can sit opposite. */
   align: StarFieldAlign;
-  setShape: (shape: { source: string | null; label?: string | null; align?: StarFieldAlign }) => void;
+  formationScale: number;
+  verticalOffset: number;
+  setShape: (shape: {
+    source: string | null;
+    label?: string | null;
+    align?: StarFieldAlign;
+    formationScale?: number;
+    verticalOffset?: number;
+  }) => void;
 };
 
 const StarFieldSourceContext = createContext<StarFieldSourceValue | null>(null);
@@ -30,25 +38,42 @@ export function StarFieldProvider({ children }: { children: ReactNode }) {
     source: string | null;
     label: string | null;
     align: StarFieldAlign;
-  }>({ source: null, label: null, align: "center" });
+    formationScale: number;
+    verticalOffset: number;
+  }>({ source: null, label: null, align: "center", formationScale: 1, verticalOffset: 0 });
 
   // The setter must keep a stable identity. Consumers depend on it in effects
   // whose cleanup releases the shape, so a setter that changed on every update
   // would tear those effects down and clear the shape immediately after it was
   // set - which is exactly what happened before this was memoised.
   const setShape = useCallback(
-    (next: { source: string | null; label?: string | null; align?: StarFieldAlign }) => {
+    (next: {
+      source: string | null;
+      label?: string | null;
+      align?: StarFieldAlign;
+      formationScale?: number;
+      verticalOffset?: number;
+    }) => {
       setShapeState({
         source: next.source,
         label: next.label ?? null,
         align: next.align ?? "center",
+        formationScale: next.formationScale ?? 1,
+        verticalOffset: next.verticalOffset ?? 0,
       });
     },
     [],
   );
 
   const value = useMemo(
-    () => ({ source: shape.source, label: shape.label, align: shape.align, setShape }),
+    () => ({
+      source: shape.source,
+      label: shape.label,
+      align: shape.align,
+      formationScale: shape.formationScale,
+      verticalOffset: shape.verticalOffset,
+      setShape,
+    }),
     [shape, setShape],
   );
 
@@ -59,7 +84,14 @@ export function useStarFieldSource(): StarFieldSourceValue {
   const context = useContext(StarFieldSourceContext);
   // Null rather than throwing: the star field is decorative, and a subtree
   // rendered outside the provider should still render its own content.
-  return context ?? { source: null, label: null, align: "center" as StarFieldAlign, setShape: () => {} };
+  return context ?? {
+    source: null,
+    label: null,
+    align: "center" as StarFieldAlign,
+    formationScale: 1,
+    verticalOffset: 0,
+    setShape: () => {},
+  };
 }
 
 /**
@@ -73,19 +105,23 @@ export function StarFieldSource({
   source,
   label,
   align = "center",
+  formationScale = 1,
+  verticalOffset = 0,
 }: {
   source: string | null;
   label?: string | null;
   align?: StarFieldAlign;
+  formationScale?: number;
+  verticalOffset?: number;
 }) {
   const { setShape } = useStarFieldSource();
 
   const release = useCallback(() => setShape({ source: null }), [setShape]);
 
   useEffect(() => {
-    setShape({ source, label, align });
+    setShape({ source, label, align, formationScale, verticalOffset });
     return release;
-  }, [source, label, align, setShape, release]);
+  }, [source, label, align, formationScale, verticalOffset, setShape, release]);
 
   return null;
 }

@@ -34,8 +34,10 @@ export default async function AdminGeneratedReportsPage({
       <div className="flex flex-wrap gap-2">
         {[undefined, ReportStatus.QUEUED, ReportStatus.RENDERING, ReportStatus.READY, ReportStatus.FAILED].map((value) => (
           <Link
-            className={`min-h-9 rounded-md border px-3 py-2 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan ${
-              status === value ? "border-primary bg-surface-raised text-foreground" : "border-border bg-surface text-foreground-muted"
+            className={`min-h-9 rounded-md border px-3 py-2 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+              status === value
+                ? "border-slate-900 bg-slate-900 text-white shadow-xs"
+                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
             }`}
             href={value ? `/admin/generated-reports?status=${value}` : "/admin/generated-reports"}
             key={value ?? "all"}

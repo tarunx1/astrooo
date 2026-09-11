@@ -8,7 +8,7 @@ import { normalizeBirthDetails } from "@/lib/kundli/normalize";
 import type { KundliResult } from "@/lib/kundli/types";
 
 const input = normalizeBirthDetails({
-  name: "Ravish Sharma",
+  name: "Tarun Sharma",
   dateOfBirth: "1992-08-14",
   timeOfBirth: "06:35",
   timeAccuracy: "EXACT",
@@ -142,7 +142,7 @@ describe("report document", () => {
       schemaVersion: "0.0.1",
       reportType: "CAREER",
       metadata: {
-        subjectName: "Ravish Sharma",
+        subjectName: "Tarun Sharma",
         generatedAt: new Date().toISOString(),
         astrologyCalculationId: "calc-1",
         calculationVersion: "1",

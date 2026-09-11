@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/panchang` },
   openGraph: {
-    title: "Panchang | Ravish Astro",
+    title: "Panchang | Tarun Astro",
     description: DESCRIPTION,
     url: `${brand.url}/panchang`,
     type: "website",

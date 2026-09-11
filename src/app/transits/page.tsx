@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "Current Planetary Transits",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/transits` },
-  openGraph: { title: "Current Planetary Transits | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/transits` },
+  openGraph: { title: "Current Planetary Transits | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/transits` },
 };
 
 const BREADCRUMB = [{ label: "Home", href: "/" }, { label: "Transits" }];

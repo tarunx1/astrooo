@@ -33,6 +33,7 @@ export type AdminNavItem = {
 };
 
 export const ADMIN_NAVIGATION: readonly AdminNavItem[] = [
+  { label: "Super Admin", href: "/admin/super", icon: ShieldCheck, superAdminOnly: true },
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Inventory", href: "/admin/inventory", icon: Boxes },
@@ -43,5 +44,6 @@ export const ADMIN_NAVIGATION: readonly AdminNavItem[] = [
   { label: "Coupons", href: "/admin/coupons", icon: Tag },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Audit Log", href: "/admin/audit", icon: ShieldCheck },
-  { label: "System", href: "/admin/settings", icon: SlidersHorizontal, superAdminOnly: true },
+  { label: "Site Settings", href: "/admin/settings/site", icon: SlidersHorizontal, superAdminOnly: true },
+  { label: "System & API Keys", href: "/admin/settings", icon: SlidersHorizontal, superAdminOnly: true },
 ] as const;

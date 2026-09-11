@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Numerology Calculator",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/calculators/numerology` },
-  openGraph: { title: "Numerology Calculator | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/calculators/numerology` },
+  openGraph: { title: "Numerology Calculator | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/calculators/numerology` },
 };
 
 const FAQS = [

@@ -106,7 +106,7 @@ export function SignInPanel({ returnTo, googleEnabled, devCredentialsEnabled }: 
             Email
             <SmoothInput
               autoComplete="email"
-              className="min-h-11 rounded-md border border-border bg-background px-3.5 py-2.5 text-sm text-foreground"
+              className="form-control"
               id="dev-email"
               name="email"
               required
@@ -117,7 +117,7 @@ export function SignInPanel({ returnTo, googleEnabled, devCredentialsEnabled }: 
             Password
             <SmoothInput
               autoComplete="current-password"
-              className="min-h-11 rounded-md border border-border bg-background px-3.5 py-2.5 text-sm text-foreground"
+              className="form-control"
               id="dev-password"
               name="password"
               required

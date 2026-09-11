@@ -5,7 +5,7 @@ export interface LocationProvider {
   resolve(placeId: string): Promise<ResolvedLocation | null>;
 }
 
-const developmentLocations: ResolvedLocation[] = [
+export const developmentLocations: ResolvedLocation[] = [
   {
     placeId: "dev:new-delhi-in",
     displayName: "New Delhi, Delhi, India",
@@ -58,22 +58,122 @@ const developmentLocations: ResolvedLocation[] = [
   },
 ];
 
-export class DevelopmentLocationProvider implements LocationProvider {
-  async search(query: string) {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (normalizedQuery.length < 2) return [];
+type OpenMeteoItem = {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  timezone?: string;
+  country?: string;
+  admin1?: string;
+  admin2?: string;
+};
 
-    return developmentLocations
-      .filter((location) => location.displayName.toLowerCase().includes(normalizedQuery) || location.city.toLowerCase().includes(normalizedQuery))
-      .slice(0, 6)
+/**
+ * Worldwide location provider using Open-Meteo's open geocoding API,
+ * providing accurate global coverage with exact coordinates and IANA timezones.
+ * Falls back to development fixtures if offline or for test consistency.
+ */
+export class WorldwideLocationProvider implements LocationProvider {
+  async search(query: string): Promise<LocationSuggestion[]> {
+    const normalized = query.trim();
+    if (normalized.length < 2) return [];
+
+    const lower = normalized.toLowerCase();
+    const devMatches = developmentLocations
+      .filter((loc) => loc.displayName.toLowerCase().includes(lower) || loc.city.toLowerCase().includes(lower))
       .map(({ placeId, displayName, city, region, country }) => ({ placeId, displayName, city, region, country }));
+
+    try {
+      const endpoint = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(normalized)}&count=10&language=en&format=json`;
+      const response = await fetch(endpoint, {
+        headers: { "User-Agent": "TarunAstro/1.0" },
+        signal: AbortSignal.timeout(4000),
+      });
+
+      if (!response.ok) {
+        return devMatches;
+      }
+
+      const data = (await response.json()) as { results?: OpenMeteoItem[] };
+      if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {
+        return devMatches;
+      }
+
+      const suggestions: LocationSuggestion[] = data.results.map((item) => {
+        const city = item.name;
+        const region = item.admin1 || item.admin2 || "";
+        const country = item.country || "India";
+        const displayName = [city, region, country].filter(Boolean).join(", ");
+        const timezone = item.timezone || "Asia/Kolkata";
+
+        // Embed geocoding coordinates and timezone directly into the placeId
+        const placeId = `geo:v1:${item.latitude}:${item.longitude}:${encodeURIComponent(timezone)}:${encodeURIComponent(city)}:${encodeURIComponent(region)}:${encodeURIComponent(country)}`;
+
+        return {
+          placeId,
+          displayName,
+          city,
+          region: region || undefined,
+          country,
+        };
+      });
+
+      // Include dev matches if not already present
+      for (const dev of devMatches) {
+        if (!suggestions.some((s) => s.displayName.toLowerCase() === dev.displayName.toLowerCase())) {
+          suggestions.push(dev);
+        }
+      }
+
+      return suggestions.slice(0, 10);
+    } catch {
+      return devMatches;
+    }
   }
 
-  async resolve(placeId: string) {
-    return developmentLocations.find((location) => location.placeId === placeId) ?? null;
+  async resolve(placeId: string): Promise<ResolvedLocation | null> {
+    // 1. Resolve development fixture placeIds (dev:...)
+    const dev = developmentLocations.find((loc) => loc.placeId === placeId);
+    if (dev) return dev;
+
+    // 2. Decode stateless global placeIds (geo:v1:lat:lon:tz:city:region:country)
+    if (placeId.startsWith("geo:v1:")) {
+      try {
+        const parts = placeId.split(":");
+        if (parts.length >= 8) {
+          const latitude = parseFloat(parts[2]);
+          const longitude = parseFloat(parts[3]);
+          const timezone = decodeURIComponent(parts[4]);
+          const city = decodeURIComponent(parts[5]);
+          const region = decodeURIComponent(parts[6]);
+          const country = decodeURIComponent(parts[7]);
+          const displayName = [city, region, country].filter(Boolean).join(", ");
+
+          if (Number.isFinite(latitude) && Number.isFinite(longitude) && timezone && city) {
+            return {
+              placeId,
+              displayName,
+              city,
+              region: region || undefined,
+              country,
+              latitude,
+              longitude,
+              timezone,
+            };
+          }
+        }
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
   }
 }
 
+export class DevelopmentLocationProvider extends WorldwideLocationProvider {}
+
 export function getLocationProvider(): LocationProvider {
-  return new DevelopmentLocationProvider();
+  return new WorldwideLocationProvider();
 }

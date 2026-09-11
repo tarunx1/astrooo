@@ -9,7 +9,7 @@ import { PrismaClient } from "@prisma/client";
  * development so hot reloads do not open a new pool per reload.
  */
 const globalForPrisma = globalThis as typeof globalThis & {
-  ravishPrisma?: PrismaClient;
+  TarunPrisma?: PrismaClient;
 };
 
 function createClient(): PrismaClient {
@@ -24,8 +24,8 @@ function createClient(): PrismaClient {
   });
 }
 
-export const prisma: PrismaClient = globalForPrisma.ravishPrisma ?? createClient();
+export const prisma: PrismaClient = globalForPrisma.TarunPrisma ?? createClient();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.ravishPrisma = prisma;
+  globalForPrisma.TarunPrisma = prisma;
 }

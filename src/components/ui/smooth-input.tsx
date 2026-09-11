@@ -254,7 +254,7 @@ export function SmoothInput({ className, type, style, ...props }: SmoothInputPro
   }
 
   return (
-    <span className="relative block w-full">
+    <span className="relative block w-full min-w-0 flex-1">
       <input className={className} ref={inputRef} style={style} type={type} {...props} />
 
       {/* Off-screen ruler used to measure the text before the caret. */}

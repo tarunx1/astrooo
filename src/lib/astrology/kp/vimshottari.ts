@@ -1,5 +1,6 @@
 import { NAKSHATRAS, type NakshatraName, type PlanetName } from "@/config/astrology";
-import { normalizeLongitude } from "@/lib/astrology/charts/signs";
+import { getHouseFromSign } from "@/lib/astrology/charts/houses";
+import { getSignNumber, normalizeLongitude } from "@/lib/astrology/charts/signs";
 
 /**
  * Vimshottari subdivision, and the KP sub-lord it produces.
@@ -47,7 +48,87 @@ export type KpPosition = {
   subLord: PlanetName;
   /** Lord of the subdivision within the sub. Used to separate near-identical charts. */
   subSubLord: PlanetName;
+  /** House significations (occupied + owned houses). */
+  planetHouses?: number[];
+  starLordHouses?: number[];
+  subLordHouses?: number[];
+  subSubLordHouses?: number[];
 };
+
+/** Sign rulership mapping for traditional Vedic planets (Aries=1 to Pisces=12). */
+export const PLANET_SIGN_RULERSHIPS: Record<PlanetName, number[]> = {
+  Sun: [5],
+  Moon: [4],
+  Mars: [1, 8],
+  Mercury: [3, 6],
+  Jupiter: [9, 12],
+  Venus: [2, 7],
+  Saturn: [10, 11],
+  Rahu: [],
+  Ketu: [],
+};
+
+export function getSignLord(sign: number): PlanetName {
+  const normalized = ((sign - 1) % 12 + 1);
+  switch (normalized) {
+    case 1: return "Mars";
+    case 2: return "Venus";
+    case 3: return "Mercury";
+    case 4: return "Moon";
+    case 5: return "Sun";
+    case 6: return "Mercury";
+    case 7: return "Venus";
+    case 8: return "Mars";
+    case 9: return "Jupiter";
+    case 10: return "Saturn";
+    case 11: return "Saturn";
+    case 12: return "Jupiter";
+    default: return "Mars";
+  }
+}
+
+/**
+ * Computes house significations (houses occupied and owned) for a planet given
+ * the chart's ascendant sign and list of planetary positions.
+ */
+export function getKpHouseSignifications(
+  planet: PlanetName,
+  ascendantSign: number,
+  allPlanets?: Array<{ planet: PlanetName; sign: number | string; longitude: number }>
+): number[] {
+  const houses = new Set<number>();
+
+  // 1. Occupation
+  if (allPlanets) {
+    const target = allPlanets.find((p) => p.planet === planet);
+    if (target) {
+      const occupiedSign = typeof target.sign === "number" ? target.sign : getSignNumber(target.longitude);
+      const occupiedHouse = getHouseFromSign(occupiedSign, ascendantSign);
+      houses.add(occupiedHouse);
+
+      // Handle Rahu / Ketu proxy rules in KP / Nadi astrology:
+      // Nodes signify the houses of their sign lord.
+      if (planet === "Rahu" || planet === "Ketu") {
+        const signLord = getSignLord(occupiedSign);
+        if (signLord && signLord !== planet) {
+          const proxyOwned = PLANET_SIGN_RULERSHIPS[signLord] ?? [];
+          for (const sign of proxyOwned) {
+            houses.add(getHouseFromSign(sign, ascendantSign));
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Ownership
+  const ownedSigns = PLANET_SIGN_RULERSHIPS[planet] ?? [];
+  for (const sign of ownedSigns) {
+    const house = getHouseFromSign(sign, ascendantSign);
+    houses.add(house);
+  }
+
+  return Array.from(houses).sort((a, b) => a - b);
+}
 
 /** Index into the sequence, wrapped, so lord arithmetic reads plainly. */
 function lordAt(index: number): { lord: PlanetName; years: number } {
@@ -140,7 +221,12 @@ function subdivide(
  * the sub. Each level starts from the lord of the level above, which is what
  * makes the sequence deterministic rather than arbitrary.
  */
-export function getKpPosition(longitude: number): KpPosition {
+export function getKpPosition(
+  longitude: number,
+  ascendantSign?: number,
+  allPlanets?: Array<{ planet: PlanetName; sign: number | string; longitude: number }>,
+  planetName?: PlanetName
+): KpPosition {
   const normalized = normalizeLongitude(longitude);
   const nakshatraNumber = getNakshatraNumber(normalized);
   const starIndex = nakshatraNumber - 1;
@@ -149,14 +235,37 @@ export function getKpPosition(longitude: number): KpPosition {
   const sub = subdivide(starIndex, nakshatraStart, NAKSHATRA_ARC, normalized);
   const subSub = subdivide(sub.lordIndex, sub.start, sub.width, normalized);
 
+  const starLord = lordAt(starIndex).lord;
+  const subLord = lordAt(sub.lordIndex).lord;
+  const subSubLord = lordAt(subSub.lordIndex).lord;
+
+  let planetHouses: number[] | undefined;
+  let starLordHouses: number[] | undefined;
+  let subLordHouses: number[] | undefined;
+  let subSubLordHouses: number[] | undefined;
+
+  if (ascendantSign) {
+    const matchedPlanet = planetName ?? allPlanets?.find((p) => Math.abs(normalizeLongitude(p.longitude) - normalized) < 1e-3)?.planet;
+    if (matchedPlanet) {
+      planetHouses = getKpHouseSignifications(matchedPlanet, ascendantSign, allPlanets);
+    }
+    starLordHouses = getKpHouseSignifications(starLord, ascendantSign, allPlanets);
+    subLordHouses = getKpHouseSignifications(subLord, ascendantSign, allPlanets);
+    subSubLordHouses = getKpHouseSignifications(subSubLord, ascendantSign, allPlanets);
+  }
+
   return {
     longitude: normalized,
     nakshatra: NAKSHATRAS[starIndex],
     nakshatraNumber,
     pada: getPada(normalized),
-    starLord: lordAt(starIndex).lord,
-    subLord: lordAt(sub.lordIndex).lord,
-    subSubLord: lordAt(subSub.lordIndex).lord,
+    starLord,
+    subLord,
+    subSubLord,
+    planetHouses,
+    starLordHouses,
+    subLordHouses,
+    subSubLordHouses,
   };
 }
 

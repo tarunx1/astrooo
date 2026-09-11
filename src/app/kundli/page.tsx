@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Generate a free Janam Kundli from normalized birth details, resolved location data and a replaceable astrology provider foundation.",
   alternates: { canonical: "/kundli" },
   openGraph: {
-    title: "Free Janam Kundli | Ravish Astro",
+    title: "Free Janam Kundli | Tarun Astro",
     description: "Create a structured Kundli foundation for future reports, matching, consultations and saved birth profiles.",
     url: "/kundli",
   },

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Moon Sign Calculator",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/calculators/moon-sign` },
-  openGraph: { title: "Moon Sign Calculator | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/calculators/moon-sign` },
+  openGraph: { title: "Moon Sign Calculator | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/calculators/moon-sign` },
 };
 
 const FAQS = [

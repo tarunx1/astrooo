@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Nakshatra Calculator",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/calculators/nakshatra` },
-  openGraph: { title: "Nakshatra Calculator | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/calculators/nakshatra` },
+  openGraph: { title: "Nakshatra Calculator | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/calculators/nakshatra` },
 };
 
 const FAQS = [

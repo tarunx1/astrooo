@@ -55,12 +55,15 @@ export function KpPanel({ result }: { result: KundliResult }) {
 
   return (
     <div className="@container grid gap-6">
-      <section className="grid gap-2">
-        <h3 className="body-sm font-semibold text-foreground">Cuspal sub-lords</h3>
+      <section className="astro-inner-card grid gap-3 p-4 sm:p-5">
+        <div>
+          <h3 className="heading-sm text-foreground">Cuspal sub-lords</h3>
         <p className="caption text-foreground-muted">
           KP judges a matter by the sub lord of the cusp that governs it, so this is the table the system turns on.
         </p>
-        <table className="w-full border-collapse text-left">
+        </div>
+        <div className="max-w-full overflow-x-auto">
+        <table className="w-full min-w-[34rem] border-collapse text-left">
           <caption className="sr-only">Placidus house cusps with their star, sub and sub-sub lords</caption>
           <thead>
             <tr className="border-b border-border">
@@ -68,8 +71,8 @@ export function KpPanel({ result }: { result: KundliResult }) {
                 <th
                   className={
                     heading === "Nakshatra"
-                      ? "hidden py-2 pr-1.5 caption uppercase text-foreground-muted @lg:table-cell"
-                      : "py-2 pr-1.5 caption uppercase text-foreground-muted"
+                      ? "hidden border-b border-border py-2.5 pr-3 caption uppercase tracking-[0.08em] text-foreground-muted @lg:table-cell"
+                      : "border-b border-border py-2.5 pr-3 caption uppercase tracking-[0.08em] text-foreground-muted"
                   }
                   key={heading}
                   scope="col"
@@ -82,35 +85,37 @@ export function KpPanel({ result }: { result: KundliResult }) {
           <tbody>
             {chart.cusps.map((cusp) => (
               <tr className="border-b border-border last:border-0" key={cusp.house}>
-                <th className="py-1.5 pr-1.5 body-sm font-semibold text-foreground" scope="row">
+                <th className="py-2.5 pr-3 body-sm font-semibold text-foreground" scope="row">
                   {cusp.house}
                 </th>
-                <td className="py-1.5 pr-1.5 body-sm tabular-nums text-foreground-secondary">
+                <td className="py-2.5 pr-3 body-sm tabular-nums text-foreground-secondary">
                   {cusp.sign.slice(0, 3)} {degrees(cusp.degreeInSign)}
                 </td>
-                <td className="hidden py-1.5 pr-1.5 body-sm text-foreground-secondary @lg:table-cell">
+                <td className="hidden py-2.5 pr-3 body-sm text-foreground-secondary @lg:table-cell">
                   {cusp.lords.nakshatra}
                 </td>
-                <td className="py-1.5 pr-1.5 body-sm text-foreground-secondary">
+                <td className="py-2.5 pr-3 body-sm text-foreground-secondary">
                   <Lord planet={cusp.lords.starLord} />
                 </td>
-                <td className="py-1.5 pr-1.5 body-sm font-semibold text-foreground">
+                <td className="py-2.5 pr-3 body-sm font-semibold text-foreground">
                   <Lord planet={cusp.lords.subLord} />
                 </td>
-                <td className="py-1.5 body-sm text-foreground-secondary">
+                <td className="py-2.5 body-sm text-foreground-secondary">
                   <Lord planet={cusp.lords.subSubLord} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </section>
 
       <NakshatraNadiTable chart={chart} significators={significators} />
 
-      <section className="grid gap-2">
-        <h3 className="body-sm font-semibold text-foreground">Planets, in Bhava Chalit houses</h3>
-        <table className="w-full border-collapse text-left">
+      <section className="astro-inner-card grid gap-3 p-4 sm:p-5">
+        <h3 className="heading-sm text-foreground">Planets, in Bhava Chalit houses</h3>
+        <div className="max-w-full overflow-x-auto">
+        <table className="w-full min-w-[38rem] border-collapse text-left">
           <caption className="sr-only">
             Planetary positions with their KP lords and their house by Placidus cusp
           </caption>
@@ -120,8 +125,8 @@ export function KpPanel({ result }: { result: KundliResult }) {
                 <th
                   className={
                     heading === "Signifies"
-                      ? "hidden py-2 pr-1.5 caption uppercase text-foreground-muted @lg:table-cell"
-                      : "py-2 pr-1.5 caption uppercase text-foreground-muted"
+                      ? "hidden border-b border-border py-2.5 pr-3 caption uppercase tracking-[0.08em] text-foreground-muted @lg:table-cell"
+                      : "border-b border-border py-2.5 pr-3 caption uppercase tracking-[0.08em] text-foreground-muted"
                   }
                   key={heading}
                   scope="col"
@@ -136,14 +141,14 @@ export function KpPanel({ result }: { result: KundliResult }) {
               const signifies = significators.get(planet.planet);
               return (
                 <tr className="border-b border-border last:border-0" key={planet.planet}>
-                  <th className="py-1.5 pr-1.5 body-sm font-semibold text-foreground" scope="row">
+                  <th className="py-2.5 pr-3 body-sm font-semibold text-foreground" scope="row">
                     {planet.planet}
                     {planet.retrograde ? <span className="ml-1 caption text-premium">R</span> : null}
                   </th>
-                  <td className="py-1.5 pr-1.5 body-sm tabular-nums text-foreground-secondary">
+                  <td className="py-2.5 pr-3 body-sm tabular-nums text-foreground-secondary">
                     {planet.sign.slice(0, 3)} {degrees(planet.degreeInSign)}
                   </td>
-                  <td className="py-1.5 pr-1.5 body-sm tabular-nums text-foreground">
+                  <td className="py-2.5 pr-3 body-sm tabular-nums text-foreground">
                     {planet.house}
                     {planet.house !== planet.wholeSignHouse ? (
                       <span className="ml-1 caption text-foreground-muted" title="House in the whole-sign Rashi chart">
@@ -151,16 +156,16 @@ export function KpPanel({ result }: { result: KundliResult }) {
                       </span>
                     ) : null}
                   </td>
-                  <td className="py-1.5 pr-1.5 body-sm text-foreground-secondary">
+                  <td className="py-2.5 pr-3 body-sm text-foreground-secondary">
                     <Lord planet={planet.lords.starLord} />
                   </td>
-                  <td className="py-1.5 pr-1.5 body-sm font-semibold text-foreground">
+                  <td className="py-2.5 pr-3 body-sm font-semibold text-foreground">
                     <Lord planet={planet.lords.subLord} />
                   </td>
-                  <td className="py-1.5 pr-1.5 body-sm text-foreground-secondary">
+                  <td className="py-2.5 pr-3 body-sm text-foreground-secondary">
                     <Lord planet={planet.lords.subSubLord} />
                   </td>
-                  <td className="hidden py-1.5 body-sm tabular-nums text-foreground-secondary @lg:table-cell">
+                  <td className="hidden py-2.5 body-sm tabular-nums text-foreground-secondary @lg:table-cell">
                     {signifies?.ownHouses.join(", ") ?? "-"}
                   </td>
                 </tr>
@@ -168,6 +173,7 @@ export function KpPanel({ result }: { result: KundliResult }) {
             })}
           </tbody>
         </table>
+        </div>
         {moved > 0 ? (
           <p className="caption text-foreground-muted">
             {moved} of {chart.planets.length} planets fall in a different house here than in the Rashi chart. The
@@ -210,7 +216,7 @@ function NakshatraNadiTable({
   };
 
   return (
-    <section className="grid gap-2">
+    <section className="astro-inner-card grid gap-3 p-4 sm:p-5">
       <div>
         <h3 className="body-sm font-semibold text-foreground">Nakshatra Nadi</h3>
         <p className="caption text-foreground-muted">
@@ -218,12 +224,12 @@ function NakshatraNadiTable({
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border">
+      <div className="overflow-x-auto rounded-md border border-border bg-background/30">
         <table className="w-full min-w-[28rem] border-collapse text-left">
           <caption className="sr-only">
             Nakshatra Nadi house significators for each planet, its star lord, and its sub lord
           </caption>
-          <thead className="bg-premium text-background">
+          <thead className="bg-premium/90 text-background">
             <tr>
               {(["Planet", "Star Lord", "Sub Lord"] as const).map((heading) => (
                 <th className="border-r border-background/25 px-3 py-2.5 text-sm font-semibold last:border-r-0 sm:px-4" key={heading} scope="col">
@@ -272,11 +278,11 @@ function NodeAgency({ significators }: { significators: (PlanetSignificators | u
   if (nodes.length === 0) return null;
 
   return (
-    <section className="grid gap-2">
-      <h3 className="body-sm font-semibold text-foreground">Rahu and Ketu act for</h3>
+    <section className="astro-inner-card grid gap-3 p-4 sm:p-5">
+      <h3 className="heading-sm text-foreground">Rahu and Ketu act for</h3>
       <ul className="grid gap-2">
         {nodes.map((node) => (
-          <li className="rounded-md border border-border p-3" key={node.planet}>
+          <li className="rounded-md border border-border bg-background/45 p-4" key={node.planet}>
             <p className="body-sm font-semibold text-foreground">{node.planet}</p>
             {node.agents.length === 0 ? (
               <p className="mt-1 caption text-foreground-muted">No agent planet, so it speaks only for itself.</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useStarFieldSource } from "@/components/visuals/star-field-source";
 
@@ -16,6 +17,9 @@ import { useStarFieldSource } from "@/components/visuals/star-field-source";
  * and the existing CSS `.star-field` background - which the rest of the site
  * already uses - shows through unchanged. Visitors who have not asked for
  * reduced motion see exactly what they saw before.
+ *
+ * Admin operations screens require a crisp, clean white background, so the star
+ * field canvas is suppressed there entirely to preserve battery and visual clarity.
  */
 const StarFieldCanvas = dynamic(() => import("@/components/visuals/star-field-canvas"), {
   ssr: false,
@@ -23,10 +27,13 @@ const StarFieldCanvas = dynamic(() => import("@/components/visuals/star-field-ca
 });
 
 export function StarFieldBackground() {
+  const pathname = usePathname();
+  const isAdminRoute = pathname ? pathname.startsWith("/admin") : false;
+
   // Undefined until the preference is known, so nothing is requested during the
   // first client render and the decision is never made on a guess.
   const [animate, setAnimate] = useState<boolean | undefined>(undefined);
-  const { source, align } = useStarFieldSource();
+  const { source, align, formationScale, verticalOffset } = useStarFieldSource();
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -42,19 +49,30 @@ export function StarFieldBackground() {
    *
    * `.star-field` paints an opaque background with a dot pattern, which is the
    * whole star field for a reduced-motion visitor and is exactly right for
-   * them. For everyone else it sits on top of the canvas and hides it - which
-   * is why the hero, the one section that carries the class, had no stars in
-   * it at all while every other section did.
+   * them. For everyone else it sits on top of the canvas and hides it.
+   * On admin routes, the stars are suppressed so the live sky attribute is deleted.
    */
   useEffect(() => {
-    if (!animate) return;
+    if (!animate || isAdminRoute) {
+      delete document.documentElement.dataset.starfield;
+      return;
+    }
     document.documentElement.dataset.starfield = "live";
     return () => {
       delete document.documentElement.dataset.starfield;
     };
-  }, [animate]);
+  }, [animate, isAdminRoute]);
 
-  if (!animate) return null;
+  if (!animate || isAdminRoute) return null;
 
-  return <StarFieldCanvas align={align} maskMode="alpha" source={source} threshold={0.1} />;
+  return (
+    <StarFieldCanvas
+      align={align}
+      formationScale={formationScale}
+      maskMode="alpha"
+      source={source}
+      threshold={0.1}
+      verticalOffset={verticalOffset}
+    />
+  );
 }

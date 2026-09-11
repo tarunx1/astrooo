@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Ravish Astro Product Rules
+## Tarun Astro Product Rules
 
 - Never calculate astronomy or Vedic astrology positions with an LLM.
 - Provider results must map into internal domain types before reaching UI.

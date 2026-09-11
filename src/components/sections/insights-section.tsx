@@ -29,7 +29,7 @@ export function InsightsSection() {
           <p className="mt-3 body text-foreground-secondary">Weekly insights, panchang alerts and report launches, written with restraint.</p>
           <form className="mt-7 flex flex-col gap-3 sm:flex-row">
             <SmoothInput
-              className="min-h-12 flex-1 rounded-md border border-border-strong bg-background px-4 body-sm outline-none transition focus:border-accent-cyan"
+              className="form-control flex-1"
               placeholder="Enter your email address"
               type="email"
             />

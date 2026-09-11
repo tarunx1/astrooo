@@ -65,7 +65,7 @@ export const SETTINGS = {
   "site.name": {
     category: "site",
     schema: shortText.min(1),
-    fallback: "Ravish Astro",
+    fallback: "Tarun Astro",
     label: "Site name",
   },
   "site.legalName": {

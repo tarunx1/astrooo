@@ -123,7 +123,7 @@ beforeAll(async () => {
   });
   definitionId = definition.id;
 
-  const created = await createOrderFor(userA.id, "Ravish Sharma");
+  const created = await createOrderFor(userA.id, "Tarun Sharma");
   orderId = created.orderId;
   generatedReportId = created.generatedReportId;
 });
@@ -139,7 +139,7 @@ afterAll(async () => {
 
 describe("report rendering", () => {
   it("renders a real PDF from a validated document", async () => {
-    const { bytes, mimeType, pageCount } = await getReportRenderer().render(documentFor("Ravish Sharma"));
+    const { bytes, mimeType, pageCount } = await getReportRenderer().render(documentFor("Tarun Sharma"));
 
     expect(mimeType).toBe("application/pdf");
     expect(bytes.byteLength).toBeGreaterThan(1000);
@@ -231,7 +231,7 @@ describe("download authorization", () => {
 describe("email delivery", () => {
   it("reports honestly that nothing was sent when no provider is configured", async () => {
     const result = await notifyReportReady(
-      { to: "someone@example.test", customerName: "Ravish", reportName: "Career Report", reportUrl: "https://example.test/r" },
+      { to: "someone@example.test", customerName: "Tarun", reportName: "Career Report", reportUrl: "https://example.test/r" },
       { EMAIL_PROVIDER_API_KEY: "", EMAIL_FROM: "" } as unknown as NodeJS.ProcessEnv,
     );
 

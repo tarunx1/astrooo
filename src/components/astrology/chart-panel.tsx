@@ -20,8 +20,8 @@ export function ChartPanel({ tabs, className }: { tabs: ChartTab[]; className?: 
   if (tabs.length === 0) return null;
 
   return (
-    <div className={cn("grid gap-4", className)}>
-      <div className="flex flex-wrap gap-2" role="tablist">
+    <div className={cn("grid gap-5", className)}>
+      <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1" role="tablist">
         {tabs.map((tab) => {
           const selected = tab.id === active;
           return (
@@ -29,11 +29,11 @@ export function ChartPanel({ tabs, className }: { tabs: ChartTab[]; className?: 
               aria-controls={`${groupId}-${tab.id}`}
               aria-selected={selected}
               className={cn(
-                "min-h-9 rounded-md border px-3 py-1.5 text-xs font-semibold transition",
+                "min-h-10 shrink-0 rounded-md border px-3.5 py-2 text-xs font-semibold transition",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
                 selected
-                  ? "border-premium bg-surface-raised text-foreground"
-                  : "border-border-strong bg-surface text-foreground-muted hover:text-foreground",
+                  ? "border-premium/80 bg-premium/10 text-foreground shadow-[var(--shadow-sm)]"
+                  : "border-border bg-background/50 text-foreground-muted hover:border-border-strong hover:text-foreground",
               )}
               id={`${groupId}-tab-${tab.id}`}
               key={tab.id}

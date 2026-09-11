@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { GlassAuthCard } from "@/components/account/auth-modal";
 import { PageContainer, Section } from "@/components/layout/primitives";
 import { getAdminIdentity } from "@/lib/auth/admin";
+import { SUPER_ADMIN_DASHBOARD_PATH } from "@/lib/auth/post-login";
+import { buildPostLoginHref } from "@/lib/auth/return-url";
 
 /**
  * Operator sign-in.
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
 export default async function AdminLoginPage() {
   // Already an operator: there is nothing to do here.
   const admin = await getAdminIdentity();
-  if (admin) redirect("/admin");
+  if (admin) redirect(admin.isSuperAdmin ? SUPER_ADMIN_DASHBOARD_PATH : "/admin");
 
   return (
     <Section className="star-field flex min-h-[calc(100vh-var(--header-height)-12rem)] items-center justify-center py-12">
@@ -37,7 +39,7 @@ export default async function AdminLoginPage() {
           </p>
         </div>
 
-        <GlassAuthCard defaultTab="signin" returnTo="/admin" />
+        <GlassAuthCard defaultTab="signin" returnTo={buildPostLoginHref("/admin")} />
       </PageContainer>
     </Section>
   );

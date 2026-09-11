@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, X } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
+import { buildPostLoginHref } from "@/lib/auth/return-url";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
 import { SmoothInput } from "@/components/ui/smooth-input";
@@ -157,16 +158,18 @@ export function GlassAuthCard({
         {tab === "signup" ? (
           <div className="grid grid-cols-2 gap-3">
             <SmoothInput
+              aria-label="First name"
               autoComplete="given-name"
-              className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 px-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
+              className="form-control"
               name="firstName"
               placeholder="First name"
               required
               type="text"
             />
             <SmoothInput
+              aria-label="Last name (optional)"
               autoComplete="family-name"
-              className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 px-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
+              className="form-control"
               name="lastName"
               placeholder="Last name"
               type="text"
@@ -176,10 +179,11 @@ export function GlassAuthCard({
 
         {/* Email Field */}
         <div className="relative">
-          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground-muted/60" size={17} />
+          <Mail aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-foreground-muted" size={17} />
           <SmoothInput
+            aria-label="Email address"
             autoComplete="email"
-            className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 pl-11 pr-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
+            className="form-control pl-11"
             name="email"
             placeholder="Enter your email"
             required
@@ -189,10 +193,11 @@ export function GlassAuthCard({
 
         {/* Password Field */}
         <div className="relative">
-          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground-muted/60" size={17} />
+          <Lock aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-foreground-muted" size={17} />
           <SmoothInput
+            aria-label="Password"
             autoComplete={tab === "signup" ? "new-password" : "current-password"}
-            className="min-h-12 w-full rounded-2xl border border-white/10 bg-[#1e2333]/60 pl-11 pr-4 text-sm text-white placeholder-foreground-muted/50 outline-none transition focus:border-white/30 focus:bg-[#1e2333]"
+            className="form-control pl-11"
             name="password"
             placeholder={tab === "signup" ? "Create a password" : "Enter your password"}
             required
@@ -202,7 +207,7 @@ export function GlassAuthCard({
 
         {/* Primary Action Button */}
         <button
-          className="mt-2 min-h-12 w-full rounded-2xl bg-[#eef0f5] text-sm font-semibold text-black shadow-md transition duration-200 hover:bg-white disabled:opacity-50 active:scale-[0.99]"
+          className="mt-2 min-h-12 w-full rounded-md bg-primary text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan disabled:opacity-50 active:bg-primary-active"
           disabled={pending !== null}
           type="submit"
         >
@@ -259,7 +264,7 @@ type AuthModalProps = {
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function AuthModal({ isOpen, onClose, defaultTab = "signup", returnTo = "/" }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, defaultTab = "signup", returnTo = buildPostLoginHref("/") }: AuthModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // Locks background scroll, closes on Escape, and keeps keyboard focus inside
@@ -361,4 +366,3 @@ function GoogleLogo() {
     </svg>
   );
 }
-

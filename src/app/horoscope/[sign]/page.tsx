@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     title: `${profile.sign} (${profile.sanskritName}) | Vedic Zodiac Guide`,
     description,
     alternates: { canonical: `${brand.url}/horoscope/${profile.slug}` },
-    openGraph: { title: `${profile.sign} | Ravish Astro`, description, url: `${brand.url}/horoscope/${profile.slug}` },
+    openGraph: { title: `${profile.sign} | Tarun Astro`, description, url: `${brand.url}/horoscope/${profile.slug}` },
   };
 }
 

@@ -6,7 +6,7 @@ import { canAccessKundliResult, findKundliByHash, persistKundliCalculation } fro
 describe("Kundli storage foundation", () => {
   it("caches calculations by deterministic input hash and supports anonymous access", async () => {
     const input = normalizeBirthDetails({
-      name: "Ravish Sharma",
+      name: "Tarun Sharma",
       dateOfBirth: "1992-08-14",
       timeOfBirth: "06:35",
       timeAccuracy: "EXACT",

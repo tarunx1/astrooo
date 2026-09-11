@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!category) return { title: "Category not found" };
 
   return {
-    title: `${category.name} | Ravish Astro Store`,
+    title: `${category.name} | Tarun Astro Store`,
     description: `Browse ${category.name.toLowerCase()} with verified specifications, origin and certification details.`,
     alternates: { canonical: `${brand.url}/shop/${slug}` },
   };

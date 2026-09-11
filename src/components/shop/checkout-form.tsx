@@ -1,5 +1,6 @@
 "use client";
 
+import { FormField } from "@/components/ui/form-field";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -59,7 +60,7 @@ export function CheckoutForm({
       order_id: order.providerOrderId,
       amount: order.amountMinor,
       currency: order.currency,
-      name: "Ravish Astro",
+      name: "Tarun Astro",
       description: `Order ${order.orderNumber}`,
       prefill: { name: customer.name, email: customer.email, contact: savedAddress?.phone ?? "" },
       handler: (response) => {
@@ -231,8 +232,7 @@ export function CheckoutForm({
   );
 }
 
-const inputClass =
-  "min-h-11 w-full rounded-md border border-border bg-background px-3.5 py-2.5 text-sm text-foreground transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan";
+const inputClass = "form-control";
 
 function Field({
   children,
@@ -246,16 +246,8 @@ function Field({
   name: string;
 }) {
   return (
-    <div className="grid gap-1.5">
-      <label className="caption text-foreground-secondary" htmlFor={name}>
-        {label}
-      </label>
+    <FormField error={error} id={name} label={label}>
       {children}
-      {error ? (
-        <p className="caption text-danger" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </div>
+    </FormField>
   );
 }

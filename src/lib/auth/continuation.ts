@@ -20,7 +20,7 @@ import {
  * calculation being claimed. Knowing a result URL is therefore never on its own
  * sufficient to attach that result to an account.
  */
-const COOKIE_NAME = "ravish_kundli_continuation";
+const COOKIE_NAME = "Tarun_kundli_continuation";
 
 export async function setContinuationCookie(calculationId: string): Promise<void> {
   const store = await cookies();

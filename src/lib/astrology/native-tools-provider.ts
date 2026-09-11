@@ -29,7 +29,7 @@ import type { CalculationMetadata, NormalizedBirthDetails, ResolvedLocation } fr
  */
 export class NativeAstrologyToolsProvider implements AstrologyToolsProvider {
   readonly metadata: CalculationMetadata = {
-    provider: "ravish-engine",
+    provider: "Tarun-engine",
     providerVersion: "vsop87d+elp2000-82b",
     calculationVersion: astrologyCalculationConfig.version,
     ayanamsa: astrologyCalculationConfig.ayanamsa,
@@ -106,7 +106,7 @@ export class NativeAstrologyToolsProvider implements AstrologyToolsProvider {
       if (error instanceof NoSunCrossingError) {
         throw new AstrologyProviderError({
           code: "UNAVAILABLE",
-          provider: "ravish-engine",
+          provider: "Tarun-engine",
           operation: "panchang",
           message: error.message,
           userMessage: `${error.message} A Panchang for this day cannot be calculated at this location.`,

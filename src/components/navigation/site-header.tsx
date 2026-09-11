@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
 import { navigation } from "@/config/navigation";
 import { AccountMenu } from "@/components/account/account-menu";
+import { getAdminIdentity } from "@/lib/auth/admin";
+import { SUPER_ADMIN_DASHBOARD_PATH } from "@/lib/auth/post-login";
 import { getCurrentUser } from "@/lib/auth/session";
 
 export async function SiteHeader() {
   const primaryNav = navigation.filter((item) => !("utilityOnly" in item));
   const user = await getCurrentUser();
+  const admin = user ? await getAdminIdentity() : null;
+  const accountHref = admin?.isSuperAdmin ? SUPER_ADMIN_DASHBOARD_PATH : "/account";
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
@@ -76,7 +80,19 @@ export async function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <AccountMenu user={user ? { name: user.name, email: user.email, image: user.image } : null} />
+          <AccountMenu
+            user={
+              user
+                ? {
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                    dashboardHref: accountHref,
+                    dashboardLabel: admin?.isSuperAdmin ? "Super Admin Dashboard" : "My Account",
+                  }
+                : null
+            }
+          />
           <Link aria-label="Cart" className="grid size-10 place-items-center rounded-md text-foreground-muted transition hover:bg-surface hover:text-foreground" href="/cart" prefetch={false}>
             <ShoppingBag size={18} />
           </Link>
@@ -113,10 +129,10 @@ export async function SiteHeader() {
               )}
               <Link
                 className="rounded-md border border-primary bg-surface-raised px-4 py-3 text-sm font-semibold"
-                href={user ? "/account" : "/sign-in"}
+                href={user ? accountHref : "/sign-in"}
                 prefetch={false}
               >
-                {user ? "My Account" : "Sign In"}
+                {user ? (admin?.isSuperAdmin ? "Super Admin" : "My Account") : "Sign In"}
               </Link>
             </PageContainer>
           </div>

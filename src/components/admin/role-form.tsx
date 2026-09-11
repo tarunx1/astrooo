@@ -45,7 +45,7 @@ export function RoleForm({
           Role
         </label>
         <select
-          className="min-h-9 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+          className="form-control"
           defaultValue={currentRole}
           id={`role-${targetUserId}`}
           name="role"

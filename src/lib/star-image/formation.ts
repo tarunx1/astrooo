@@ -24,7 +24,7 @@ export const FORMATION_FILL = 0.5;
  * trailing edge clears - the sign has to sit far enough out to be beside it
  * rather than under it.
  */
-export const FORMATION_SHIFT = 0.3;
+export const FORMATION_SHIFT = 0.38;
 /**
  * Below this the viewport is too narrow to hold a shape beside anything, so an
  * aligned formation moves up rather than sideways.

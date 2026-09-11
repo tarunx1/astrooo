@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Sade Sati Calculator",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/calculators/sade-sati` },
-  openGraph: { title: "Sade Sati Calculator | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/calculators/sade-sati` },
+  openGraph: { title: "Sade Sati Calculator | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/calculators/sade-sati` },
 };
 
 const FAQS = [

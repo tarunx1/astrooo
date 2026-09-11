@@ -33,7 +33,7 @@ export function ReportCheckoutClient({ order }: { order: CheckoutReportOrder }) 
       key: order.keyId,
       amount: order.amountMinor,
       currency: order.currency,
-      name: "Ravish Astro",
+      name: "Tarun Astro",
       description: order.reportName,
       order_id: order.providerOrderId,
       prefill: { name: order.userName, email: order.userEmail },

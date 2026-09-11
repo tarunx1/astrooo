@@ -28,7 +28,7 @@ const RUN_ID = `t${Date.now().toString(36)}`;
 
 function details(overrides: Partial<Parameters<typeof normalizeBirthDetails>[0]> = {}): NormalizedBirthDetails {
   return normalizeBirthDetails({
-    name: "Ravish Sharma",
+    name: "Tarun Sharma",
     dateOfBirth: "1992-08-14",
     timeOfBirth: "06:35",
     timeAccuracy: "EXACT",

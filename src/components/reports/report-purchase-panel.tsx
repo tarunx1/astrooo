@@ -91,7 +91,7 @@ export function ReportPurchasePanel({
               Saved birth profile
             </label>
             <select
-              className="min-h-11 rounded-md border border-border bg-background px-3.5 py-2.5 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+              className="form-control"
               id="birthProfileId"
               name="birthProfileId"
               required

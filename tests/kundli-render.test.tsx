@@ -7,7 +7,7 @@ import { normalizeBirthDetails } from "@/lib/kundli/normalize";
 describe("Kundli result rendering", () => {
   it("renders overview and planet table content", async () => {
     const input = normalizeBirthDetails({
-      name: "Ravish Sharma",
+      name: "Tarun Sharma",
       dateOfBirth: "1992-08-14",
       timeOfBirth: "06:35",
       timeAccuracy: "EXACT",
@@ -28,7 +28,7 @@ describe("Kundli result rendering", () => {
       </>,
     );
 
-    expect(markup).toContain("Ravish Sharma");
+    expect(markup).toContain("Tarun Sharma");
     expect(markup).toContain("Planetary Positions");
     expect(markup).toContain("Sun");
   });

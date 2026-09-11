@@ -4,6 +4,7 @@ import { useActionState, useId } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { calculateNumerologyAction } from "@/app/calculators/actions";
 import { INITIAL_NUMEROLOGY_STATE, type NumerologyState } from "@/lib/astrology/tool-action-state";
@@ -30,25 +31,13 @@ export function NumerologyForm() {
         </div>
       ) : null}
 
-      <label className="grid gap-2 caption text-foreground-secondary" htmlFor={`${uid}-dob`}>
-        Date of Birth
+      <FormField error={state.fieldErrors.dateOfBirth?.[0]} id={`${uid}-dob`} label="Date of Birth">
         <Input id={`${uid}-dob`} name="dateOfBirth" required type="date" />
-        {state.fieldErrors.dateOfBirth?.[0] ? (
-          <span className="body-sm text-danger" role="alert">
-            {state.fieldErrors.dateOfBirth[0]}
-          </span>
-        ) : null}
-      </label>
+      </FormField>
 
-      <label className="grid gap-2 caption text-foreground-secondary" htmlFor={`${uid}-name`}>
-        Full Name (optional)
+      <FormField error={state.fieldErrors.name?.[0]} id={`${uid}-name`} label="Full Name (optional)">
         <Input autoComplete="name" id={`${uid}-name`} name="name" placeholder="For name-based numbers" />
-        {state.fieldErrors.name?.[0] ? (
-          <span className="body-sm text-danger" role="alert">
-            {state.fieldErrors.name[0]}
-          </span>
-        ) : null}
-      </label>
+      </FormField>
 
       <Submit />
 

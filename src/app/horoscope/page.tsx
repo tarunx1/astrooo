@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "Horoscope & Zodiac Signs",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/horoscope` },
-  openGraph: { title: "Horoscope & Zodiac Signs | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/horoscope` },
+  openGraph: { title: "Horoscope & Zodiac Signs | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/horoscope` },
 };
 
 const BREADCRUMB = [{ label: "Home", href: "/" }, { label: "Horoscope" }];

@@ -59,9 +59,9 @@ export async function notifyReportReady(
       "",
       notification.reportUrl,
       "",
-      "Ravish Astro",
+      "Tarun Astro",
     ].join("\n"),
-    html: `<p>Namaste ${notification.customerName},</p><p>Your ${notification.reportName} has been prepared and is ready to download.</p><p><a href="${notification.reportUrl}">View your report</a></p><p>Ravish Astro</p>`,
+    html: `<p>Namaste ${notification.customerName},</p><p>Your ${notification.reportName} has been prepared and is ready to download.</p><p><a href="${notification.reportUrl}">View your report</a></p><p>Tarun Astro</p>`,
   };
 
   try {

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!product) return { title: "Product not found" };
 
   return {
-    title: `${product.title} | Ravish Astro`,
+    title: `${product.title} | Tarun Astro`,
     description: product.description.slice(0, 155),
     alternates: { canonical: `${brand.url}/product/${product.slug}` },
     openGraph: {

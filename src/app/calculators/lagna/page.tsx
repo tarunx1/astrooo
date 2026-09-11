@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Lagna Calculator",
   description: DESCRIPTION,
   alternates: { canonical: `${brand.url}/calculators/lagna` },
-  openGraph: { title: "Lagna Calculator | Ravish Astro", description: DESCRIPTION, url: `${brand.url}/calculators/lagna` },
+  openGraph: { title: "Lagna Calculator | Tarun Astro", description: DESCRIPTION, url: `${brand.url}/calculators/lagna` },
 };
 
 const FAQS = [

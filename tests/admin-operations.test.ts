@@ -731,17 +731,19 @@ describe("user roles", () => {
       await blocker.$disconnect();
     }
 
-    expect([a.ok, b.ok].filter(Boolean)).toHaveLength(1);
+    try {
+      expect([a!.ok, b!.ok].filter(Boolean)).toHaveLength(1);
 
-    const remaining = await prisma.user.count({ where: { role: UserRole.SUPER_ADMIN } });
-    expect(remaining).toBeGreaterThanOrEqual(1);
-
-    // Restore.
-    await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.ADMIN } });
-    await prisma.user.updateMany({
-      where: { id: { in: otherSupers.map((user) => user.id) } },
-      data: { role: UserRole.SUPER_ADMIN },
-    });
+      const remaining = await prisma.user.count({ where: { role: UserRole.SUPER_ADMIN } });
+      expect(remaining).toBeGreaterThanOrEqual(1);
+    } finally {
+      // Restore super admins regardless of assertion outcomes
+      await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.ADMIN } }).catch(() => {});
+      await prisma.user.updateMany({
+        where: { id: { in: otherSupers.map((user) => user.id) } },
+        data: { role: UserRole.SUPER_ADMIN },
+      }).catch(() => {});
+    }
   });
 });
 

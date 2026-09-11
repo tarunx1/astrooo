@@ -12,6 +12,8 @@ export type AccountMenuUser = {
   name: string;
   email: string;
   image: string | null;
+  dashboardHref?: string;
+  dashboardLabel?: string;
 };
 
 /**
@@ -74,6 +76,9 @@ export function AccountMenu({ user }: { user: AccountMenuUser | null }) {
   }
 
   const initial = (user.name || user.email).charAt(0).toUpperCase();
+  const menuItems = user.dashboardHref
+    ? [{ href: user.dashboardHref, label: user.dashboardLabel ?? "Dashboard" }]
+    : availableAccountNavigation;
 
   async function handleSignOut() {
     setPending(true);
@@ -120,7 +125,7 @@ export function AccountMenu({ user }: { user: AccountMenuUser | null }) {
           </div>
 
           <ul className="grid gap-0.5 py-1">
-            {availableAccountNavigation.map((item) => (
+            {menuItems.map((item) => (
               <li key={item.href}>
                 <Link
                   className="block rounded-md px-3 py-2 text-sm text-foreground-muted transition hover:bg-surface-hover hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"

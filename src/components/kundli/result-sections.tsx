@@ -1,6 +1,10 @@
 import { AlertTriangle, ArrowRight, LockKeyhole } from "lucide-react";
 import type { KundliResult } from "@/lib/kundli/types";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AstrologyDataTable, type AstrologyTableColumn } from "@/components/astrology/data-table";
+import { AstrologySection } from "@/components/astrology/section";
+import { AstrologyStatCard } from "@/components/astrology/stat-card";
+import { AstrologyStatusCard } from "@/components/astrology/status-card";
 
 export function KundliOverview({ result }: { result: KundliResult }) {
   const rows = [
@@ -11,21 +15,19 @@ export function KundliOverview({ result }: { result: KundliResult }) {
   ];
 
   return (
-    <section className="rounded-lg border border-border bg-surface p-6">
+    <section className="astro-card relative overflow-hidden p-5 sm:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="caption uppercase text-premium">Free Janam Kundli</p>
-          <h1 className="mt-3 heading-xl">{result.person.name}</h1>
+          <p className="caption uppercase tracking-[0.1em] text-premium">Free Janam Kundli</p>
+          <h1 className="mt-3 text-display-lg">{result.person.name}</h1>
           <p className="mt-3 body text-foreground-secondary">Generated from normalized birth details and calculation metadata.</p>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 caption text-foreground-muted">
-          <LockKeyhole size={14} /> Private result
-        </div>
+        <Badge className="gap-2 self-start"><LockKeyhole aria-hidden="true" size={14} /> Private result</Badge>
       </div>
       <dl className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {rows.map(([label, value]) => (
-          <div className="rounded-md border border-border bg-background p-4" key={label}>
-            <dt className="caption text-foreground-muted">{label}</dt>
+          <div className="astro-inner-card p-4" key={label}>
+            <dt className="caption uppercase tracking-[0.08em] text-foreground-muted">{label}</dt>
             <dd className="mt-1 body-sm font-semibold text-foreground">{value}</dd>
           </div>
         ))}
@@ -63,102 +65,70 @@ export function CoreAstrologySummary({ result }: { result: KundliResult }) {
 
   return (
     <section className="grid gap-4 md:grid-cols-4">
-      {summaries.map(([label, value]) => (
-        <div className="rounded-lg border border-border bg-surface p-5" key={label}>
-          <p className="caption uppercase text-foreground-muted">{label}</p>
-          <p className="mt-3 heading-md text-premium">{value}</p>
-        </div>
-      ))}
+      {summaries.map(([label, value]) => <AstrologyStatCard key={label} label={label} value={value} />)}
     </section>
   );
 }
 
 export function PlanetaryPositionsTable({ result }: { result: KundliResult }) {
+  type Planet = KundliResult["planets"][number];
+  const columns: AstrologyTableColumn<Planet>[] = [
+    { id: "planet", label: "Planet", rowHeader: true, cell: (planet) => <span className="font-semibold text-foreground">{planet.planet}</span> },
+    { id: "sign", label: "Sign", cell: (planet) => planet.sign },
+    { id: "house", label: "House", cell: (planet) => planet.house },
+    { id: "degree", label: "Degree", cell: (planet) => `${planet.degreeInSign}°` },
+    { id: "nakshatra", label: "Nakshatra", cell: (planet) => `${planet.nakshatra}, Pada ${planet.nakshatraPada}` },
+    { id: "status", label: "Status", cell: (planet) => <span className={planet.retrograde ? "text-premium" : "text-foreground-secondary"}>{planet.retrograde ? "Retrograde" : "Direct"}</span> },
+  ];
+
   return (
-    <section className="rounded-lg border border-border bg-surface p-6">
-      <h2 className="heading-lg">Planetary Positions</h2>
-      <div className="mt-5 grid gap-3 md:hidden">
-        {result.planets.map((planet) => (
-          <article className="rounded-md border border-border bg-background p-4" key={planet.planet}>
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="font-semibold">{planet.planet}</h3>
-              <span className="caption text-premium">{planet.retrograde ? "Retrograde" : "Direct"}</span>
-            </div>
-            <p className="mt-2 body-sm text-foreground-secondary">
-              {planet.sign}, House {planet.house}, {planet.degreeInSign}°
-            </p>
-            <p className="mt-1 body-sm text-foreground-muted">
-              {planet.nakshatra}, Pada {planet.nakshatraPada}
-            </p>
-          </article>
-        ))}
-      </div>
-      <div className="mt-5 hidden overflow-hidden rounded-md border border-border md:block">
-        <table className="w-full border-collapse text-left body-sm">
-          <thead className="bg-background text-foreground-muted">
-            <tr>
-              {["Planet", "Sign", "House", "Degree", "Nakshatra", "Status"].map((heading) => (
-                <th className="px-4 py-3 font-semibold" key={heading} scope="col">
-                  {heading}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {result.planets.map((planet) => (
-              <tr key={planet.planet}>
-                <td className="px-4 py-3 font-semibold">{planet.planet}</td>
-                <td className="px-4 py-3">{planet.sign}</td>
-                <td className="px-4 py-3">{planet.house}</td>
-                <td className="px-4 py-3">{planet.degreeInSign}°</td>
-                <td className="px-4 py-3">{planet.nakshatra}</td>
-                <td className="px-4 py-3">{planet.retrograde ? "Retrograde" : "Direct"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <AstrologySection className="self-start" title="Planetary Positions">
+      <AstrologyDataTable columns={columns} rowKey={(planet) => planet.planet} rows={result.planets} />
+    </AstrologySection>
   );
 }
 
 export function DashaSummary({ result }: { result: KundliResult }) {
   return (
-    <section className="rounded-lg border border-border bg-surface p-6">
-      <h2 className="heading-lg">Vimshottari Dasha</h2>
+    <AstrologySection title="Vimshottari Dasha">
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <SummaryBox label="Mahadasha" value={result.vimshottariDasha.currentMahadasha} />
-        <SummaryBox label="Antardasha" value={result.vimshottariDasha.currentAntardasha} />
-        <SummaryBox label="Balance" value={result.vimshottariDasha.balance} />
+        <AstrologyStatCard label="Mahadasha" value={result.vimshottariDasha.currentMahadasha} />
+        <AstrologyStatCard label="Antardasha" value={result.vimshottariDasha.currentAntardasha} />
+        <AstrologyStatCard label="Balance" value={result.vimshottariDasha.balance} />
       </div>
-    </section>
+    </AstrologySection>
   );
 }
 
 export function ManglikSummary({ result }: { result: KundliResult }) {
   return (
-    <section className="rounded-lg border border-border bg-surface p-6">
-      <h2 className="heading-lg">Manglik Status</h2>
-      <p className="mt-4 heading-md text-premium">{result.manglik.status}</p>
-      <p className="mt-2 body text-foreground-secondary">{result.manglik.summary}</p>
-    </section>
+    <AstrologyStatusCard status={result.manglik.status} title="Manglik Status">{result.manglik.summary}</AstrologyStatusCard>
   );
 }
 
 export function InsightPreview() {
-  const ctas = ["Get Your Complete Life Report", "Explore Career Insights", "Check Kundli Compatibility", "Discover Recommended Gemstones"];
+  const ctas = [
+    { label: "Get Your Complete Life Report", href: "/reports" },
+    { label: "Explore Career Insights", href: "/reports" },
+    { label: "Check Kundli Compatibility", href: "/kundli-matching" },
+    { label: "Discover Recommended Gemstones", href: "/shop" },
+  ];
   return (
-    <section className="rounded-lg border border-border bg-surface p-6">
-      <h2 className="heading-lg">Continue with deeper guidance</h2>
+    <AstrologySection title="Continue with deeper guidance">
       <p className="mt-3 body text-foreground-secondary">These next steps are prepared for future paid reports and commerce flows. They do not generate reports yet.</p>
       <div className="mt-6 grid gap-3 md:grid-cols-2">
-        {ctas.map((label) => (
-          <Button className="justify-between" href="/reports" key={label} variant="secondary">
-            {label} <ArrowRight size={16} />
-          </Button>
+        {ctas.map((cta) => (
+          <a
+            className="astro-inner-card group flex min-h-16 items-center justify-between gap-4 p-4 transition hover:border-primary/70 hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+            href={cta.href}
+            key={cta.label}
+          >
+            <span className="body-sm font-semibold text-foreground">{cta.label}</span>
+            <ArrowRight aria-hidden="true" className="shrink-0 text-premium transition-transform group-hover:translate-x-0.5" size={17} />
+          </a>
         ))}
       </div>
-    </section>
+    </AstrologySection>
   );
 }
 
@@ -173,25 +143,15 @@ export function CalculationMetadata({ result }: { result: KundliResult }) {
   ];
 
   return (
-    <section className="rounded-lg border border-border bg-surface p-6">
-      <h2 className="heading-md">Calculation Metadata</h2>
+    <AstrologySection headingLevel="h2" title="Calculation Metadata">
       <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {rows.map(([label, value]) => (
-          <div key={label}>
-            <dt className="caption text-foreground-muted">{label}</dt>
+          <div className="astro-inner-card p-4" key={label}>
+            <dt className="caption uppercase tracking-[0.08em] text-foreground-muted">{label}</dt>
             <dd className="mt-1 body-sm text-foreground">{value}</dd>
           </div>
         ))}
       </dl>
-    </section>
-  );
-}
-
-function SummaryBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-border bg-background p-4">
-      <p className="caption text-foreground-muted">{label}</p>
-      <p className="mt-2 font-semibold text-foreground">{value}</p>
-    </div>
+    </AstrologySection>
   );
 }

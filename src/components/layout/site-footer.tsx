@@ -28,7 +28,7 @@ export async function SiteFooter() {
   const contactPhone = settings["site.contactPhone"];
 
   return (
-    <footer className="border-t border-border bg-background-subtle/60">
+    <footer className="border-t border-border bg-transparent">
       <PageContainer className="grid gap-10 py-14 lg:grid-cols-[1.2fr_2fr]">
         <div>
           <div className="flex items-center gap-3">

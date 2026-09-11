@@ -4,6 +4,7 @@ import { staticSecurityHeaders } from "./src/lib/security/headers";
 const isProduction = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: isProduction ? [] : ["*.trycloudflare.com"],
   images: {
     remotePatterns: [
       {

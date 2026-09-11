@@ -44,11 +44,11 @@ function toFailure(error: unknown, fallback: string): { ok: false; message: stri
 type CacheEntry<T> = { value: T; expiresAt: number };
 
 const globalForTools = globalThis as typeof globalThis & {
-  ravishToolCache?: Map<string, CacheEntry<unknown>>;
+  TarunToolCache?: Map<string, CacheEntry<unknown>>;
 };
 
 const cache: Map<string, CacheEntry<unknown>> =
-  globalForTools.ravishToolCache ?? (globalForTools.ravishToolCache = new Map());
+  globalForTools.TarunToolCache ?? (globalForTools.TarunToolCache = new Map());
 
 async function cached<T>(key: string, ttlMs: number, load: () => Promise<T>): Promise<T> {
   const hit = cache.get(key);
