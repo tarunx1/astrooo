@@ -828,21 +828,46 @@ model Enrollment {
 }
 
 model ArticleCategory {
-  id        String    @id @default(cuid())
-  name      String
-  slug      String    @unique
-  articles  Article[]
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  articles    Article[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+/// An editorial article.
+///
+/// `status` and `publishedAt` are both required to be public: a row can be
+/// PUBLISHED with a future `publishedAt` and stay unlisted until that moment,
+/// which is what makes scheduling possible without a second mechanism. Every
+/// public query asserts both, so a draft is invisible by construction.
 model Article {
   id                String           @id @default(cuid())
   title             String
   slug              String           @unique
   excerpt           String?
   content           String
+  status            ArticleStatus    @default(DRAFT)
   publishedAt       DateTime?
+  coverImageUrl     String?
+  /// Free-form editorial tags, used for related reading rather than navigation.
+  tags              String[]
+  /// Display name of the writer. A plain string, because an author is not
+  /// necessarily an account on this platform.
+  authorName        String?
+  /// Overrides for the page title and meta description when the editorial
+  /// headline is not the right thing for search results.
+  seoTitle          String?
+  seoDescription    String?
   categoryId        String?
   articleCategoryId String?
   category          Category?        @relation(fields: [categoryId], references: [id])
@@ -850,6 +875,7 @@ model Article {
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
+  @@index([status, publishedAt])
   @@index([publishedAt])
   @@index([categoryId])
   @@index([articleCategoryId])

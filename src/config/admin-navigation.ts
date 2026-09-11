@@ -1,6 +1,7 @@
 import {
   Activity,
   BadgeIndianRupee,
+  BookOpen,
   Boxes,
   CalendarClock,
   ClipboardList,
@@ -78,6 +79,7 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavGroup[] = [
       { label: "Report catalogue", href: "/admin/reports", icon: ScrollText, permissions: ["reports.view", "reports.manage"] },
       { label: "Report orders", href: "/admin/report-orders", icon: FileText, permissions: ["reports.view"] },
       { label: "Generated reports", href: "/admin/generated-reports", icon: FileText, permissions: ["reports.view"] },
+      { label: "Articles", href: "/admin/articles", icon: BookOpen, permissions: ["reports.manage"] },
     ],
   },
   {

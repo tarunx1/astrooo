@@ -94,12 +94,10 @@ export const navigation = [
   {
     label: "Learn",
     href: "/articles",
-    planned: true,
     icon: BookOpen,
     items: [
+      { label: "Articles", href: "/articles", description: "Practical Vedic astrology guides" },
       { label: "Courses", href: "/courses", description: "Guided astrology learning", planned: true },
-      { label: "Articles", href: "/articles", description: "Practical Vedic astrology guides", planned: true },
-      { label: "Astrology Guides", href: "/category/guides", description: "Structured beginner resources", planned: true },
     ],
   },
   {

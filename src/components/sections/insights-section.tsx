@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, Mail } from "lucide-react";
 import { Section, SectionHeader } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,13 @@ export function InsightsSection() {
       <div className="grid gap-5 lg:grid-cols-[1fr_0.85fr]">
         <div className="divide-y divide-border border border-border bg-surface">
           {articles.map((article) => (
-            <a className="group flex items-center justify-between gap-6 p-6 transition hover:bg-surface-hover" href="/articles" key={article.title}>
+            <Link className="group flex items-center justify-between gap-6 p-6 transition hover:bg-surface-hover" href="/articles" key={article.title}>
               <span>
                 <span className="caption uppercase text-premium">{article.category}</span>
                 <span className="mt-2 block heading-md">{article.title}</span>
               </span>
               <ArrowRight className="shrink-0 text-foreground-muted transition group-hover:text-premium" size={18} />
-            </a>
+            </Link>
           ))}
         </div>
         <div className="border border-border bg-surface p-7">
