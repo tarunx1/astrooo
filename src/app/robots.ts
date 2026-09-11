@@ -19,6 +19,11 @@ export default function robots(): MetadataRoute.Robots {
         "/sign-in",
         "/post-login",
         "/kundli/result",
+        // A live consultation room. Its own metadata is noindex; this is the
+        // second, independent statement - and it sits under /consultations,
+        // which is otherwise indexable, so the path needs saying explicitly.
+        "/consultations/session",
+        "/search",
         "/api/pandit-documents",
       ],
     },
