@@ -57,7 +57,13 @@ beforeAll(async () => {
 
   customer = await createUser("customer");
   otherCustomer = await createUser("other");
-  operator = await createUser("operator", UserRole.SUPER_ADMIN);
+  // Deliberately not SUPER_ADMIN. These service-level tests pass an actor *id*;
+  // the services never read the actor's role, because role and permission
+  // authorization lives in the Server Actions above them. Creating a real super
+  // admin here would inflate the global count that
+  // `tests/admin-operations.test.ts` asserts on - it checks that the system
+  // cannot be raced into having zero super admins - and files run in parallel.
+  operator = await createUser("operator");
   panditUser = await createUser("pandit", UserRole.PANDIT);
 
   const profile = await prisma.panditProfile.create({

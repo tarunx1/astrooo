@@ -117,7 +117,13 @@ beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL must be set for marketplace tests.");
 
   reviewer = await createUser("reviewer", UserRole.EMPLOYEE);
-  approver = await createUser("approver", UserRole.SUPER_ADMIN);
+  // Deliberately not SUPER_ADMIN. These service-level tests pass an actor *id*;
+  // the services never read the actor's role, because role and permission
+  // authorization lives in the Server Actions above them. Creating a real super
+  // admin here would inflate the global count that
+  // `tests/admin-operations.test.ts` asserts on - it checks that the system
+  // cannot be raced into having zero super admins - and files run in parallel.
+  approver = await createUser("approver");
   customer = await createUser("customer");
   otherCustomer = await createUser("othercustomer");
 

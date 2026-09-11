@@ -111,7 +111,13 @@ beforeAll(async () => {
   }
 
   reviewer = await createUser("reviewer", UserRole.EMPLOYEE);
-  approver = await createUser("approver", UserRole.SUPER_ADMIN);
+  // Deliberately not SUPER_ADMIN. These service-level tests pass an actor *id*;
+  // the services never read the actor's role, because role and permission
+  // authorization lives in the Server Actions above them. Creating a real super
+  // admin here would inflate the global count that
+  // `tests/admin-operations.test.ts` asserts on - it checks that the system
+  // cannot be raced into having zero super admins - and files run in parallel.
+  approver = await createUser("approver");
   customer = await createUser("customer");
   otherCustomer = await createUser("othercustomer");
 
@@ -872,6 +878,77 @@ describe("tickets are scoped to their reporter", () => {
     });
 
     expect(messages.every((message) => message.internal === false)).toBe(true);
+  });
+});
+
+describe("public handle minting", () => {
+  it("survives two identically-named practitioners going live at once", async () => {
+    // The handle is derived from the display name, and minting reads then
+    // writes. Two practitioners called the same thing activating simultaneously
+    // both see the handle free; the unique index decides, and the loser has to
+    // recover rather than surfacing a 500 on a legitimate action.
+    const [first, second] = await Promise.all([
+      createUser("samename1"),
+      createUser("samename2"),
+    ]);
+
+    const profiles = await Promise.all([
+      startPanditApplication(first.id),
+      startPanditApplication(second.id),
+    ]);
+
+    const identical = "Pandit Identical Name";
+
+    await prisma.panditProfile.updateMany({
+      where: { id: { in: profiles.map((profile) => profile.id) } },
+      data: { displayName: identical },
+    });
+
+    // Drive both to the point of activation.
+    for (const profile of profiles) {
+      const path: Array<[PanditOnboardingStatus, string, "pandit" | "reviewer" | "approver"]> = [
+        [PanditOnboardingStatus.PROFILE_STARTED, profile.userId, "pandit"],
+        [PanditOnboardingStatus.DOCUMENTS_PENDING, profile.userId, "pandit"],
+        [PanditOnboardingStatus.SUBMITTED, profile.userId, "pandit"],
+        [PanditOnboardingStatus.UNDER_REVIEW, reviewer.id, "reviewer"],
+        [PanditOnboardingStatus.VERIFIED, reviewer.id, "reviewer"],
+        [PanditOnboardingStatus.APPROVED, approver.id, "approver"],
+        [PanditOnboardingStatus.PROFILE_COMPLETION_REQUIRED, profile.userId, "pandit"],
+      ];
+
+      for (const [to, actorUserId, actorKind] of path) {
+        const result = await applyTransition({
+          panditProfileId: profile.id,
+          to,
+          actorUserId,
+          actorKind,
+        });
+        if (!result.ok) throw new Error(`setup failed at ${to}: ${result.message}`);
+      }
+    }
+
+    const activations = await Promise.all(
+      profiles.map((profile) =>
+        applyTransition({
+          panditProfileId: profile.id,
+          to: PanditOnboardingStatus.ACTIVE,
+          actorUserId: profile.userId,
+          actorKind: "pandit",
+        }),
+      ),
+    );
+
+    // Both succeed. Neither throws, and neither is refused.
+    expect(activations.every((result) => result.ok)).toBe(true);
+
+    const slugs = await prisma.panditProfile.findMany({
+      where: { id: { in: profiles.map((profile) => profile.id) } },
+      select: { slug: true },
+    });
+
+    expect(slugs.every((row) => row.slug !== null)).toBe(true);
+    // Distinct handles, which is what the unique index guarantees.
+    expect(new Set(slugs.map((row) => row.slug)).size).toBe(2);
   });
 });
 

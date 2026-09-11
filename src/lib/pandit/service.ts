@@ -13,6 +13,7 @@ import {
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { recordAudit } from "@/lib/admin/audit";
+import { isUniqueConstraintViolation } from "@/lib/db/errors";
 import { getSettings } from "@/lib/settings/service";
 import { EXPERTISE_OPTIONS, LANGUAGE_OPTIONS, REQUIRED_DOCUMENT_TYPES } from "@/lib/pandit/catalog";
 import {
@@ -201,6 +202,38 @@ export type TransitionResult =
  * that was only legal from the state the first one left.
  */
 export async function applyTransition(input: TransitionInput): Promise<TransitionResult> {
+  /**
+   * Retried on a slug collision.
+   *
+   * `mintSlug` checks whether a handle is free and then writes it, and those
+   * are two statements. Two practitioners with the same display name going live
+   * at the same moment both see the handle free and one insert loses, aborting
+   * its transaction - which surfaced as an unhandled 500 on a legitimate action.
+   *
+   * The unique index is what makes the handle actually unique; this loop is how
+   * the loser recovers. The retry re-reads state from scratch, so it is safe:
+   * the transition is re-checked against whatever the winner left behind.
+   */
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await applyTransitionOnce(input, attempt);
+    } catch (error) {
+      // The constraint name, not a guessed metadata path: Prisma moves where it
+      // reports this between versions and drivers.
+      if (!isUniqueConstraintViolation(error, "PanditProfile_slug_key") || attempt >= 4) {
+        throw error;
+      }
+    }
+  }
+}
+
+/**
+ * One attempt at a transition.
+ *
+ * `attempt` is threaded through only so a retry mints a different candidate
+ * handle rather than deterministically losing the same race again.
+ */
+async function applyTransitionOnce(input: TransitionInput, attempt: number): Promise<TransitionResult> {
   return prisma.$transaction(async (tx) => {
     const profile = await tx.panditProfile.findUnique({
       where: { id: input.panditProfileId },
@@ -264,7 +297,7 @@ export async function applyTransition(input: TransitionInput): Promise<Transitio
         // that never reached ACTIVE has no addressable public page even to
         // someone guessing URLs.
         if (!profile.slug) {
-          data.slug = await mintSlug(tx, profile.displayName || "pandit", profile.id);
+          data.slug = await mintSlug(tx, profile.displayName || "pandit", profile.id, attempt);
         }
         break;
       case S.REJECTED:
@@ -316,7 +349,12 @@ export async function applyTransition(input: TransitionInput): Promise<Transitio
 }
 
 /** A unique, URL-safe public handle derived from the display name. */
-async function mintSlug(tx: Prisma.TransactionClient, displayName: string, profileId: string): Promise<string> {
+async function mintSlug(
+  tx: Prisma.TransactionClient,
+  displayName: string,
+  profileId: string,
+  retryAttempt = 0,
+): Promise<string> {
   const base =
     displayName
       .toLowerCase()
@@ -325,13 +363,18 @@ async function mintSlug(tx: Prisma.TransactionClient, displayName: string, profi
       .replace(/^-+|-+$/g, "")
       .slice(0, 48) || "pandit";
 
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    const candidate = attempt === 0 ? base : `${base}-${attempt + 1}`;
-    const taken = await tx.panditProfile.findUnique({ where: { slug: candidate }, select: { id: true } });
-    if (!taken) return candidate;
+  // A retry means somebody just took the handle this would otherwise pick, so
+  // skip straight past the plain form rather than losing the same race twice.
+  if (retryAttempt === 0) {
+    for (let suffix = 0; suffix < 20; suffix += 1) {
+      const candidate = suffix === 0 ? base : `${base}-${suffix + 1}`;
+      const taken = await tx.panditProfile.findUnique({ where: { slug: candidate }, select: { id: true } });
+      if (!taken) return candidate;
+    }
   }
 
-  // Falls back to something guaranteed unique rather than looping forever.
+  // Derived from the profile id, so it is unique by construction rather than by
+  // a check that could race again.
   return `${base}-${profileId.slice(-6)}`;
 }
 
