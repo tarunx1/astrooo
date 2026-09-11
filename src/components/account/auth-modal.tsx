@@ -9,8 +9,44 @@ import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
 import { SmoothInput } from "@/components/ui/smooth-input";
 
+export type AuthMode = "customer" | "pandit" | "team";
+
+/**
+ * The three entrances.
+ *
+ * A deliberate note on what this is and is not: choosing an entrance decides
+ * where sign-in lands you and, for a Pandit sign-up, whether an application is
+ * opened. It never decides what you may do. The role is read from the database
+ * on the server after authentication, and every area authorizes independently -
+ * so someone picking "Team" who is not staff simply arrives at their own
+ * account. A role has never been assignable from a browser and this does not
+ * change that.
+ */
+const MODE_COPY: Record<AuthMode, { label: string; signupTitle: string; signinTitle: string; note?: string }> = {
+  customer: {
+    label: "Customer",
+    signupTitle: "Create an account",
+    signinTitle: "Welcome back",
+  },
+  pandit: {
+    label: "Pandit",
+    signupTitle: "Apply as a Pandit",
+    signinTitle: "Pandit sign in",
+    note: "Creating an account here opens a Pandit application. You will be able to take consultations once it has been reviewed and approved.",
+  },
+  team: {
+    label: "Team",
+    signupTitle: "Team sign in",
+    signinTitle: "Team sign in",
+    note: "Staff accounts are created by an administrator. Sign in with the account you already have.",
+  },
+};
+
 type AuthCardProps = {
   defaultTab?: "signup" | "signin";
+  defaultMode?: AuthMode;
+  /** Hides the entrance switcher, for pages that are already about one of them. */
+  lockMode?: boolean;
   returnTo?: string;
   onClose?: () => void;
   showCloseButton?: boolean;
@@ -26,6 +62,8 @@ type AuthCardProps = {
 
 export function GlassAuthCard({
   defaultTab = "signup",
+  defaultMode = "customer",
+  lockMode = false,
   returnTo = "/",
   onClose,
   showCloseButton = false,
@@ -34,14 +72,35 @@ export function GlassAuthCard({
   const Heading = headingLevel;
   const router = useRouter();
   const [tab, setTab] = useState<"signup" | "signin">(defaultTab);
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
+
+  // Staff accounts are never self-created, so the Team entrance has no sign-up
+  // half. Switching to it while on the sign-up tab moves to sign-in rather than
+  // showing a form that would only ever be refused.
+  const copy = MODE_COPY[mode];
+  const canSignUp = mode !== "team";
+  const activeTab = canSignUp ? tab : "signin";
+
+  // The chosen entrance travels with the redirect so the server can send a new
+  // Pandit to the application page rather than to a dashboard they cannot yet
+  // reach. It is a hint about intent; the server still re-reads the real role.
+  const destination = (() => {
+    try {
+      const url = new URL(returnTo, "https://tarun-astro.internal");
+      url.searchParams.set("mode", mode);
+      return `${url.pathname}${url.search}`;
+    } catch {
+      return returnTo;
+    }
+  })();
 
   async function handleGoogleSignIn() {
     setError(null);
     setPending("google");
     try {
-      const result = await authClient.signIn.social({ provider: "google", callbackURL: returnTo });
+      const result = await authClient.signIn.social({ provider: "google", callbackURL: destination });
       if (result?.error) {
         setError("Google sign-in could not be completed.");
         setPending(null);
@@ -65,7 +124,7 @@ export function GlassAuthCard({
     const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
     try {
-      if (tab === "signup") {
+      if (activeTab === "signup") {
         const result = await authClient.signUp.email({
           email,
           password,
@@ -91,7 +150,7 @@ export function GlassAuthCard({
       }
 
       onClose?.();
-      router.replace(returnTo);
+      router.replace(destination);
       router.refresh();
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -117,34 +176,68 @@ export function GlassAuthCard({
         </button>
       ) : null}
 
+      {/* Entrance switcher. Decides where you land and, for a Pandit sign-up,
+          whether an application is opened - never what you may do. */}
+      {!lockMode ? (
+        <div aria-label="Account type" className="mb-4 grid grid-cols-3 gap-1 rounded-full border border-white/10 bg-[#0b0e17] p-1" role="tablist">
+          {(Object.keys(MODE_COPY) as AuthMode[]).map((option) => (
+            <button
+              aria-selected={mode === option}
+              className={cn(
+                "rounded-full px-3 py-2 text-xs font-semibold transition duration-200",
+                mode === option ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white",
+              )}
+              key={option}
+              onClick={() => {
+                setMode(option);
+                setError(null);
+                if (option === "team") setTab("signin");
+              }}
+              role="tab"
+              type="button"
+            >
+              {MODE_COPY[option].label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {/* Tab Switcher Pill */}
-      <div className="inline-flex rounded-full border border-white/10 bg-[#0b0e17] p-1">
-        <button
-          className={cn(
-            "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
-            tab === "signup" ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white"
-          )}
-          onClick={() => setTab("signup")}
-          type="button"
-        >
-          Sign up
-        </button>
-        <button
-          className={cn(
-            "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
-            tab === "signin" ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white"
-          )}
-          onClick={() => setTab("signin")}
-          type="button"
-        >
-          Sign in
-        </button>
-      </div>
+      {canSignUp ? (
+        <div className="inline-flex rounded-full border border-white/10 bg-[#0b0e17] p-1">
+          <button
+            className={cn(
+              "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
+              activeTab === "signup" ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white"
+            )}
+            onClick={() => setTab("signup")}
+            type="button"
+          >
+            {mode === "pandit" ? "Apply" : "Sign up"}
+          </button>
+          <button
+            className={cn(
+              "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
+              activeTab === "signin" ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white"
+            )}
+            onClick={() => setTab("signin")}
+            type="button"
+          >
+            Sign in
+          </button>
+        </div>
+      ) : null}
 
       {/* Title Header */}
       <Heading className="mt-6 text-2xl font-bold tracking-tight text-white">
-        {tab === "signup" ? "Create an account" : "Welcome back"}
+        {activeTab === "signup" ? copy.signupTitle : copy.signinTitle}
       </Heading>
+
+      {copy.note ? (
+        <p className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-foreground-secondary">
+          {copy.note}
+        </p>
+      ) : null}
 
       {/* Error Notification */}
       {error ? (
@@ -155,7 +248,7 @@ export function GlassAuthCard({
 
       {/* Auth Form */}
       <form className="mt-6 grid gap-3.5" onSubmit={handleSubmit}>
-        {tab === "signup" ? (
+        {activeTab === "signup" ? (
           <div className="grid grid-cols-2 gap-3">
             <SmoothInput
               aria-label="First name"
@@ -196,10 +289,10 @@ export function GlassAuthCard({
           <Lock aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-foreground-muted" size={17} />
           <SmoothInput
             aria-label="Password"
-            autoComplete={tab === "signup" ? "new-password" : "current-password"}
+            autoComplete={activeTab === "signup" ? "new-password" : "current-password"}
             className="form-control pl-11"
             name="password"
-            placeholder={tab === "signup" ? "Create a password" : "Enter your password"}
+            placeholder={activeTab === "signup" ? "Create a password" : "Enter your password"}
             required
             type="password"
           />
@@ -213,9 +306,9 @@ export function GlassAuthCard({
         >
           {pending === "form"
             ? "Processing..."
-            : tab === "signup"
-            ? "Create an account"
-            : "Sign in"}
+            : activeTab === "signup"
+              ? copy.signupTitle
+              : "Sign in"}
         </button>
       </form>
 

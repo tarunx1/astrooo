@@ -10,13 +10,13 @@ import { buildPostLoginHref } from "@/lib/auth/return-url";
  * Operator sign-in.
  *
  * Deliberately not a second authentication system: this is the same Better Auth
- * card the public sign-in page uses, with the destination set to the admin
- * area. There is no separate admin credential store, no parallel session and no
- * second role check - the role is read from the database on the session's user
- * id after sign-in, exactly as everywhere else.
+ * card the public sign-in page uses, with the entrance locked to Team. There is
+ * no separate admin credential store, no parallel session and no second role
+ * check - the role is read from the database on the session's user id after
+ * sign-in, exactly as everywhere else.
  *
  * It lives in a route group so it is *not* inside the `/admin` layout. That
- * layout requires an admin, so an operator who is not signed in yet would be
+ * layout requires an operator, so someone who is not signed in yet would be
  * refused before they could reach the form.
  */
 export const metadata: Metadata = {
@@ -39,7 +39,7 @@ export default async function AdminLoginPage() {
           </p>
         </div>
 
-        <GlassAuthCard defaultTab="signin" returnTo={buildPostLoginHref("/admin")} />
+        <GlassAuthCard defaultMode="team" defaultTab="signin" lockMode returnTo={buildPostLoginHref("/admin")} />
       </PageContainer>
     </Section>
   );

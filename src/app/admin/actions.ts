@@ -27,6 +27,11 @@ import type { AdminActionState } from "@/lib/admin/action-state";
  * role, a user id or a current-state value submitted by the browser: the
  * authoritative record is always reloaded before a write.
  *
+ * Each call names the permission the action needs, so authorization is by
+ * capability rather than by "is this person an admin" - an employee given
+ * `orders.manage` and nothing else can advance a shipment and is refused
+ * everywhere else, by the guard rather than by the navigation.
+ *
  * Notably absent: any action that could create or alter a payment fact. There is
  * no "mark as paid", no amount edit and no way to touch providerPaymentId,
  * captured amount or paidAt.
@@ -106,7 +111,7 @@ function readProductForm(formData: FormData) {
 }
 
 export async function createProductAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("products.manage");
   if (!auth.ok) return denied(auth.error);
 
   const parsed = readProductForm(formData);
@@ -121,7 +126,7 @@ export async function createProductAction(_state: AdminActionState, formData: Fo
 }
 
 export async function updateProductAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("products.manage");
   if (!auth.ok) return denied(auth.error);
 
   const productId = idSchema.safeParse(formData.get("productId"));
@@ -140,7 +145,7 @@ export async function updateProductAction(_state: AdminActionState, formData: Fo
 }
 
 export async function setProductActiveAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("products.manage");
   if (!auth.ok) return denied(auth.error);
 
   const productId = idSchema.safeParse(formData.get("productId"));
@@ -156,7 +161,7 @@ export async function setProductActiveAction(_state: AdminActionState, formData:
 }
 
 export async function upsertVariantAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("products.manage");
   if (!auth.ok) return denied(auth.error);
 
   const productId = idSchema.safeParse(formData.get("productId"));
@@ -185,7 +190,7 @@ export async function upsertVariantAction(_state: AdminActionState, formData: Fo
 /* ------------------------------------------------------------------ */
 
 export async function adjustInventoryAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("inventory.manage");
   if (!auth.ok) return denied(auth.error);
 
   const parsed = z
@@ -235,7 +240,7 @@ export async function adjustInventoryAction(_state: AdminActionState, formData: 
 /* ------------------------------------------------------------------ */
 
 export async function transitionOrderAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("orders.manage");
   if (!auth.ok) return denied(auth.error);
 
   const parsed = z
@@ -260,7 +265,7 @@ export async function transitionOrderAction(_state: AdminActionState, formData: 
 }
 
 export async function updateShipmentAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("orders.manage");
   if (!auth.ok) return denied(auth.error);
 
   const orderId = idSchema.safeParse(formData.get("orderId"));
@@ -289,7 +294,7 @@ export async function updateReportDefinitionAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("reports.manage");
   if (!auth.ok) return denied(auth.error);
 
   const definitionId = idSchema.safeParse(formData.get("definitionId"));
@@ -322,7 +327,7 @@ export async function updateReportDefinitionAction(
 }
 
 export async function retryReportAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("reports.manage");
   if (!auth.ok) return denied(auth.error);
 
   const generatedReportId = idSchema.safeParse(formData.get("generatedReportId"));
@@ -366,7 +371,7 @@ function readCouponForm(formData: FormData) {
 }
 
 export async function createCouponAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("coupons.manage");
   if (!auth.ok) return denied(auth.error);
 
   const parsed = readCouponForm(formData);
@@ -380,7 +385,7 @@ export async function createCouponAction(_state: AdminActionState, formData: For
 }
 
 export async function updateCouponAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("coupons.manage");
   if (!auth.ok) return denied(auth.error);
 
   const couponId = idSchema.safeParse(formData.get("couponId"));
@@ -402,7 +407,7 @@ export async function updateCouponAction(_state: AdminActionState, formData: For
 /* ------------------------------------------------------------------ */
 
 export async function changeUserRoleAction(_state: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const auth = await authorizeAdminAction();
+  const auth = await authorizeAdminAction("users.manage");
   if (!auth.ok) return denied(auth.error);
 
   const parsed = z

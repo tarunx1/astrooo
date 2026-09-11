@@ -6,16 +6,28 @@ datasource db {
   provider = "postgresql"
 }
 
+/// Platform roles.
+///
+/// CUSTOMER, EMPLOYEE, PANDIT, ADMIN and SUPER_ADMIN are live. ASTROLOGER and
+/// EDITOR are retained from the original scaffold so no existing row becomes
+/// unreadable; nothing grants them and no code path assigns them.
+///
+/// A role is only ever a *default bundle* of permissions. Authorization is
+/// decided by permission, never by comparing a role name - see
+/// `lib/auth/permissions.ts`.
 enum UserRole {
   CUSTOMER
   ASTROLOGER
   EDITOR
   ADMIN
   SUPER_ADMIN
+  EMPLOYEE
+  PANDIT
 }
 
 enum ProductType {
   PHYSICAL
+  GEMSTONE
   DIGITAL_REPORT
   CONSULTATION
   PUJA
@@ -108,6 +120,25 @@ model User {
   savedKundlis      SavedKundli[]
   auditLogs         AuditLog[]
   inventoryAdjustments InventoryAdjustment[]
+
+  permissions        UserPermission[] @relation("UserPermissionHolder")
+  permissionsGranted UserPermission[] @relation("UserPermissionGrantor")
+  employeeProfile    EmployeeProfile? @relation("EmployeeProfileUser")
+  employeesCreated   EmployeeProfile[] @relation("EmployeeProfileCreator")
+  panditProfile      PanditProfile?   @relation("PanditProfileUser")
+  panditsVerified    PanditProfile[]  @relation("PanditVerifier")
+  panditsApproved    PanditProfile[]  @relation("PanditApprover")
+  panditsRejected    PanditProfile[]  @relation("PanditRejecter")
+  panditsSuspended   PanditProfile[]  @relation("PanditSuspender")
+  panditDocumentsReviewed PanditDocument[] @relation("PanditDocumentReviewer")
+  panditReviews      PanditReview[]   @relation("PanditReviewer")
+  chatMessages       ChatMessage[]
+  kundliAccessGrants PanditKundliAccess[] @relation("KundliAccessGrantor")
+  payoutsProcessed   Payout[]         @relation("PayoutProcessor")
+  ticketsReported    Ticket[]         @relation("TicketReporter")
+  ticketsAssigned    Ticket[]         @relation("TicketAssignee")
+  ticketMessages     TicketMessage[]  @relation("TicketAuthor")
+
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -203,6 +234,7 @@ model BirthProfile {
   savedKundlis  SavedKundli[]
   reportOrders  ReportOrder[]
   consultations Consultation[]
+  panditAccess  PanditKundliAccess[]
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
 
@@ -352,6 +384,7 @@ model Order {
   reportOrders    ReportOrder[]
   pujaBookings    PujaBooking[]
   enrollments     Enrollment[]
+  consultations   Consultation[]
   couponId        String?
   /// Snapshot so a renamed or deleted coupon never rewrites order history.
   couponCodeSnapshot String?
@@ -551,52 +584,74 @@ model GeneratedReport {
   @@index([astrologyCalculationId])
 }
 
-model Astrologer {
-  id            String             @id @default(cuid())
-  name          String
-  slug          String             @unique
-  bio           String?
-  specialties   String[]
-  languages     String[]
-  active        Boolean            @default(false)
-  slots         ConsultationSlot[]
-  consultations Consultation[]
-  reviews       Review[]
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-}
-
+/// A reserved point in a Pandit's calendar.
+///
+/// A row exists only while a slot is actually held. That makes the composite
+/// unique below the double-booking guarantee itself rather than a hint: two
+/// concurrent bookings for the same start resolve to one winner in the
+/// database, not in application code that raced. Cancelling deletes the row and
+/// frees the slot, while the Consultation keeps its own scheduled times as an
+/// immutable record of what was booked.
 model ConsultationSlot {
-  id           String         @id @default(cuid())
-  astrologerId String
-  startsAt     DateTime
-  endsAt       DateTime
-  isBooked     Boolean        @default(false)
-  astrologer   Astrologer     @relation(fields: [astrologerId], references: [id], onDelete: Cascade)
-  consultation Consultation?
+  id              String        @id @default(cuid())
+  panditProfileId String
+  startsAt        DateTime
+  endsAt          DateTime
+  pandit          PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  consultation    Consultation?
 
-  @@index([astrologerId, startsAt])
+  @@unique([panditProfileId, startsAt])
+  @@index([panditProfileId, startsAt])
 }
 
+/// One booked consultation between a customer and a Pandit.
+///
+/// Rate and duration are snapshots taken at booking, exactly like OrderItem:
+/// a Pandit raising their rate afterwards must never rewrite what a customer
+/// agreed to pay or what the Pandit earned.
 model Consultation {
-  id             String             @id @default(cuid())
-  userId         String
-  astrologerId   String
-  slotId         String?            @unique
-  birthProfileId String?
-  status         ConsultationStatus @default(REQUESTED)
-  mode           String
-  notes          String?
-  user           User               @relation(fields: [userId], references: [id])
-  astrologer     Astrologer         @relation(fields: [astrologerId], references: [id])
-  slot           ConsultationSlot?  @relation(fields: [slotId], references: [id])
-  birthProfile   BirthProfile?      @relation(fields: [birthProfileId], references: [id])
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  id              String             @id @default(cuid())
+  userId          String
+  panditProfileId String
+  slotId          String?            @unique
+  birthProfileId  String?
+  orderId         String?
+  status          ConsultationStatus @default(REQUESTED)
+  mode            ConsultationMode
+  timezone        String             @default("Asia/Kolkata")
+  scheduledStart  DateTime
+  scheduledEnd    DateTime
+  durationMinutes Int
+
+  /// Purchase snapshots. Never recomputed from the Pandit's current rates.
+  rateType         RateType
+  ratePaise        Int
+  grossAmountPaise Int
+  currency         String            @default("INR")
+
+  notes               String?
+  startedAt           DateTime?
+  endedAt             DateTime?
+  completedAt         DateTime?
+  cancelledAt         DateTime?
+  cancelledById       String?
+  cancellationReason  String?
+
+  user          User                 @relation(fields: [userId], references: [id])
+  pandit        PanditProfile        @relation(fields: [panditProfileId], references: [id])
+  slot          ConsultationSlot?    @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  birthProfile  BirthProfile?        @relation(fields: [birthProfileId], references: [id], onDelete: SetNull)
+  order         Order?               @relation(fields: [orderId], references: [id])
+  messages      ChatMessage[]
+  kundliAccess  PanditKundliAccess[]
+  earning       EarningTransaction?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 
   @@index([userId])
-  @@index([astrologerId])
+  @@index([panditProfileId])
   @@index([status])
+  @@index([scheduledStart])
 }
 
 model Puja {
@@ -684,22 +739,22 @@ model Article {
 }
 
 model Review {
-  id           String      @id @default(cuid())
-  userId       String
-  productId    String?
-  astrologerId String?
-  rating       Int
-  title        String?
-  body         String?
-  published    Boolean     @default(false)
-  user         User        @relation(fields: [userId], references: [id])
-  product      Product?    @relation(fields: [productId], references: [id])
-  astrologer   Astrologer? @relation(fields: [astrologerId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id              String         @id @default(cuid())
+  userId          String
+  productId       String?
+  panditProfileId String?
+  rating          Int
+  title           String?
+  body            String?
+  published       Boolean        @default(false)
+  user            User           @relation(fields: [userId], references: [id])
+  product         Product?       @relation(fields: [productId], references: [id])
+  pandit          PanditProfile? @relation(fields: [panditProfileId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@index([productId])
-  @@index([astrologerId])
+  @@index([panditProfileId])
   @@index([published])
 }
 
@@ -778,6 +833,7 @@ model AstrologyCalculation {
   birthProfile   BirthProfile? @relation(fields: [birthProfileId], references: [id], onDelete: SetNull)
   savedKundlis   SavedKundli[]
   reportOrders   ReportOrder[]
+  panditAccess   PanditKundliAccess[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -893,6 +949,38 @@ enum AuditAction {
   FEATURE_SETTING_UPDATED
   SUPER_ADMIN_PROMOTED
   SUPER_ADMIN_DEMOTED
+  USER_PERMISSION_GRANTED
+  USER_PERMISSION_REVOKED
+  USER_PERMISSION_RESET
+  EMPLOYEE_CREATED
+  EMPLOYEE_UPDATED
+  EMPLOYEE_DEACTIVATED
+  EMPLOYEE_REACTIVATED
+  PANDIT_APPLICATION_SUBMITTED
+  PANDIT_REVIEW_STARTED
+  PANDIT_CHANGES_REQUESTED
+  PANDIT_VERIFIED
+  PANDIT_APPROVED
+  PANDIT_ACTIVATED
+  PANDIT_REJECTED
+  PANDIT_SUSPENDED
+  PANDIT_REINSTATED
+  PANDIT_DOCUMENT_REVIEWED
+  PANDIT_DOCUMENT_ACCESSED
+  PANDIT_COMMISSION_CHANGED
+  PANDIT_KUNDLI_ACCESS_GRANTED
+  PANDIT_KUNDLI_ACCESS_REVOKED
+  PANDIT_KUNDLI_ACCESSED
+  PAYOUT_CREATED
+  PAYOUT_PROCESSING
+  PAYOUT_PAID
+  PAYOUT_FAILED
+  PAYOUT_HELD
+  PAYOUT_RELEASED
+  PAYOUT_CONFIG_CHANGED
+  EARNING_ADJUSTED
+  TICKET_ASSIGNED
+  TICKET_STATUS_CHANGED
 }
 
 /// Append-only record of sensitive operator actions.
@@ -974,4 +1062,546 @@ model HomepageSection {
   updatedAt   DateTime @updatedAt
 
   @@index([sortOrder])
+}
+
+/* =================================================================== */
+/* Role-based access control                                           */
+/* =================================================================== */
+
+/// A per-user departure from their role's default permission bundle.
+///
+/// The set of permissions itself is declared in code (`lib/auth/permissions.ts`),
+/// not in a table. That is deliberate: a permission is a name the application
+/// must already understand to honour, so a row naming one the code has never
+/// heard of could only ever be dead weight or a way to smuggle a string into an
+/// authorization decision. What *is* per-installation - who has what - lives
+/// here.
+///
+/// `granted = false` is a revocation, and it outranks the role default, so an
+/// employee can be given the standard bundle minus one capability without
+/// inventing a bespoke role.
+model UserPermission {
+  id          String   @id @default(cuid())
+  userId      String
+  /// A key from the PERMISSIONS registry. Validated on write; unknown keys are refused.
+  permission  String
+  granted     Boolean  @default(true)
+  grantedById String?
+  note        String?
+  user        User     @relation("UserPermissionHolder", fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy   User?    @relation("UserPermissionGrantor", fields: [grantedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, permission])
+  @@index([userId])
+}
+
+/// Operational staff.
+///
+/// Separate from User so deactivating a staff member is one flag on their
+/// employment rather than a role change that would also strip the customer
+/// account they may legitimately still have.
+model EmployeeProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  jobTitle      String?
+  department    String?
+  active        Boolean   @default(true)
+  deactivatedAt DateTime?
+  createdById   String?
+  user          User      @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy     User?     @relation("EmployeeProfileCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([active])
+}
+
+/* =================================================================== */
+/* Pandit onboarding, profile and services                             */
+/* =================================================================== */
+
+/// Where a Pandit is in onboarding.
+///
+/// One column, not a scatter of booleans. `isVerified && isApproved && !isActive`
+/// has eight combinations of which only a handful are meaningful, and nothing
+/// stops code from writing one of the others; a single status has exactly the
+/// states the business actually has, and every transition is checked against a
+/// declared table in `lib/pandit/onboarding.ts`.
+enum PanditOnboardingStatus {
+  REQUESTED
+  PROFILE_STARTED
+  DOCUMENTS_PENDING
+  SUBMITTED
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  VERIFIED
+  APPROVED
+  PROFILE_COMPLETION_REQUIRED
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum ConsultationMode {
+  CHAT
+  VOICE_CALL
+  VIDEO_CALL
+}
+
+enum RateType {
+  PER_MINUTE
+  FIXED_SESSION
+}
+
+model PanditProfile {
+  id     String                 @id @default(cuid())
+  userId String                 @unique
+  status PanditOnboardingStatus @default(REQUESTED)
+
+  /// Public identity. `slug` is only minted at activation, so an unapproved
+  /// applicant has no addressable public page even by guessing.
+  displayName     String  @default("")
+  slug            String? @unique
+  headline        String?
+  bio             String?
+  profileImageUrl String?
+
+  phone     String?
+  city      String?
+  state     String?
+  country   String  @default("IN")
+  timezone  String  @default("Asia/Kolkata")
+
+  yearsOfExperience Int?
+  languages         String[]
+  expertise         String[]
+  certifications    String[]
+
+  /// Overrides the platform default when set. Snapshotted onto every earning.
+  commissionPercent Int?
+
+  submittedAt        DateTime?
+  reviewStartedAt    DateTime?
+  changesRequestedAt DateTime?
+  changeRequestNote  String?
+  verifiedAt         DateTime?
+  verifiedById       String?
+  approvedAt         DateTime?
+  approvedById       String?
+  activatedAt        DateTime?
+  rejectedAt         DateTime?
+  rejectedById       String?
+  rejectionReason    String?
+  suspendedAt        DateTime?
+  suspendedById      String?
+  suspensionReason   String?
+
+  user       User   @relation("PanditProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  verifiedBy User?  @relation("PanditVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  approvedBy User?  @relation("PanditApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  rejectedBy User?  @relation("PanditRejecter", fields: [rejectedById], references: [id], onDelete: SetNull)
+  suspendedBy User? @relation("PanditSuspender", fields: [suspendedById], references: [id], onDelete: SetNull)
+
+  documents    PanditDocument[]
+  reviewTrail  PanditReview[]
+  services     PanditService[]
+  scheduleRules      PanditScheduleRule[]
+  scheduleExceptions PanditScheduleException[]
+  slots         ConsultationSlot[]
+  consultations Consultation[]
+  kundliAccess  PanditKundliAccess[]
+  earnings      EarningTransaction[]
+  payouts       Payout[]
+  payoutAccount PayoutAccount?
+  reviews       Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+enum PanditDocumentType {
+  IDENTITY
+  ADDRESS
+  CERTIFICATE
+  EXPERIENCE
+  OTHER
+}
+
+enum PanditDocumentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+/// A submitted verification document.
+///
+/// Only a private storage key is held - never a public URL and never the bytes.
+/// Access is minted per request as a short-lived signed URL for the owning
+/// Pandit or an authorized reviewer, so a leaked key from a screenshot or a log
+/// is not itself a way to read someone's identity document.
+model PanditDocument {
+  id              String               @id @default(cuid())
+  panditProfileId String
+  type            PanditDocumentType
+  status          PanditDocumentStatus @default(PENDING)
+  storageKey      String
+  fileName        String
+  mimeType        String
+  fileSize        Int
+  checksum        String?
+  note            String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+
+  pandit     PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  reviewedBy User?         @relation("PanditDocumentReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([panditProfileId])
+  @@index([status])
+}
+
+enum PanditReviewDecision {
+  SUBMITTED
+  REVIEW_STARTED
+  CHANGES_REQUESTED
+  VERIFIED
+  APPROVED
+  ACTIVATED
+  REJECTED
+  SUSPENDED
+  REINSTATED
+}
+
+/// Every onboarding decision, with who made it and when.
+///
+/// Append-only, like AuditLog, but kept as its own table because it is part of
+/// the applicant's case file: a reviewer needs to read the history of their own
+/// application, and that must not mean handing them the platform audit log.
+model PanditReview {
+  id              String                 @id @default(cuid())
+  panditProfileId String
+  reviewerId      String?
+  decision        PanditReviewDecision
+  fromStatus      PanditOnboardingStatus
+  toStatus        PanditOnboardingStatus
+  note            String?
+  createdAt       DateTime               @default(now())
+
+  pandit   PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  reviewer User?         @relation("PanditReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([panditProfileId, createdAt])
+}
+
+/// One offered consultation type and its rate.
+///
+/// Rates are bounded by platform settings on write; the bounds are not stored
+/// here, so raising the platform ceiling never silently reprices anyone.
+model PanditService {
+  id              String        @id @default(cuid())
+  panditProfileId String
+  mode            ConsultationMode
+  enabled         Boolean       @default(false)
+  rateType        RateType      @default(PER_MINUTE)
+  ratePaise       Int
+  sessionMinutes  Int?
+  currency        String        @default("INR")
+  pandit          PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([panditProfileId, mode])
+}
+
+/// A recurring weekly availability window.
+///
+/// Minutes from local midnight rather than a display string, so overlap and
+/// containment are arithmetic instead of parsing. `weekday` is 0 = Sunday.
+model PanditScheduleRule {
+  id              String        @id @default(cuid())
+  panditProfileId String
+  weekday         Int
+  startMinute     Int
+  endMinute       Int
+  pandit          PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([panditProfileId, weekday])
+}
+
+/// A date-specific departure from the weekly rules.
+///
+/// `available = false` blocks the whole day; `available = true` with a window
+/// opens one that the weekly rules do not cover.
+model PanditScheduleException {
+  id              String        @id @default(cuid())
+  panditProfileId String
+  date            DateTime      @db.Date
+  available       Boolean       @default(false)
+  startMinute     Int?
+  endMinute       Int?
+  note            String?
+  pandit          PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([panditProfileId, date])
+}
+
+/* =================================================================== */
+/* Consultation chat and scoped Kundli access                          */
+/* =================================================================== */
+
+/// A message inside one consultation.
+///
+/// Scoped to a Consultation rather than to a pair of users, because that is
+/// what makes authorization answerable: you may read this thread if you are the
+/// customer or the Pandit on that consultation, and there is no shape of
+/// request that reaches a thread you are not party to.
+model ChatMessage {
+  id             String       @id @default(cuid())
+  consultationId String
+  senderId       String
+  body           String
+  readAt         DateTime?
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([consultationId, createdAt])
+}
+
+/// A customer's explicit, revocable grant of one chart to one Pandit.
+///
+/// A Pandit never has standing access to charts. Access is created by the
+/// customer, for a named consultation, and can be revoked; reading a chart
+/// without a live row here is not possible through any Pandit-facing path.
+model PanditKundliAccess {
+  id              String    @id @default(cuid())
+  panditProfileId String
+  consultationId  String
+  birthProfileId  String
+  calculationId   String
+  grantedByUserId String
+  revokedAt       DateTime?
+  expiresAt       DateTime?
+  lastViewedAt    DateTime?
+  viewCount       Int       @default(0)
+
+  pandit       PanditProfile        @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  consultation Consultation         @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  birthProfile BirthProfile         @relation(fields: [birthProfileId], references: [id], onDelete: Cascade)
+  calculation  AstrologyCalculation @relation(fields: [calculationId], references: [id], onDelete: Restrict)
+  grantedBy    User                 @relation("KundliAccessGrantor", fields: [grantedByUserId], references: [id], onDelete: Cascade)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@unique([consultationId, calculationId])
+  @@index([panditProfileId])
+}
+
+/* =================================================================== */
+/* Earnings and payouts                                                */
+/* =================================================================== */
+
+enum EarningStatus {
+  PENDING
+  ELIGIBLE
+  PROCESSING
+  PAID
+  FAILED
+  HELD
+  REVERSED
+}
+
+enum PayoutStatus {
+  PENDING
+  ELIGIBLE
+  PROCESSING
+  PAID
+  FAILED
+  HELD
+}
+
+/// One ledger line per completed, paid consultation.
+///
+/// `consultationId` is unique, which is what makes duplicate settlement
+/// impossible rather than unlikely: a second attempt to settle the same
+/// consultation is refused by the database, however the race arrived. Every
+/// component is stored in integer paise and the split is snapshotted, so
+/// changing the platform commission never rewrites what anyone already earned.
+model EarningTransaction {
+  id              String        @id @default(cuid())
+  panditProfileId String
+  consultationId  String?       @unique
+  payoutId        String?
+  status          EarningStatus @default(PENDING)
+
+  grossAmountPaise        Int
+  commissionPercent       Int
+  platformCommissionPaise Int
+  taxPaise                Int    @default(0)
+  adjustmentPaise         Int    @default(0)
+  netPayablePaise         Int
+  currency                String @default("INR")
+
+  /// When the holding period ends and this becomes payable.
+  eligibleAt DateTime?
+  settledAt  DateTime?
+  heldReason String?
+  note       String?
+
+  pandit       PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  consultation Consultation? @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+  payout       Payout?       @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([panditProfileId, status])
+  @@index([payoutId])
+  @@index([eligibleAt])
+}
+
+/// A batch of eligible earnings paid out together.
+///
+/// No money moves from this application. There is no payout provider wired, so
+/// a payout records an operator's off-platform transfer and its reference; the
+/// ledger, the states and the idempotency are real, the bank instruction is not
+/// simulated.
+model Payout {
+  id              String       @id @default(cuid())
+  payoutNumber    String       @unique
+  panditProfileId String
+  status          PayoutStatus @default(PENDING)
+  amountPaise     Int
+  currency        String       @default("INR")
+  periodStart     DateTime
+  periodEnd       DateTime
+  processedById   String?
+  processedAt     DateTime?
+  /// Operator-entered bank/UTR reference for the transfer they made.
+  reference       String?
+  failureReason   String?
+  heldReason      String?
+  note            String?
+
+  pandit      PanditProfile        @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  processedBy User?                @relation("PayoutProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+  earnings    EarningTransaction[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([panditProfileId, status])
+  @@index([status])
+}
+
+/// A Pandit's payout destination.
+///
+/// The account number, IFSC, UPI id and tax id are held only as AES-256-GCM
+/// envelopes produced by `lib/settings/crypto.ts`, keyed by an environment-only
+/// root key. The plaintext is never returned to any browser, including the
+/// Pandit's own: the UI works from the masked columns, and the envelopes exist
+/// so a future payout provider can be handed a destination without an operator
+/// ever reading one.
+model PayoutAccount {
+  id              String @id @default(cuid())
+  panditProfileId String @unique
+
+  accountHolderName String
+  bankName          String?
+  /// Display-safe remnants. Everything else about the instrument is ciphertext.
+  accountLast4      String?
+  ifscMasked        String?
+  upiMasked         String?
+  taxIdMasked       String?
+
+  accountNumberEnvelope String?
+  ifscEnvelope          String?
+  upiEnvelope           String?
+  taxIdEnvelope         String?
+
+  verifiedAt DateTime?
+  pandit     PanditProfile @relation(fields: [panditProfileId], references: [id], onDelete: Cascade)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+/* =================================================================== */
+/* Support tickets                                                     */
+/* =================================================================== */
+
+enum TicketCategory {
+  TECHNICAL
+  VERIFICATION
+  PAYMENT
+  PAYOUT
+  BOOKING
+  PROFILE
+  ORDER
+  OTHER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Ticket {
+  id            String         @id @default(cuid())
+  ticketNumber  String         @unique
+  createdById   String
+  /// The role the reporter held when they raised it, for triage context.
+  createdByRole UserRole
+  category      TicketCategory @default(OTHER)
+  subject       String
+  description   String
+  status        TicketStatus   @default(OPEN)
+  priority      TicketPriority @default(NORMAL)
+  assignedToId  String?
+  resolvedAt    DateTime?
+  closedAt      DateTime?
+
+  createdBy  User            @relation("TicketReporter", fields: [createdById], references: [id], onDelete: Cascade)
+  assignedTo User?           @relation("TicketAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  messages   TicketMessage[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([status])
+  @@index([createdById])
+  @@index([assignedToId])
+  @@index([category])
+}
+
+model TicketMessage {
+  id       String  @id @default(cuid())
+  ticketId String
+  authorId String
+  body     String
+  /// An operator note the reporter never sees.
+  internal Boolean @default(false)
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation("TicketAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
 }

@@ -40,6 +40,13 @@ export type RateLimitNamespace =
   | "admin:settings"
   | "admin:secret-replace"
   | "admin:integration-test"
+  | "staff:mutation"
+  | "staff:owner"
+  | "pandit:mutation"
+  | "pandit:document-upload"
+  | "booking:create"
+  | "chat:send"
+  | "ticket:create"
   | "cart:mutation"
   | "astrology:calculate";
 
@@ -131,6 +138,48 @@ export const RATE_LIMITS: Record<RateLimitNamespace, LimitRule> = {
     windowMs: 5 * MINUTE,
     fail: "open",
     rationale: "High enough for bulk operational work; catches a runaway script or a compromised session.",
+  },
+  "staff:mutation": {
+    limit: 120,
+    windowMs: 5 * MINUTE,
+    fail: "open",
+    rationale: "Matches admin:mutation: high enough for bulk operational work, low enough to catch a runaway script.",
+  },
+  "staff:owner": {
+    limit: 60,
+    windowMs: 5 * MINUTE,
+    fail: "open",
+    rationale: "Owner-level changes are deliberate and infrequent, but are made in bursts while configuring.",
+  },
+  "pandit:mutation": {
+    limit: 90,
+    windowMs: 5 * MINUTE,
+    fail: "open",
+    rationale: "A Pandit editing a weekly schedule saves many rows in a short sitting.",
+  },
+  "pandit:document-upload": {
+    limit: 20,
+    windowMs: 30 * MINUTE,
+    fail: "closed",
+    rationale: "Each upload stores a file. Failing closed is right: refusing an extra upload is cheaper than letting storage be filled.",
+  },
+  "booking:create": {
+    limit: 20,
+    windowMs: 10 * MINUTE,
+    fail: "closed",
+    rationale: "Each booking holds a real slot in someone's calendar. Failing closed prevents slot exhaustion by a script.",
+  },
+  "chat:send": {
+    limit: 120,
+    windowMs: 5 * MINUTE,
+    fail: "open",
+    rationale: "Conversation is bursty; this only catches automated flooding of a thread.",
+  },
+  "ticket:create": {
+    limit: 10,
+    windowMs: 30 * MINUTE,
+    fail: "closed",
+    rationale: "A person raises one ticket at a time. Failing closed keeps the support queue usable.",
   },
   "cart:mutation": {
     limit: 120,

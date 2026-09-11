@@ -6,7 +6,21 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/cart", "/checkout", "/account", "/admin", "/sign-in", "/post-login", "/kundli/result"],
+      // Every private area is listed here as well as being `noindex` in its own
+      // layout metadata. Two independent statements, because a crawler that
+      // ignores one should still be told by the other.
+      disallow: [
+        "/cart",
+        "/checkout",
+        "/account",
+        "/admin",
+        "/employee",
+        "/pandit",
+        "/sign-in",
+        "/post-login",
+        "/kundli/result",
+        "/api/pandit-documents",
+      ],
     },
     sitemap: `${brand.url}/sitemap.xml`,
   };

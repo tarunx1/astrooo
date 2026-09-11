@@ -76,7 +76,19 @@ async function syncImages(tx: Prisma.TransactionClient, productId: string, urls:
   });
 }
 
-export async function createProduct(adminUserId: string, input: ProductInput): Promise<ProductMutationOutcome> {
+/**
+ * Creates a product.
+ *
+ * `type` decides which catalogue it belongs to. Gemstones are products rather
+ * than a parallel entity: they need the same inventory guard, the same
+ * immutable purchase snapshots and the same order pipeline, and duplicating
+ * those for a second catalogue would mean two places for stock to go negative.
+ */
+export async function createProduct(
+  adminUserId: string,
+  input: ProductInput,
+  type: ProductType = ProductType.PHYSICAL,
+): Promise<ProductMutationOutcome> {
   const existing = await prisma.product.findUnique({ where: { slug: input.slug }, select: { id: true } });
   if (existing) {
     return { ok: false, message: "That slug is already in use.", fieldErrors: { slug: ["Already in use."] } };
@@ -88,7 +100,7 @@ export async function createProduct(adminUserId: string, input: ProductInput): P
         title: input.title,
         slug: input.slug,
         description: input.description,
-        type: ProductType.PHYSICAL,
+        type,
         categoryId: input.categoryId ?? null,
         sku: input.sku || null,
         pricePaise: input.pricePaise,
@@ -113,7 +125,7 @@ export async function createProduct(adminUserId: string, input: ProductInput): P
       action: AuditAction.PRODUCT_CREATED,
       entityType: "Product",
       entityId: created.id,
-      metadata: { slug: input.slug, title: input.title, pricePaise: input.pricePaise, active: input.active },
+      metadata: { slug: input.slug, title: input.title, type, pricePaise: input.pricePaise, active: input.active },
     });
 
     return created;
@@ -311,11 +323,13 @@ export async function listAdminProducts(input: {
   pageSize: number;
   search?: string;
   activeOnly?: boolean;
+  /** Which catalogue to list. Defaults to physical goods. */
+  type?: ProductType;
 }): Promise<{ rows: AdminProductRow[]; total: number }> {
   const search = input.search?.trim();
 
   const where: Prisma.ProductWhereInput = {
-    type: ProductType.PHYSICAL,
+    type: input.type ?? ProductType.PHYSICAL,
     ...(input.activeOnly ? { active: true } : {}),
     ...(search
       ? {
