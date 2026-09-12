@@ -4,7 +4,6 @@ import { AdminLayout, AdminSection, AdminStatusBadge } from "@/components/admin/
 import { Card } from "@/components/ui/card";
 import { requireSuperAdmin } from "@/lib/auth/admin";
 import { getDashboardMetrics } from "@/lib/admin/dashboard";
-import { formatMoneyMinor } from "@/lib/shop/pricing";
 
 export const metadata: Metadata = { title: "Super Admin" };
 
@@ -36,8 +35,21 @@ function CommandCard({
   );
 }
 
+/**
+ * The owner dashboard.
+ *
+ * Deliberately only what a Super Admin can do that nobody else can: settings,
+ * credentials, roles, the audit log. It used to repeat the operational numbers
+ * from the Overview page as well, because a Super Admin could not reach
+ * Overview - /admin redirected them here. Now that the redirect is gone, that
+ * section was showing the same figures from the same query one click away from
+ * itself, so it is gone too.
+ */
 export default async function SuperAdminDashboardPage() {
   const admin = await requireSuperAdmin();
+
+  // Only for the failure count on the report card below. The full operational
+  // picture lives on Overview.
   const metrics = await getDashboardMetrics();
 
   return (
@@ -76,28 +88,6 @@ export default async function SuperAdminDashboardPage() {
         </div>
       </AdminSection>
 
-      <AdminSection description="High-signal operational numbers, shown here without leaving the owner dashboard." title="Snapshot">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Card className="p-4" variant="admin">
-            <p className="caption text-slate-500">Captured revenue</p>
-            <p className="mt-1.5 font-display text-3xl leading-none text-amber-700">
-              {formatMoneyMinor(metrics.capturedRevenuePaise, "INR")}
-            </p>
-          </Card>
-          <Card className="p-4" variant="admin">
-            <p className="caption text-slate-500">Paid orders</p>
-            <p className="mt-1.5 font-display text-3xl leading-none text-slate-900">{metrics.paidPhysicalOrders}</p>
-          </Card>
-          <Card className="p-4" variant="admin">
-            <p className="caption text-slate-500">Low stock</p>
-            <p className="mt-1.5 font-display text-3xl leading-none text-slate-900">{metrics.lowStockCount}</p>
-          </Card>
-          <Card className="p-4" variant="admin">
-            <p className="caption text-slate-500">Reports ready</p>
-            <p className="mt-1.5 font-display text-3xl leading-none text-slate-900">{metrics.reportsReady}</p>
-          </Card>
-        </div>
-      </AdminSection>
     </AdminLayout>
   );
 }

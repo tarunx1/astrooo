@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdminLayout, AdminSection, AdminStatusBadge } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin";
+import { getViewer, viewerCanAny } from "@/lib/auth/access";
 import { getDashboardMetrics } from "@/lib/admin/dashboard";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 
@@ -45,6 +46,11 @@ function Metric({ label, value, href, tone }: { label: string; value: string | n
 export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
 
+  // Holding an operations permission is not the same as being allowed to see
+  // money. Checked here rather than assumed from reaching the page.
+  const viewer = await getViewer();
+  const canSeeRevenue = viewerCanAny(viewer, ["analytics.view", "payouts.view"]);
+
   const metrics = await getDashboardMetrics();
 
   return (
@@ -75,17 +81,29 @@ export default async function AdminDashboardPage() {
         </div>
       </AdminSection>
 
-      <AdminSection description="Summed from captured payments only. Nothing here is estimated or projected." title="Captured payments">
-        <Card className="flex flex-wrap items-center justify-between gap-3 p-5" variant="admin">
-          <div>
-            <p className="caption text-slate-500">Total captured</p>
-            <p className="mt-1 font-display text-3xl leading-none text-amber-700">
-              {formatMoneyMinor(metrics.capturedRevenuePaise, "INR")}
-            </p>
-          </div>
-          <AdminStatusBadge label={`${metrics.activeReportDefinitions} active reports`} tone="info" />
-        </Card>
-      </AdminSection>
+      {/*
+        Revenue is gated, not merely un-linked.
+
+        `requireAdmin()` admits anyone holding any operations permission, which
+        by design includes an employee given orders or tickets - they need the
+        admin order screens to do their job. But "can work an order" is not
+        "may see what the platform earned", and this section was showing
+        platform revenue to every such employee. It now needs the permission
+        that actually means it.
+      */}
+      {canSeeRevenue ? (
+        <AdminSection description="Summed from captured payments only. Nothing here is estimated or projected." title="Captured payments">
+          <Card className="flex flex-wrap items-center justify-between gap-3 p-5" variant="admin">
+            <div>
+              <p className="caption text-slate-500">Total captured</p>
+              <p className="mt-1 font-display text-3xl leading-none text-amber-700">
+                {formatMoneyMinor(metrics.capturedRevenuePaise, "INR")}
+              </p>
+            </div>
+            <AdminStatusBadge label={`${metrics.activeReportDefinitions} active reports`} tone="info" />
+          </Card>
+        </AdminSection>
+      ) : null}
     </AdminLayout>
   );
 }

@@ -14,7 +14,11 @@ import { grantKundliAccess, openSharedChart, revokeKundliAccess } from "@/lib/pa
 import { getChatThread, sendChatMessage } from "@/lib/support/chat";
 import { getTicket, createTicket, replyToTicket } from "@/lib/support/tickets";
 import { setEmployeePermissions } from "@/lib/admin/employees";
-import { resolvePermissions } from "@/lib/auth/permissions";
+import {
+  ROLE_DEFAULT_PERMISSIONS,
+  hasAnyPermission,
+  resolvePermissions,
+} from "@/lib/auth/permissions";
 
 /**
  * Authorization against real Postgres.
@@ -949,6 +953,38 @@ describe("public handle minting", () => {
     expect(slugs.every((row) => row.slug !== null)).toBe(true);
     // Distinct handles, which is what the unique index guarantees.
     expect(new Set(slugs.map((row) => row.slug)).size).toBe(2);
+  });
+});
+
+describe("what an operations permission does not imply", () => {
+  it("does not let a default employee see platform revenue", async () => {
+    // `requireAdmin` admits anyone holding any operations permission, which by
+    // design includes an employee given orders or tickets - they need the admin
+    // order screens. But "can work an order" is not "may see what the platform
+    // earned", and the Overview page was showing revenue to exactly those
+    // people. The gate is a permission, not the absence of a link.
+    const permissions = resolvePermissions(UserRole.EMPLOYEE);
+
+    expect(hasAnyPermission(permissions, ["analytics.view", "payouts.view"])).toBe(false);
+  });
+
+  it("still lets a default employee reach the operations area", async () => {
+    // The fix must not lock them out of the order and ticket screens they are
+    // given the permissions for.
+    const permissions = resolvePermissions(UserRole.EMPLOYEE);
+
+    expect(hasAnyPermission(permissions, ROLE_DEFAULT_PERMISSIONS[UserRole.ADMIN])).toBe(true);
+  });
+
+  it("lets an admin and a super admin see revenue", async () => {
+    expect(
+      hasAnyPermission(resolvePermissions(UserRole.ADMIN), ["analytics.view", "payouts.view"]),
+    ).toBe(true);
+
+    // Full access covers it without listing it.
+    expect(
+      hasAnyPermission(resolvePermissions(UserRole.SUPER_ADMIN), ["analytics.view", "payouts.view"]),
+    ).toBe(true);
   });
 });
 
