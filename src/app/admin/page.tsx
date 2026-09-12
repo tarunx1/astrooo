@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { AdminLayout, AdminSection, AdminStatusBadge } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -32,9 +31,19 @@ function Metric({ label, value, href, tone }: { label: string; value: string | n
   );
 }
 
+/**
+ * The operations overview.
+ *
+ * Reachable by every operator, including a Super Admin. It used to redirect
+ * them to /admin/super, which made sense when that was the only super-admin
+ * landing - but the sidebar now offers Overview and Super Admin as separate
+ * destinations, and the redirect made one of them impossible to open for the
+ * single role that sees both. Where sign-in *lands* someone is a different
+ * question, and `resolvePostLoginRedirect` still sends a Super Admin to
+ * /admin/super.
+ */
 export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
-  if (admin.isSuperAdmin) redirect("/admin/super");
 
   const metrics = await getDashboardMetrics();
 

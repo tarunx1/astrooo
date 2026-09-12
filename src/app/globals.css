@@ -37,15 +37,29 @@
   box-sizing: border-box;
 }
 
+/**
+ * Horizontal overflow is clipped, not hidden.
+ *
+ * `overflow-x: hidden` makes an element a scroll container, and on `html` or
+ * `body` that silently breaks `position: sticky` for every descendant - the
+ * sticky element has no scrollport left to stick within, so it just scrolls
+ * away. That is what was happening to the dashboard sidebars: they rode up off
+ * the screen instead of staying put.
+ *
+ * `overflow-x: clip` cuts off the same horizontal overflow without creating a
+ * scroll container, so sticky keeps working. Both are still declared, because
+ * the guard against a stray wide element causing a horizontal scrollbar is
+ * worth keeping.
+ */
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 74% 10%, var(--page-glow-primary), transparent 28rem),
     radial-gradient(circle at 15% 12%, var(--page-glow-secondary), transparent 24rem),
