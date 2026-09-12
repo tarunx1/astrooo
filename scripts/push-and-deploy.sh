@@ -52,6 +52,7 @@ if [ -f "$SSH_KEY" ]; then
     sudo -u ravishastro bash -c '
       set -e
       cd /var/www/ravish-astro/current
+      export \$(grep -v \"^#\" /etc/ravish-astro/ravish-astro.env | xargs)
       CI=true pnpm install --frozen-lockfile
       pnpm prisma generate
       pnpm prisma migrate deploy
