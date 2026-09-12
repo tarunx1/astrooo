@@ -3,17 +3,17 @@ import { notFound } from "next/navigation";
 import { AdminLayout, AdminSection, AdminStatusBadge } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/card";
 import { OrderTransitionControls, ShipmentForm } from "@/components/admin/order-controls";
-import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db/prisma";
 import { allowedNextStatuses } from "@/lib/admin/order-transitions";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 import { formatAddressSnapshot } from "@/lib/shop/address";
 import { ORDER_STATUS_LABELS } from "@/lib/shop/order-status";
+import { requireAnyPermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Order" };
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
+  const admin = await requireAnyPermission(["orders.view", "orders.manage"]);
   const { id } = await params;
 
   const order = await prisma.order.findUnique({

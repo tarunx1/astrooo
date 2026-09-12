@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { AdminLayout, AdminSection } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/card";
 import { ReportDefinitionForm } from "@/components/admin/report-definition-form";
-import { requireAdmin } from "@/lib/auth/admin";
 import { getReportDefinition } from "@/lib/admin/catalog-admin";
+import { requireAnyPermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Report" };
 
 export default async function AdminReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
+  const admin = await requireAnyPermission(["reports.view", "reports.manage"]);
   const { id } = await params;
 
   const definition = await getReportDefinition(id);

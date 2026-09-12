@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminLayout, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
-import { requireAdmin } from "@/lib/auth/admin";
 import { listReportDefinitions } from "@/lib/admin/catalog-admin";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
+import { requireAnyPermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Report catalogue" };
 
 export default async function AdminReportsPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAnyPermission(["reports.view", "reports.manage"]);
   const definitions = await listReportDefinitions();
 
   return (

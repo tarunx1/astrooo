@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { AdminLayout, AdminPagination, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
-import { requireAdmin } from "@/lib/auth/admin";
 import { listReportOrders } from "@/lib/admin/catalog-admin";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
+import { requirePermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Report orders" };
 
 const PAGE_SIZE = 25;
 
 export default async function AdminReportOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("reports.view");
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
 

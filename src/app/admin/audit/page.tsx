@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { AdminLayout, AdminPagination, AdminTable } from "@/components/admin/admin-shell";
-import { requireAdmin } from "@/lib/auth/admin";
 import { listAuditLog } from "@/lib/admin/audit";
+import { requirePermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Audit log" };
 
 const PAGE_SIZE = 30;
 
 export default async function AdminAuditPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("audit_logs.view");
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
 

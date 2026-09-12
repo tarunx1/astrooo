@@ -70,6 +70,13 @@ export const PERMISSIONS = {
   "settings.manage": "Change platform settings",
 
   "services.manage": "Configure consultation service types and rate bounds",
+  /**
+   * Working the puja queue: assigning a practitioner, scheduling, recording
+   * completion. Deliberately separate from `services.manage`, which is rate and
+   * policy configuration - fulfilling somebody's booking is routine operations,
+   * setting what the platform charges is not.
+   */
+  "puja.manage": "Assign, schedule and fulfil puja bookings",
 
   "calls.manage": "Configure the calling provider",
 
@@ -167,6 +174,8 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, readonly Permission[]> =
     "tickets.view",
     "tickets.manage",
     "consultations.view",
+    "services.manage",
+    "puja.manage",
     "payouts.view",
     "audit_logs.view",
     "settings.view",

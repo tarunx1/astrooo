@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { OrderStatus } from "@prisma/client";
 import { AdminLayout, AdminPagination, AdminSearch, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
-import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db/prisma";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 import { ORDER_STATUS_LABELS } from "@/lib/shop/order-status";
+import { requireAnyPermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Orders" };
 
@@ -25,7 +25,7 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string; status?: string }>;
 }) {
-  const admin = await requireAdmin();
+  const admin = await requireAnyPermission(["orders.view", "orders.manage"]);
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
   const search = params.q?.trim() || undefined;

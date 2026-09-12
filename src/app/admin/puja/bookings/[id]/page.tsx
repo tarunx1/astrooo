@@ -23,7 +23,7 @@ export const metadata: Metadata = { title: "Puja booking" };
  * never written to the audit log.
  */
 export default async function AdminPujaBookingPage({ params }: { params: Promise<{ id: string }> }) {
-  const viewer = await requirePermission("services.manage");
+  const viewer = await requirePermission("puja.manage");
   const { id } = await params;
 
   const [booking, pandits] = await Promise.all([

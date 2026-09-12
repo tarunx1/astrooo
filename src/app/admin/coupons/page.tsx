@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminLayout, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
-import { requireAdmin } from "@/lib/auth/admin";
 import { listCoupons } from "@/lib/admin/catalog-admin";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
+import { requirePermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Coupons" };
 
 export default async function AdminCouponsPage() {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("coupons.manage");
   const coupons = await listCoupons();
 
   return (

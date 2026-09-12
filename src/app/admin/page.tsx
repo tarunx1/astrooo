@@ -46,15 +46,31 @@ function Metric({ label, value, href, tone }: { label: string; value: string | n
 export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
 
-  // Holding an operations permission is not the same as being allowed to see
-  // money. Checked here rather than assumed from reaching the page.
+  /**
+   * Reaching this page is a coarser question than seeing everything on it.
+   *
+   * `requireAdmin` admits anyone holding any operations permission, which is
+   * correct - an employee given orders needs the order screens. But this page
+   * summarises several areas at once, so each section is shown only to someone
+   * entitled to that area. Otherwise an employee with tickets alone would read
+   * stock levels, order counts and revenue from the landing page.
+   */
   const viewer = await getViewer();
+  const canSeeOrders = viewerCanAny(viewer, ["orders.view", "orders.manage"]);
+  const canSeeStock = viewerCanAny(viewer, [
+    "inventory.manage",
+    "gemstones.inventory",
+    "products.view",
+    "products.manage",
+  ]);
+  const canSeeReports = viewerCanAny(viewer, ["reports.view", "reports.manage"]);
   const canSeeRevenue = viewerCanAny(viewer, ["analytics.view", "payouts.view"]);
 
   const metrics = await getDashboardMetrics();
 
   return (
     <AdminLayout adminName={admin.name || admin.email} currentPath="/admin" description="What needs attention right now." title="Operations">
+      {canSeeOrders ? (
       <AdminSection description="Physical orders moving through fulfilment." title="Store fulfilment">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Metric href="/admin/orders?status=PAID" label="Awaiting processing" tone={metrics.ordersAwaitingProcessing > 0 ? "warning" : undefined} value={metrics.ordersAwaitingProcessing} />
@@ -63,7 +79,9 @@ export default async function AdminDashboardPage() {
           <Metric label="Paid orders (all time)" value={metrics.paidPhysicalOrders} />
         </div>
       </AdminSection>
+      ) : null}
 
+      {canSeeStock ? (
       <AdminSection description={`Low stock means ${metrics.lowStockThreshold} or fewer remaining.`} title="Stock">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Metric href="/admin/inventory?low=1" label="Low stock" tone={metrics.lowStockCount > 0 ? "warning" : undefined} value={metrics.lowStockCount} />
@@ -71,7 +89,9 @@ export default async function AdminDashboardPage() {
           <Metric href="/admin/products" label="Active products" value={metrics.activeProducts} />
         </div>
       </AdminSection>
+      ) : null}
 
+      {canSeeReports ? (
       <AdminSection description="Paid report orders and their generation state." title="Reports">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Metric href="/admin/report-orders" label="Paid report orders" value={metrics.paidReportOrders} />
@@ -80,6 +100,7 @@ export default async function AdminDashboardPage() {
           <Metric href="/admin/generated-reports?status=FAILED" label="Failed" tone={metrics.reportFailures > 0 ? "danger" : undefined} value={metrics.reportFailures} />
         </div>
       </AdminSection>
+      ) : null}
 
       {/*
         Revenue is gated, not merely un-linked.

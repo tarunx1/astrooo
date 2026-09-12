@@ -3,8 +3,8 @@ import Link from "next/link";
 import { ReportStatus } from "@prisma/client";
 import { AdminLayout, AdminPagination, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
 import { RetryReportForm } from "@/components/admin/retry-report-form";
-import { requireAdmin } from "@/lib/auth/admin";
 import { categoriseFailure, listGeneratedReports } from "@/lib/admin/catalog-admin";
+import { requirePermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Generated reports" };
 
@@ -15,7 +15,7 @@ export default async function AdminGeneratedReportsPage({
 }: {
   searchParams: Promise<{ page?: string; status?: string }>;
 }) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("reports.view");
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
   const status = Object.values(ReportStatus).includes(params.status as ReportStatus)

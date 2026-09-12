@@ -5,10 +5,10 @@ import { Card } from "@/components/ui/card";
 import { ProductForm } from "@/components/admin/product-form";
 import { InventoryAdjustForm } from "@/components/admin/inventory-adjust-form";
 import { VariantForm } from "@/components/admin/variant-form";
-import { requireAdmin } from "@/lib/auth/admin";
 import { getAdminProduct } from "@/lib/admin/products";
 import { listAdjustmentsFor } from "@/lib/admin/inventory";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
+import { requireAnyPermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Product" };
 
@@ -17,7 +17,7 @@ function toRupees(paise: number | null | undefined): string {
 }
 
 export default async function AdminProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
+  const admin = await requireAnyPermission(["products.view", "products.manage"]);
   const { id } = await params;
 
   const product = await getAdminProduct(id);

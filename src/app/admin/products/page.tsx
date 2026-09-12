@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminLayout, AdminPagination, AdminSearch, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
-import { requireAdmin } from "@/lib/auth/admin";
 import { listAdminProducts, type AdminProductRow } from "@/lib/admin/products";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
+import { requireAnyPermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Products" };
 
@@ -15,7 +15,7 @@ export default async function AdminProductsPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string }>;
 }) {
-  const admin = await requireAdmin();
+  const admin = await requireAnyPermission(["products.view", "products.manage"]);
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
   const search = params.q?.trim() || undefined;

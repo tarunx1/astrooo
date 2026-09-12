@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminLayout, AdminPagination, AdminSearch, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
 import { InventoryAdjustForm } from "@/components/admin/inventory-adjust-form";
-import { requireAdmin } from "@/lib/auth/admin";
 import { LOW_STOCK_THRESHOLD, listInventory, type InventoryRow } from "@/lib/admin/inventory";
+import { requireAnyPermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Inventory" };
 
@@ -14,7 +14,7 @@ export default async function AdminInventoryPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string; low?: string }>;
 }) {
-  const admin = await requireAdmin();
+  const admin = await requireAnyPermission(["inventory.manage", "gemstones.inventory"]);
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
   const search = params.q?.trim() || undefined;

@@ -39,7 +39,7 @@ export async function assignPujaPanditAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  const auth = await authorizeAction("services.manage");
+  const auth = await authorizeAction("puja.manage");
   if (!auth.ok) return denied(auth.error);
 
   const raw = formData.get("panditProfileId");
@@ -69,7 +69,7 @@ export async function transitionPujaBookingAction(
   _state: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  const auth = await authorizeAction("services.manage");
+  const auth = await authorizeAction("puja.manage");
   if (!auth.ok) return denied(auth.error);
 
   const scheduledRaw = formData.get("scheduledAt");

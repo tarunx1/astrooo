@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { AdminLayout, AdminSection } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/card";
 import { ProductForm } from "@/components/admin/product-form";
-import { requireAdmin } from "@/lib/auth/admin";
+import { requirePermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "New product" };
 
 export default async function NewProductPage() {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("products.manage");
 
   return (
     <AdminLayout

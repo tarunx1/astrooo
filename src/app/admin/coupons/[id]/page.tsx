@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { AdminLayout, AdminSection } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/card";
 import { CouponForm } from "@/components/admin/coupon-form";
-import { requireAdmin } from "@/lib/auth/admin";
 import { getCoupon } from "@/lib/admin/catalog-admin";
+import { requirePermission } from "@/lib/auth/access";
 
 export const metadata: Metadata = { title: "Coupon" };
 
@@ -17,7 +17,7 @@ function toDateInput(value: Date | null): string {
 }
 
 export default async function AdminCouponDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("coupons.manage");
   const { id } = await params;
 
   const coupon = await getCoupon(id);

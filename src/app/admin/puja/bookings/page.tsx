@@ -25,7 +25,7 @@ export default async function AdminPujaBookingsPage({
 }: {
   searchParams: Promise<{ page?: string; status?: string }>;
 }) {
-  const viewer = await requirePermission("services.manage");
+  const viewer = await requirePermission("puja.manage");
   const params = await searchParams;
 
   const page = Math.max(1, Number(params.page ?? 1) || 1);
