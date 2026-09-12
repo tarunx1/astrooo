@@ -382,8 +382,12 @@ section {
   }
 }
 
-.zodiac-wheel,
-.zodiac-wheel-sheen {
+/**
+ * The wheel. Its glow is baked into the artwork's own alpha rather than added
+ * here, because a CSS filter is applied before masking - a drop-shadow would be
+ * cut away by the very mask that gives the wheel its shape.
+ */
+.zodiac-wheel {
   -webkit-mask-image: url("/images/zodiac-wheel.svg");
   mask-image: url("/images/zodiac-wheel.svg");
   -webkit-mask-repeat: no-repeat;
@@ -392,9 +396,6 @@ section {
   mask-position: center;
   -webkit-mask-size: contain;
   mask-size: contain;
-}
-
-.zodiac-wheel {
   background:
     radial-gradient(
       circle at 50% 50%,
@@ -406,16 +407,22 @@ section {
 }
 
 /**
- * The glitter: a second cut of the same artwork carrying bright wedges, turning
- * the other way. It is the difference between the two speeds that reads as
- * light travelling around the rim, so the sheen must never share the wheel's
- * duration or the highlights would simply sit still on it.
+ * The glitter: bright wedges sweeping over the wheel.
  *
- * A drop-shadow on the wheel itself cannot do this job: filters are applied
- * before masking, so the glow would be cut away by the very mask that shapes
- * the wheel. Hence a halo element behind instead.
+ * It lives *inside* the wheel, which is what makes it work. A mask clips the
+ * element it is set on together with everything beneath it, so the wheel's own
+ * mask trims these wedges to the line work for free, and the artwork is still
+ * drawn exactly once. Given its own copy of the mask as a sibling, it turned at
+ * its own speed and painted a second wheel next to the real one.
+ *
+ * Oversized so that its corners still cover the wheel at every angle, and
+ * turning against it: the difference between the two speeds is what reads as
+ * light travelling round the rim, so this must never share the wheel's duration
+ * or the highlights would sit still on it.
  */
 .zodiac-wheel-sheen {
+  position: absolute;
+  inset: -21%;
   background: conic-gradient(
     from 0deg,
     transparent 0deg,
@@ -429,7 +436,7 @@ section {
     transparent 352deg
   );
   mix-blend-mode: screen;
-  opacity: 0.5;
+  opacity: 0.62;
   animation: zodiac-wheel-spin 34s linear infinite reverse;
 }
 
