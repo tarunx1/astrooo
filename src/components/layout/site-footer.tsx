@@ -28,7 +28,7 @@ export async function SiteFooter() {
   const contactPhone = settings["site.contactPhone"];
 
   return (
-    <footer className="border-t border-border bg-transparent">
+    <footer className="bg-transparent">
       <PageContainer className="grid gap-10 py-14 lg:grid-cols-[1.2fr_2fr]">
         <div>
           <div className="flex items-center gap-3">
@@ -69,7 +69,7 @@ export async function SiteFooter() {
           ))}
         </div>
       </PageContainer>
-      <PageContainer className="flex flex-col gap-3 border-t border-border py-5 body-sm text-foreground-muted sm:flex-row sm:items-center sm:justify-between">
+      <PageContainer className="flex flex-col gap-3 border-t border-white/5 py-5 body-sm text-foreground-muted sm:flex-row sm:items-center sm:justify-between">
         <span>© 2026 {legalName}. All rights reserved.</span>
         <span className="inline-flex items-center gap-2">
           <ShieldCheck size={16} className="text-premium" /> Secure payments · Verified astrologers
