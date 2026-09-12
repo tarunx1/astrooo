@@ -48,10 +48,12 @@ if [ -f "$SSH_KEY" ]; then
     cd /var/www/ravish-astro/current
     git fetch origin main
     git reset --hard origin/main
+    rm -rf .next
     chown -R ravishastro:ravishastro /var/www/ravish-astro/current
     sudo -u ravishastro bash -c '
       set -e
       cd /var/www/ravish-astro/current
+      export PATH=\"/var/www/ravish-astro/current/node_modules/.bin:\$PATH\"
       export \$(grep -v \"^#\" /etc/ravish-astro/ravish-astro.env | xargs)
       CI=true pnpm install --frozen-lockfile
       pnpm prisma generate
