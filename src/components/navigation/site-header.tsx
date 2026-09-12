@@ -2,10 +2,10 @@ import Link from "next/link";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { PageContainer } from "@/components/layout/primitives";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
 import { navigation } from "@/config/navigation";
 import { AccountMenu } from "@/components/account/account-menu";
+import { HeaderKundliButton } from "@/components/navigation/header-kundli-button";
 import { getAdminIdentity } from "@/lib/auth/admin";
 import { SUPER_ADMIN_DASHBOARD_PATH } from "@/lib/auth/post-login";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -26,7 +26,7 @@ export async function SiteHeader() {
           <span className="font-display text-2xl leading-none">{brand.logo.label}</span>
         </Link>
 
-        <nav aria-label="Primary navigation" className="hidden items-center gap-1 lg:flex">
+        <nav aria-label="Primary navigation" className="hidden items-center gap-0.5 lg:flex">
           {primaryNav.map((item) => (
             <div className="group relative" key={item.label}>
               {"planned" in item && item.planned ? (
@@ -38,7 +38,7 @@ export async function SiteHeader() {
                   {item.label}
                 </span>
               ) : (
-                <Link className="rounded-md px-3 py-2 text-sm font-medium text-foreground-muted transition hover:text-foreground" href={item.href} prefetch={false}>
+                <Link className="rounded-md px-2.5 py-2 text-sm font-medium text-foreground-muted transition hover:text-foreground" href={item.href} prefetch={false}>
                   {item.label}
                 </Link>
               )}
@@ -96,11 +96,9 @@ export async function SiteHeader() {
             }
           />
           <Link aria-label="Cart" className="grid size-10 place-items-center rounded-md text-foreground-muted transition hover:bg-surface hover:text-foreground" href="/cart" prefetch={false}>
-            <ShoppingBag size={18} />
+            <ShoppingBag size={17} strokeWidth={1.9} />
           </Link>
-          <Button href="/kundli" className="min-h-10 px-4 py-2" variant="secondary">
-            Generate Kundli
-          </Button>
+          <HeaderKundliButton />
         </div>
 
         <details className="group lg:hidden">
@@ -108,8 +106,8 @@ export async function SiteHeader() {
             aria-label="Toggle navigation"
             className="grid size-11 cursor-pointer list-none place-items-center rounded-md border border-border text-foreground [&::-webkit-details-marker]:hidden"
           >
-            <Menu className="group-open:hidden" size={20} />
-            <X className="hidden group-open:block" size={20} />
+            <Menu className="group-open:hidden" size={19} strokeWidth={1.9} />
+            <X className="hidden group-open:block" size={19} strokeWidth={1.9} />
           </summary>
           <div className="fixed left-0 right-0 top-[var(--header-height)] border-t border-border bg-background shadow-[var(--shadow-md)]">
             <PageContainer className="grid gap-2 py-5">

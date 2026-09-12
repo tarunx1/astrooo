@@ -27,25 +27,38 @@ export function MatchingForm() {
   const fieldError = (field: string) => state.fieldErrors[field]?.[0];
 
   return (
-    <form action={action} className="grid gap-6" noValidate>
+    <form action={action} className="grid max-w-[900px] gap-4" noValidate>
       {state.formErrors.length ? (
         <div className="rounded-md border border-danger/50 bg-background p-4 body-sm text-danger" role="alert">
           {state.formErrors.join(" ")}
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="p-5 sm:p-6">
-          <fieldset className="grid gap-5">
-            <legend className="heading-sm mb-1">Person A</legend>
-            <BirthDetailsFields fieldError={fieldError} nameLabel="Full name" prefix="a" />
+      <div className="relative grid gap-4 rounded-xl border border-border/55 bg-surface/62 p-3 backdrop-blur-xl lg:grid-cols-[1fr_56px_1fr] lg:items-stretch">
+        <Card className="h-full border-border/55 bg-background/32 p-3.5 shadow-none ring-1 ring-premium/5">
+          <fieldset className="grid h-full gap-3.5">
+            <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <span className="grid size-7 place-items-center rounded-full border border-premium/30 bg-premium/10 text-xs text-premium">A</span>
+              Birth profile
+            </legend>
+            <BirthDetailsFields compact fieldError={fieldError} nameLabel="Full name" prefix="a" />
           </fieldset>
         </Card>
 
-        <Card className="p-5 sm:p-6">
-          <fieldset className="grid gap-5">
-            <legend className="heading-sm mb-1">Person B</legend>
-            <BirthDetailsFields fieldError={fieldError} nameLabel="Full name" prefix="b" />
+        <div className="grid place-items-center self-center text-premium">
+          <span className="grid size-12 place-items-center rounded-full border border-premium/35 bg-premium/12 font-display text-2xl shadow-[0_0_24px_rgb(214_181_109/0.14)]" aria-hidden="true">
+            ♡
+          </span>
+          <span className="sr-only">matched with</span>
+        </div>
+
+        <Card className="h-full border-border/55 bg-background/32 p-3.5 shadow-none ring-1 ring-accent-cyan/5">
+          <fieldset className="grid h-full gap-3.5">
+            <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <span className="grid size-7 place-items-center rounded-full border border-accent-cyan/30 bg-accent-cyan/10 text-xs text-accent-cyan">B</span>
+              Birth profile
+            </legend>
+            <BirthDetailsFields compact fieldError={fieldError} nameLabel="Full name" prefix="b" />
           </fieldset>
         </Card>
       </div>
@@ -60,7 +73,7 @@ export function MatchingForm() {
 function Submit() {
   const status = useFormStatus();
   return (
-    <Button className="w-full" size="lg" type="submit" variant="premium">
+    <Button className="min-h-[46px] w-full rounded-[12px] px-7 py-2.5 text-sm shadow-[0_10px_28px_rgb(214_181_109/0.18)] hover:-translate-y-0.5 hover:opacity-100 active:translate-y-0 active:scale-[0.99] sm:w-[280px]" size="md" type="submit" variant="premium">
       {status.pending ? "Calculating compatibility..." : "Check Compatibility"}
     </Button>
   );

@@ -55,25 +55,19 @@ export default function Page() {
 
       <CalculatorShell
         breadcrumb={BREADCRUMB}
+        compact
         faqs={FAQS}
         form={<NumerologyForm />}
         intro="Your numbers are derived from your date of birth and, optionally, your name. Every figure shows the arithmetic that produced it."
         methodology={
-          <>
-            <p>
-              This calculator uses the Chaldean system throughout. Chaldean assigns letter values from 1 to 8 only, treating 9 as sacred and unassigned, and it is the system in common use in India. It is never mixed with Pythagorean values.
-            </p>
-            <p>
-              The Life Path reduces the day, month and year separately, then sums and reduces the three. Master numbers 11, 22 and 33 are preserved wherever they appear. The Birth Number is the day of the month reduced to a single digit, where master numbers are not preserved, following traditional Indian practice.
-            </p>
-            <p>
-              All arithmetic is plain deterministic code. No language model is involved in producing any number here, and the working is printed with each result so you can verify it by hand.
-            </p>
-          </>
+          <p>
+            The calculator uses Chaldean values and deterministic arithmetic. Life Path reduces day, month and year separately, while name-based numbers preserve master numbers where the documented method allows them.
+          </p>
         }
         related={
           <ReportUpsell
             body="A full numerology report interprets these numbers together rather than one at a time. It is not on sale yet, and we will not list it until the engine behind it is complete."
+            compact
             cta="Browse available reports"
             heading="A written numerology reading"
             href="/reports"

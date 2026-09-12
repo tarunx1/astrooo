@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PageContainer, Section, SectionHeader } from "@/components/layout/primitives";
+import { PageContainer, Section } from "@/components/layout/primitives";
 import { Card } from "@/components/ui/card";
 import { ToolBreadcrumbSchema } from "@/components/tools/calculator-shell";
 import { SIGN_PROFILES } from "@/lib/astrology/horoscope";
@@ -18,23 +18,39 @@ export const metadata: Metadata = {
 
 const BREADCRUMB = [{ label: "Home", href: "/" }, { label: "Horoscope" }];
 
+const ZODIAC_GLYPHS: Record<string, string> = {
+  Aries: "♈",
+  Taurus: "♉",
+  Gemini: "♊",
+  Cancer: "♋",
+  Leo: "♌",
+  Virgo: "♍",
+  Libra: "♎",
+  Scorpio: "♏",
+  Sagittarius: "♐",
+  Capricorn: "♑",
+  Aquarius: "♒",
+  Pisces: "♓",
+};
+
 export default function HoroscopePage() {
   return (
     <>
       <ToolBreadcrumbSchema items={BREADCRUMB} />
       <Section className="star-field">
         <PageContainer className="px-0">
-          <SectionHeader
-            text="Reference guides to each sidereal sign. In Vedic astrology a horoscope is read from your Moon sign and your Lagna, not from the Sun sign used in newspaper columns."
-            title="Horoscope & Zodiac Signs"
-          />
+          <div className="max-w-3xl">
+            <p className="caption uppercase tracking-[0.18em] text-premium">Sidereal sign guide</p>
+            <h1 className="mt-3 heading-xl">Horoscope & Zodiac Signs</h1>
+            <p className="mt-4 max-w-[42rem] body-lg text-foreground-secondary">
+              Reference guides to each sidereal sign. In Vedic astrology, readings begin with your Moon sign and Lagna.
+            </p>
+          </div>
 
-          <Card className="mb-8 p-5">
+          <Card className="mt-8 max-w-2xl border-border/65 bg-surface/70 p-4 shadow-[var(--shadow-sm)]">
             <h2 className="heading-sm">We do not publish daily horoscopes yet</h2>
             <p className="mt-2 body-sm text-foreground-secondary">
-              A daily forecast worth reading has to be grounded in real transit data rather than generated filler.
-              The transit layer is built and the editorial layer is not, so rather than auto-publish thin pages we
-              are keeping this section to sign guides until daily content is genuinely ready.
+              Daily forecasts need real transit data and editorial review. Until that layer is ready, this section stays focused on sign guides.
             </p>
             <p className="mt-3 body-sm text-foreground-secondary">
               In the meantime,{" "}
@@ -45,22 +61,26 @@ export default function HoroscopePage() {
             </p>
           </Card>
 
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {SIGN_PROFILES.map((profile) => (
               <li key={profile.slug}>
-                <Card className="h-full" variant="interactive">
+                <Card className="h-full border-border/60 bg-surface/62 shadow-none transition hover:border-premium/50 hover:bg-surface/80">
                   <Link
-                    className="flex h-full flex-col gap-2 p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+                    className="flex h-full flex-col gap-2 p-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-premium"
                     href={`/horoscope/${profile.slug}`}
                     prefetch={false}
                   >
-                    <h2 className="heading-sm">
-                      {profile.sign} <span className="text-foreground-muted">· {profile.sanskritName}</span>
-                    </h2>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 className="text-base font-bold text-foreground">{profile.sign}</h2>
+                        <p className="caption text-premium">{profile.sanskritName}</p>
+                      </div>
+                      <span className="font-display text-2xl text-premium">{ZODIAC_GLYPHS[profile.sign]}</span>
+                    </div>
                     <p className="caption text-foreground-muted">
-                      {profile.symbol} · Ruled by {profile.rulingPlanet} · {profile.element}
+                      Ruled by {profile.rulingPlanet} · {profile.element}
                     </p>
-                    <p className="body-sm text-foreground-secondary">{profile.overview}</p>
+                    <p className="line-clamp-2 body-sm text-foreground-secondary">{profile.overview}</p>
                   </Link>
                 </Card>
               </li>

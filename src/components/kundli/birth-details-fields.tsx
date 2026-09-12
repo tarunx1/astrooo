@@ -5,6 +5,7 @@ import type { LocationSuggestion } from "@/lib/kundli/types";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
 import { Select } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 /**
  * The canonical birth-details field set.
@@ -31,16 +32,20 @@ function fieldName(prefix: string, base: string): string {
   return prefix ? `${prefix}${base.charAt(0).toUpperCase()}${base.slice(1)}` : base;
 }
 
+const COMPACT_FORM_FIELD_CLASS = "gap-1.5";
+
 export function BirthDetailsFields({
   prefix = "",
   defaults,
   fieldError,
   nameLabel = "Full Name",
+  compact = false,
 }: {
   prefix?: string;
   defaults?: BirthDetailsFieldDefaults;
   fieldError?: (field: string) => string | undefined;
   nameLabel?: string;
+  compact?: boolean;
 }) {
   const [query, setQuery] = useState(defaults?.place?.displayName ?? "");
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
@@ -68,14 +73,23 @@ export function BirthDetailsFields({
 
   const error = (field: string) => fieldError?.(fieldName(prefix, field));
   const id = (base: string) => `${uid}-${fieldName(prefix, base)}`;
+  const compactControlClass =
+    "min-h-[52px] rounded-[12px] border-border/70 bg-background/50 px-3.5 py-2.5 text-sm placeholder:text-foreground-muted/85 hover:border-premium/45 focus:border-premium focus:outline-premium/35 focus-visible:border-premium focus-visible:outline-premium/35";
+  const sectionClass = cn("form-section", compact && "gap-2.5");
+  const sectionTitleClass = cn(
+    "form-section-title",
+    compact && "text-[0.82rem] font-semibold leading-tight text-foreground/90",
+  );
+  const gridGapClass = compact ? "gap-2.5 sm:gap-3" : "gap-4";
 
   return (
     <>
-      <div className="form-section">
-        <h3 className="form-section-title">Birth details</h3>
-        <FormRow error={error("name")} htmlFor={id("name")} label={nameLabel}>
+      <div className={sectionClass}>
+        <h3 className={sectionTitleClass}>Birth details</h3>
+        <FormRow compact={compact} error={error("name")} htmlFor={id("name")} label={nameLabel}>
           <Input
             autoComplete="name"
+            className={compact ? compactControlClass : undefined}
             defaultValue={defaults?.name}
             id={id("name")}
             name={fieldName(prefix, "name")}
@@ -84,9 +98,10 @@ export function BirthDetailsFields({
           />
         </FormRow>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormRow error={error("dateOfBirth")} htmlFor={id("dateOfBirth")} label="Date of Birth">
+        <div className={cn("grid sm:grid-cols-2", gridGapClass)}>
+          <FormRow compact={compact} error={error("dateOfBirth")} htmlFor={id("dateOfBirth")} label="Date of Birth">
             <Input
+              className={compact ? compactControlClass : undefined}
               defaultValue={defaults?.dateOfBirth}
               id={id("dateOfBirth")}
               name={fieldName(prefix, "dateOfBirth")}
@@ -94,8 +109,8 @@ export function BirthDetailsFields({
               type="date"
             />
           </FormRow>
-          <FormRow error={error("gender")} htmlFor={id("gender")} label="Gender">
-            <Select defaultValue={defaults?.gender ?? ""} id={id("gender")} name={fieldName(prefix, "gender")}>
+          <FormRow compact={compact} error={error("gender")} htmlFor={id("gender")} label="Gender">
+            <Select className={compact ? compactControlClass : undefined} defaultValue={defaults?.gender ?? ""} id={id("gender")} name={fieldName(prefix, "gender")}>
               <option value="">Prefer not to say</option>
               <option>Female</option>
               <option>Male</option>
@@ -105,11 +120,12 @@ export function BirthDetailsFields({
         </div>
       </div>
 
-      <div className="form-section">
-        <h3 className="form-section-title">Time and accuracy</h3>
-        <div className="grid gap-4 sm:grid-cols-[1fr_0.9fr]">
-          <FormRow error={error("timeOfBirth")} htmlFor={id("timeOfBirth")} label="Time of Birth">
+      <div className={sectionClass}>
+        <h3 className={sectionTitleClass}>Time accuracy</h3>
+        <div className={cn("grid sm:grid-cols-[1fr_0.9fr]", gridGapClass)}>
+          <FormRow compact={compact} error={error("timeOfBirth")} htmlFor={id("timeOfBirth")} label="Time of Birth">
             <Input
+              className={compact ? compactControlClass : undefined}
               defaultValue={defaults?.timeOfBirth ?? "12:00"}
               disabled={timeAccuracy === "UNKNOWN"}
               id={id("timeOfBirth")}
@@ -121,8 +137,9 @@ export function BirthDetailsFields({
               <input name={fieldName(prefix, "timeOfBirth")} type="hidden" value="12:00" />
             ) : null}
           </FormRow>
-          <FormRow error={error("timeAccuracy")} htmlFor={id("timeAccuracy")} label="Time Accuracy">
+          <FormRow compact={compact} error={error("timeAccuracy")} htmlFor={id("timeAccuracy")} label="Time accuracy">
             <Select
+              className={compact ? compactControlClass : undefined}
               id={id("timeAccuracy")}
               name={fieldName(prefix, "timeAccuracy")}
               onChange={(event) => setTimeAccuracy(event.target.value)}
@@ -136,14 +153,15 @@ export function BirthDetailsFields({
         </div>
       </div>
 
-      <div className="form-section relative">
-        <h3 className="form-section-title">Birth location</h3>
-        <FormRow error={error("placeId")} htmlFor={id("place")} label="Birth Place">
+      <div className={cn(sectionClass, "relative")}>
+        <h3 className={sectionTitleClass}>Birth location</h3>
+        <FormRow compact={compact} error={error("placeId")} htmlFor={id("place")} label="Birth Place">
           <Input
             aria-autocomplete="list"
             aria-controls={placeListId}
             aria-expanded={suggestions.length > 0}
             autoComplete="off"
+            className={compact ? compactControlClass : undefined}
             id={id("place")}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -158,7 +176,7 @@ export function BirthDetailsFields({
         </FormRow>
         {suggestions.length ? (
           <div
-            className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-surface shadow-[var(--shadow-lg)]"
+            className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-[10px] border border-border bg-surface shadow-[var(--shadow-lg)]"
             id={placeListId}
             role="listbox"
           >
@@ -194,17 +212,19 @@ export function BirthDetailsFields({
 
 export function FormRow({
   children,
+  compact = false,
   error,
   htmlFor,
   label,
 }: {
   children: React.ReactNode;
+  compact?: boolean;
   error?: string;
   htmlFor: string;
   label: string;
 }) {
   return (
-    <FormField error={error} id={htmlFor} label={label}>
+    <FormField className={compact ? COMPACT_FORM_FIELD_CLASS : undefined} error={error} id={htmlFor} label={label}>
       {children}
     </FormField>
   );

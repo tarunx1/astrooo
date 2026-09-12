@@ -18,7 +18,8 @@ export function ServicesSection() {
           return (
             <Card
               equalHeight
-              variant="interactive"
+              spotlight
+              variant="glass"
               className="group overflow-hidden"
               key={service.title}
             >

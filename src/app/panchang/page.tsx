@@ -50,25 +50,15 @@ export default function PanchangPage() {
 
       <CalculatorShell
         breadcrumb={BREADCRUMB}
+        compact
+        compactForm="wide"
         faqs={FAQS}
         form={<PanchangForm defaultDate={today} />}
-        intro="Choose a date and a place for that day's Panchang. Everything shown is calculated for the local calendar day at the location you pick."
+        intro="Choose a date and place to see the local Tithi, Nakshatra, Yoga, Karana and Vara for that day."
         methodology={
-          <>
-            <p>
-              The place you choose resolves to coordinates and an IANA timezone through the same location service our
-              birth tools use. The Panchang is then calculated at local noon on your chosen date, which guarantees the
-              instant falls inside that local calendar day whatever the UTC offset or daylight saving rule.
-            </p>
-            <p>
-              Sunrise and sunset are returned as local wall-clock times for that place. Calculations use the Lahiri
-              ayanamsa on a sidereal zodiac.
-            </p>
-            <p>
-              Only values the engine actually calculates are displayed. Anything it does not compute is listed
-              explicitly as not included rather than estimated.
-            </p>
-          </>
+          <p>
+            We resolve the selected place to coordinates and timezone, then calculate the Panchang for that local calendar day using the deterministic astrology engine. Unsupported values are left out rather than estimated.
+          </p>
         }
         title="Panchang"
       />

@@ -55,25 +55,20 @@ export default function Page() {
 
       <CalculatorShell
         breadcrumb={BREADCRUMB}
+        compact
+        compactForm="wide"
         faqs={FAQS}
         form={<BirthToolForm slice="nakshatra" submitLabel="Find My Nakshatra" />}
         intro="The Nakshatra is the lunar mansion the Moon occupied at your birth. There are 27, each divided into four padas."
         methodology={
-          <>
-            <p>
-              The engine returns the Moon&apos;s sidereal longitude. The zodiac is divided into 27 Nakshatras of 13 degrees 20 minutes each, and into 108 padas, so both follow arithmetically from that longitude.
-            </p>
-            <p>
-              Only the Nakshatra, its pada and the Moon&apos;s position are calculated values. Any description of a Nakshatra&apos;s traditional character is static educational content, not a calculation about you.
-            </p>
-            <p>
-              Calculated with the Lahiri ayanamsa on a sidereal zodiac.
-            </p>
-          </>
+          <p>
+            The engine returns the Moon&apos;s sidereal longitude, then maps it into 27 Nakshatras and 108 padas. Descriptive meanings are static educational notes, not generated predictions.
+          </p>
         }
         related={
           <ReportUpsell
             body="Your Nakshatra sets the dasha sequence. A Complete Life Report reads that timing against the rest of your chart."
+            compact
             cta="See the Complete Life Report"
             heading="Read the whole chart"
             href="/reports/complete-life"

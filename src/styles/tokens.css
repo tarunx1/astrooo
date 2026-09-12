@@ -66,7 +66,7 @@
   --container-md: 960px;
   --container-lg: 1200px;
   --container-xl: 1280px;
-  --header-height: 76px;
+  --header-height: 72px;
   --section-space-sm: clamp(48px, 5vw, 64px);
   --section-space-md: clamp(64px, 7vw, 96px);
   --section-space-lg: clamp(80px, 9vw, 112px);

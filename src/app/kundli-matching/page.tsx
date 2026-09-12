@@ -52,30 +52,20 @@ export default function KundliMatchingPage() {
 
       <CalculatorShell
         breadcrumb={BREADCRUMB}
+        compact
+        compactForm="wide"
         faqs={FAQS}
         form={<MatchingForm />}
         intro="Enter the birth details of both people for a traditional Ashtakoota compatibility assessment. Every value is calculated from the two charts — nothing here is generated text."
         methodology={
-          <>
-            <p>
-              Both sets of birth details are normalised through the same canonical schema and place resolution used by
-              our Kundli, then sent to our Vedic calculation engine. The engine returns an overall Guna score and a
-              classification for each traditional koota.
-            </p>
-            <p>
-              Where the engine supplies a numeric score for a koota we show it. Where it supplies only a favourable or
-              unfavourable reading, we say so plainly rather than inventing a number. We never back-fill sub-scores to
-              make the eight kootas total 36.
-            </p>
-            <p>
-              Calculations use the Lahiri ayanamsa on a sidereal zodiac, the same configuration as every other
-              calculation on this site.
-            </p>
-          </>
+          <p>
+            Both birth profiles are normalized through the same place and birth schema, then assessed through the Vedic calculation engine. We show only the scores and classifications the engine returns, without back-filling missing koota values.
+          </p>
         }
         related={
           <ReportUpsell
             body="A written Love & Marriage report reads the seventh house, Venus and the running dasha periods across both charts, rather than reducing the question to a single number."
+            compact
             cta="See the Love & Marriage Report"
             heading="Want this read properly?"
             href="/reports/love-marriage"

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useId, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { CalendarDays, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form-field";
@@ -10,6 +11,7 @@ import { calculatePanchangAction } from "@/app/calculators/actions";
 import { INITIAL_PANCHANG_STATE, type PanchangState } from "@/lib/astrology/tool-action-state";
 import type { LocationSuggestion } from "@/lib/kundli/types";
 import type { PanchangResult } from "@/lib/astrology/tool-types";
+import { cn } from "@/lib/utils";
 
 /**
  * Panchang for a date and place.
@@ -43,41 +45,57 @@ export function PanchangForm({ defaultDate }: { defaultDate: string }) {
     };
   }, [query, selected?.displayName]);
 
+  const inputClassName =
+    "min-h-[52px] rounded-[12px] border-border/70 bg-background/50 py-2.5 text-sm placeholder:text-foreground-muted/85 hover:border-premium/45 focus:border-premium focus:outline-premium/35 focus-visible:border-premium focus-visible:outline-premium/35";
+  const fieldClassName = "gap-1.5";
+  const iconClassName = "pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-premium/80";
+
   return (
-    <form action={action} className="grid gap-5" noValidate>
+    <form
+      action={action}
+      className="grid max-w-[960px] gap-3 rounded-xl border border-border/65 bg-surface/72 p-4 shadow-[var(--shadow-sm)] backdrop-blur-xl md:grid-cols-[minmax(180px,0.8fr)_minmax(280px,1.35fr)_240px] md:items-end"
+      noValidate
+    >
       {state.formErrors.length ? (
-        <div className="rounded-md border border-danger/50 bg-background p-4 body-sm text-danger" role="alert">
+        <div className="rounded-md border border-danger/50 bg-background p-4 body-sm text-danger md:col-span-3" role="alert">
           {state.formErrors.join(" ")}
         </div>
       ) : null}
 
-      <FormField error={state.fieldErrors.date?.[0]} id={`${uid}-date`} label="Date">
-        <Input defaultValue={defaultDate} id={`${uid}-date`} name="date" required type="date" />
+      <FormField className={fieldClassName} error={state.fieldErrors.date?.[0]} id={`${uid}-date`} label="Date">
+        <div className="relative">
+          <CalendarDays aria-hidden="true" className={iconClassName} size={17} strokeWidth={1.8} />
+          <Input className={cn(inputClassName, "pl-10")} defaultValue={defaultDate} id={`${uid}-date`} name="date" required type="date" />
+        </div>
       </FormField>
 
       <div className="relative">
-        <FormField error={state.fieldErrors.placeId?.[0]} id={`${uid}-place`} label="Place">
-          <Input
-            aria-autocomplete="list"
-            aria-controls={listId}
-            aria-expanded={suggestions.length > 0}
-            autoComplete="off"
-            id={`${uid}-place`}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setSelected(null);
-              if (event.target.value.trim().length < 2) setSuggestions([]);
-            }}
-            placeholder="Search city, state, country"
-            required
-            role="combobox"
-            value={query}
-          />
+        <FormField className={fieldClassName} error={state.fieldErrors.placeId?.[0]} id={`${uid}-place`} label="Place">
+          <div className="relative">
+            <MapPin aria-hidden="true" className={iconClassName} size={17} strokeWidth={1.8} />
+            <Input
+              aria-autocomplete="list"
+              aria-controls={listId}
+              aria-expanded={suggestions.length > 0}
+              autoComplete="off"
+              className={cn(inputClassName, "pl-10")}
+              id={`${uid}-place`}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setSelected(null);
+                if (event.target.value.trim().length < 2) setSuggestions([]);
+              }}
+              placeholder="Search city, state, country"
+              required
+              role="combobox"
+              value={query}
+            />
+          </div>
         </FormField>
 
         {suggestions.length ? (
           <div
-            className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-surface shadow-[var(--shadow-lg)]"
+            className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-[12px] border border-border/80 bg-surface shadow-[var(--shadow-lg)]"
             id={listId}
             role="listbox"
           >
@@ -106,7 +124,11 @@ export function PanchangForm({ defaultDate }: { defaultDate: string }) {
 
       <Submit />
 
-      {state.result ? <PanchangReport result={state.result} /> : null}
+      {state.result ? (
+        <div className="md:col-span-3">
+          <PanchangReport result={state.result} />
+        </div>
+      ) : null}
     </form>
   );
 }
@@ -114,7 +136,12 @@ export function PanchangForm({ defaultDate }: { defaultDate: string }) {
 function Submit() {
   const status = useFormStatus();
   return (
-    <Button className="w-full" size="lg" type="submit" variant="premium">
+    <Button
+      className="mt-1 min-h-[46px] w-full rounded-[12px] px-7 py-2.5 text-sm shadow-[0_10px_28px_rgb(214_181_109/0.18)] hover:-translate-y-0.5 hover:opacity-100 active:translate-y-0 active:scale-[0.99] md:w-[240px]"
+      size="md"
+      type="submit"
+      variant="premium"
+    >
       {status.pending ? "Calculating Panchang..." : "Show Panchang"}
     </Button>
   );

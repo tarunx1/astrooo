@@ -55,25 +55,20 @@ export default function Page() {
 
       <CalculatorShell
         breadcrumb={BREADCRUMB}
+        compact
+        compactForm="wide"
         faqs={FAQS}
         form={<SadeSatiForm />}
         intro="Sade Sati is the roughly seven and a half year period when Saturn transits the sign before your Moon, your Moon sign itself, and the sign after it."
         methodology={
-          <>
-            <p>
-              Two calculated values are combined. Your natal Moon sign comes from your birth chart, and Saturn&apos;s current sidereal sign comes from a transit calculation for today. Both are produced by our Vedic engine.
-            </p>
-            <p>
-              The classification itself is a documented rule rather than an engine output: Saturn in the twelfth, first or second sign from your Moon marks the three phases of Sade Sati; the fourth is Ardha Kantaka and the eighth is Ashtama Shani. Signs are counted inclusively. The exact rule is printed with your result.
-            </p>
-            <p>
-              Saturn spends about two and a half years in a sign, so this result changes slowly. Saturn&apos;s position is calculated once and shared across visitors rather than requested per person.
-            </p>
-          </>
+          <p>
+            Your natal Moon sign is compared with Saturn&apos;s current sidereal sign. Saturn in the twelfth, first or second sign from the Moon marks the three Sade Sati phases, and the applied rule is printed with the result.
+          </p>
         }
         related={
           <ReportUpsell
             body="A Year Forecast reads your running dasha and the current transits together, rather than one transit in isolation."
+            compact
             cta="See the Year Forecast"
             heading="Understand the timing"
             href="/reports/year-forecast"

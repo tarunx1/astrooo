@@ -37,19 +37,19 @@ export function ReportPurchasePanel({
 
   if (!authenticated) {
     return (
-      <Card className="p-5" variant="commerce">
-        <div className="grid gap-4">
+      <Card className="max-w-[320px] border-border/60 bg-surface/68 p-4 shadow-none backdrop-blur-xl" variant="commerce">
+        <div className="grid gap-3.5">
           <div className="flex items-start gap-3">
-            <LockKeyhole aria-hidden="true" className="mt-1 text-primary" size={18} />
+            <LockKeyhole aria-hidden="true" className="mt-1 text-premium" size={15} />
             <div>
               <h2 className="heading-sm">Sign in to continue</h2>
-              <p className="mt-2 body-sm text-foreground-secondary">
+              <p className="mt-1.5 body-sm text-foreground-secondary">
                 Report checkout uses your saved birth profile and account email. Free Kundli generation remains open
                 without login.
               </p>
             </div>
           </div>
-          <Button href={signInHref} variant="secondary">
+          <Button className="min-h-10 rounded-[12px] py-2.5 text-sm shadow-[0_10px_28px_rgb(214_181_109/0.16)]" href={signInHref} size="sm" variant="premium">
             Sign in
           </Button>
         </div>
@@ -58,15 +58,15 @@ export function ReportPurchasePanel({
   }
 
   return (
-    <Card className="p-5" variant="commerce">
-      <form action={action} className="grid gap-5">
+    <Card className="max-w-[320px] border-border/60 bg-surface/68 p-4 shadow-none backdrop-blur-xl" variant="commerce">
+      <form action={action} className="grid gap-4">
         <input name="reportDefinitionId" type="hidden" value={report.id} />
 
         <div className="flex items-start gap-3">
-          <CreditCard aria-hidden="true" className="mt-1 text-primary" size={18} />
+          <CreditCard aria-hidden="true" className="mt-1 text-premium" size={15} />
           <div>
             <h2 className="heading-sm">Choose a birth profile</h2>
-            <p className="mt-2 body-sm text-foreground-secondary">
+            <p className="mt-1.5 body-sm text-foreground-secondary">
               The purchased report keeps an immutable snapshot of the Kundli calculation used at checkout.
             </p>
           </div>
@@ -116,7 +116,7 @@ export function ReportPurchasePanel({
           </p>
         ) : null}
 
-        <Button disabled={!checkoutEnabled || profiles.length === 0 || pending} type="submit">
+        <Button className="min-h-10 rounded-[12px] py-2.5 text-sm" disabled={!checkoutEnabled || profiles.length === 0 || pending} size="sm" type="submit" variant="premium">
           {pending ? "Starting checkout..." : "Continue to payment"}
         </Button>
       </form>

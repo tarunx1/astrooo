@@ -55,25 +55,20 @@ export default function Page() {
 
       <CalculatorShell
         breadcrumb={BREADCRUMB}
+        compact
+        compactForm="wide"
         faqs={FAQS}
         form={<BirthToolForm slice="moonSign" submitLabel="Find My Moon Sign" />}
         intro="Your Moon sign is the sign the Moon occupied at your birth. In Vedic astrology it carries far more weight than the Sun sign most people know."
         methodology={
-          <>
-            <p>
-              Your birth details are normalised and sent to our Vedic calculation engine, which returns the Moon&apos;s sidereal longitude at that moment. The sign and Nakshatra follow directly from that longitude.
-            </p>
-            <p>
-              This uses the Lahiri ayanamsa on a sidereal zodiac, which is why a Vedic Moon sign often differs from a Western one for the same birth.
-            </p>
-            <p>
-              The calculation is cached deterministically, so re-running the same birth details costs no additional request to the engine and always returns the same answer.
-            </p>
-          </>
+          <p>
+            The Vedic engine calculates the Moon&apos;s sidereal longitude for the normalized birth details. The Moon sign and Nakshatra follow directly from that value using the Lahiri ayanamsa.
+          </p>
         }
         related={
           <ReportUpsell
             body="The Moon sign is one placement. A Complete Life Report reads the Lagna, all nine planets, the houses and the running dasha together."
+            compact
             cta="See the Complete Life Report"
             heading="Read the whole chart"
             href="/reports/complete-life"

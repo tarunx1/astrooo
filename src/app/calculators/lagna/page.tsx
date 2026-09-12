@@ -55,25 +55,20 @@ export default function Page() {
 
       <CalculatorShell
         breadcrumb={BREADCRUMB}
+        compact
+        compactForm="wide"
         faqs={FAQS}
         form={<BirthToolForm slice="lagna" submitLabel="Find My Lagna" />}
         intro="Your Lagna is the sign rising on the eastern horizon at the moment you were born. It anchors the whole chart: every house is counted from it."
         methodology={
-          <>
-            <p>
-              The Lagna depends on the exact time and the geographic coordinates of your birth, because it is the point of the ecliptic rising over the horizon at that place and instant.
-            </p>
-            <p>
-              Our engine calculates the ascendant using the same configuration as your full Kundli: the Lahiri ayanamsa on a sidereal zodiac, at the current calculation version. The Lagna shown here will therefore match the one on your Kundli exactly.
-            </p>
-            <p>
-              The rising sign changes roughly every two hours, so an accurate birth time matters more for the Lagna than for any other placement.
-            </p>
-          </>
+          <p>
+            The ascendant is the point of the ecliptic rising over your birth place at your birth instant, so it is calculated from the exact time and the coordinates together. It uses the same Lahiri ayanamsa and calculation version as your Kundli, and changes sign roughly every two hours.
+          </p>
         }
         related={
           <ReportUpsell
             body="The Lagna is where a reading begins, not where it ends. A Complete Life Report works through every house from your ascendant."
+            compact
             cta="See the Complete Life Report"
             heading="Read the whole chart"
             href="/reports/complete-life"

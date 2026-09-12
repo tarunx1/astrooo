@@ -22,21 +22,23 @@ export function NumerologyForm() {
     INITIAL_NUMEROLOGY_STATE,
   );
   const uid = useId();
+  const inputClassName =
+    "min-h-[52px] rounded-[12px] border-border/70 bg-background/50 px-3.5 py-2.5 text-sm placeholder:text-foreground-muted/85 hover:border-premium/45 focus:border-premium focus:outline-premium/35 focus-visible:border-premium focus-visible:outline-premium/35";
 
   return (
-    <form action={action} className="grid gap-5" noValidate>
+    <form action={action} className="grid max-w-[520px] gap-4 rounded-xl border border-border/65 bg-surface/72 p-4 shadow-[var(--shadow-sm)] backdrop-blur-xl sm:p-5" noValidate>
       {state.formErrors.length ? (
         <div className="rounded-md border border-danger/50 bg-background p-4 body-sm text-danger" role="alert">
           {state.formErrors.join(" ")}
         </div>
       ) : null}
 
-      <FormField error={state.fieldErrors.dateOfBirth?.[0]} id={`${uid}-dob`} label="Date of Birth">
-        <Input id={`${uid}-dob`} name="dateOfBirth" required type="date" />
+      <FormField className="gap-1.5" error={state.fieldErrors.dateOfBirth?.[0]} id={`${uid}-dob`} label="Date of Birth">
+        <Input className={inputClassName} id={`${uid}-dob`} name="dateOfBirth" required type="date" />
       </FormField>
 
-      <FormField error={state.fieldErrors.name?.[0]} id={`${uid}-name`} label="Full Name (optional)">
-        <Input autoComplete="name" id={`${uid}-name`} name="name" placeholder="For name-based numbers" />
+      <FormField className="gap-1.5 [&_label]:text-foreground-muted" error={state.fieldErrors.name?.[0]} id={`${uid}-name`} label="Full name (optional)">
+        <Input autoComplete="name" className={inputClassName} id={`${uid}-name`} name="name" placeholder="For name-based numbers" />
       </FormField>
 
       <Submit />
@@ -49,7 +51,7 @@ export function NumerologyForm() {
 function Submit() {
   const status = useFormStatus();
   return (
-    <Button className="w-full" size="lg" type="submit" variant="premium">
+    <Button className="min-h-[46px] w-full rounded-[12px] px-7 py-2.5 text-sm shadow-[0_10px_28px_rgb(214_181_109/0.18)] hover:-translate-y-0.5 hover:opacity-100 active:translate-y-0 active:scale-[0.99] sm:w-fit" size="md" type="submit" variant="premium">
       {status.pending ? "Calculating..." : "Calculate Numbers"}
     </Button>
   );

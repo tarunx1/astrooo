@@ -19,6 +19,18 @@ export const metadata: Metadata = {
 
 const BREADCRUMB = [{ label: "Home", href: "/" }, { label: "Transits" }];
 
+const PLANET_GLYPHS: Record<string, string> = {
+  Sun: "☉",
+  Moon: "☽",
+  Mars: "♂",
+  Mercury: "☿",
+  Jupiter: "♃",
+  Venus: "♀",
+  Saturn: "♄",
+  Rahu: "☊",
+  Ketu: "☋",
+};
+
 /**
  * Traditional significations. Static reference content about each planet, kept
  * deliberately separate from the calculated positions above it.
@@ -60,7 +72,7 @@ export default async function TransitsPage() {
           </nav>
 
           <h1 className="heading-xl">Current Planetary Transits</h1>
-          <p className="mt-4 max-w-[var(--container-sm)] body-lg text-foreground-secondary">
+          <p className="mt-4 max-w-[38rem] body-lg text-foreground-secondary">
             Where the nine planets sit in the sidereal zodiac right now. These are calculated positions, not a
             forecast.
           </p>
@@ -71,7 +83,7 @@ export default async function TransitsPage() {
             </div>
           ) : (
             <>
-              <Card className="mt-8 p-4">
+              <Card className="mt-8 max-w-3xl border-border/65 bg-surface/72 p-4 shadow-[var(--shadow-sm)]">
                 <p className="body-sm text-foreground-secondary">
                   Calculated for{" "}
                   <time dateTime={outcome.value.at}>
@@ -84,9 +96,8 @@ export default async function TransitsPage() {
                   </time>
                   , using the {outcome.value.calculationMetadata.ayanamsa} ayanamsa on a sidereal zodiac.
                 </p>
-                <p className="mt-2 caption text-foreground-muted">
-                  Positions are anchored to the top of the current hour in UTC so this page is stable and shareable.
-                  Planetary longitudes are the same worldwide; only the houses they fall in depend on your own birth
+                <p className="mt-2 max-w-2xl caption text-foreground-muted">
+                  Positions are anchored to the current UTC hour. Longitudes are worldwide; houses depend on birth
                   details.
                 </p>
               </Card>
@@ -96,20 +107,25 @@ export default async function TransitsPage() {
                   Positions
                 </h2>
 
-                <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   {outcome.value.positions.map((position) => (
-                    <li key={position.planet}>
-                      <Card className="h-full p-5" variant="astrology">
-                        <div className="flex flex-wrap items-baseline justify-between gap-2">
-                          <h3 className="heading-sm">{position.planet}</h3>
+                    <li className={position.planet === "Sun" || position.planet === "Moon" ? "lg:col-span-2" : undefined} key={position.planet}>
+                      <Card className="h-full border-border/60 bg-surface/58 p-4 shadow-none" variant="astrology">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="grid size-9 place-items-center rounded-full border border-premium/25 bg-premium/10 font-display text-lg text-premium">
+                              {PLANET_GLYPHS[position.planet] ?? "✦"}
+                            </span>
+                            <h3 className="text-base font-bold text-foreground">{position.planet}</h3>
+                          </div>
                           {position.retrograde ? (
-                            <span className="rounded-full border border-warning/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-warning">
+                            <span className="rounded-full border border-warning/25 bg-warning/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-warning/85">
                               Retrograde
                             </span>
                           ) : null}
                         </div>
 
-                        <dl className="mt-3 grid gap-1.5">
+                        <dl className="mt-3 grid gap-1">
                           <div className="flex justify-between gap-3">
                             <dt className="caption text-foreground-muted">Sign</dt>
                             <dd className="body-sm font-semibold text-foreground">{position.sign}</dd>
@@ -125,7 +141,7 @@ export default async function TransitsPage() {
                         </dl>
 
                         {/* Static reference material, clearly separated from the calculated values above. */}
-                        <p className="mt-3 border-t border-border pt-3 caption text-foreground-muted">
+                        <p className="mt-3 border-t border-border/70 pt-2.5 text-xs leading-5 text-foreground-muted">
                           {PLANET_MEANINGS[position.planet] ?? ""}
                         </p>
                       </Card>
@@ -136,32 +152,28 @@ export default async function TransitsPage() {
             </>
           )}
 
-          <section aria-labelledby="about-heading" className="mt-14 grid gap-4">
+          <section aria-labelledby="about-heading" className="mt-14 grid max-w-3xl gap-4 pb-6">
             <h2 className="heading-md" id="about-heading">
               How to read this
             </h2>
-            <div className="grid gap-3 body-md text-foreground-secondary">
+            <div className="grid max-w-[44rem] gap-3 body-sm text-foreground-secondary">
               <p>
-                A transit is simply where a planet is now, as opposed to where it was when you were born. Vedic
-                astrology reads transits against your natal chart — particularly against your Moon sign — rather than
-                in isolation. That reading is called Gochar, and the{" "}
+                A transit is where a planet is now, compared with where it was when you were born. Vedic astrology
+                reads this against the natal chart, especially the Moon sign. The{" "}
                 <Link className="font-semibold text-primary underline-offset-4 hover:underline" href="/kundli" prefetch={false}>
                   free Kundli
                 </Link>{" "}
-                includes it: the same positions shown here, placed in the houses they fall in for your own birth
-                details.
+                places these same positions into your own houses.
               </p>
               <p>
-                The descriptions beside each planet are traditional significations of that planet in general. They are
-                fixed reference material, not a statement about you and not a daily forecast. Nothing on this page is
-                generated by a language model.
+                The text beside each planet is fixed reference material, not a personal forecast.
               </p>
               <p>
-                To see what a transit means for your own chart, start with your{" "}
+                To personalize the reading, start with your{" "}
                 <Link className="font-semibold text-primary underline-offset-4 hover:underline" href="/calculators/moon-sign" prefetch={false}>
                   Moon sign
                 </Link>
-                , or check whether Saturn is currently crossing it with the{" "}
+                , or check Saturn’s movement with the{" "}
                 <Link className="font-semibold text-primary underline-offset-4 hover:underline" href="/calculators/sade-sati" prefetch={false}>
                   Sade Sati calculator
                 </Link>

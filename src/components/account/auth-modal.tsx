@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, X } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
@@ -22,22 +23,25 @@ export type AuthMode = "customer" | "pandit" | "team";
  * account. A role has never been assignable from a browser and this does not
  * change that.
  */
-const MODE_COPY: Record<AuthMode, { label: string; signupTitle: string; signinTitle: string; note?: string }> = {
+const MODE_COPY: Record<AuthMode, { label: string; signupTitle: string; signinTitle: string; subtitle: string; note?: string }> = {
   customer: {
     label: "Customer",
-    signupTitle: "Create an account",
+    signupTitle: "Create account",
     signinTitle: "Welcome back",
+    subtitle: "Save Kundlis, revisit reports, and manage orders from one private account.",
   },
   pandit: {
     label: "Pandit",
     signupTitle: "Apply as a Pandit",
     signinTitle: "Pandit sign in",
+    subtitle: "Create your account before completing the practitioner application.",
     note: "Creating an account here opens a Pandit application. You will be able to take consultations once it has been reviewed and approved.",
   },
   team: {
     label: "Team",
     signupTitle: "Team sign in",
     signinTitle: "Team sign in",
+    subtitle: "Use your existing staff account to access operational tools.",
     note: "Staff accounts are created by an administrator. Sign in with the account you already have.",
   },
 };
@@ -82,6 +86,7 @@ export function GlassAuthCard({
   const copy = MODE_COPY[mode];
   const canSignUp = mode !== "team";
   const activeTab = canSignUp ? tab : "signin";
+  const title = activeTab === "signup" ? copy.signupTitle : copy.signinTitle;
 
   // The chosen entrance travels with the redirect so the server can send a new
   // Pandit to the application page rather than to a dashboard they cannot yet
@@ -162,98 +167,110 @@ export function GlassAuthCard({
     <GlassCard
       variant="glass-raised"
       spotlight={false}
-      className="relative z-10 my-auto max-h-[calc(100vh-3rem)] w-full max-w-[400px] overflow-y-auto rounded-[28px] border border-border bg-popover/95 p-7 text-popover-foreground shadow-[var(--shadow-lg)] backdrop-blur-3xl transition-all duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="relative z-10 my-auto h-[min(570px,calc(100dvh-1.5rem))] w-full max-w-[390px] overflow-y-auto rounded-lg border border-premium/35 bg-surface-raised/70 px-5 py-5 text-popover-foreground shadow-[0_24px_80px_rgb(0_0_0/0.42)] ring-1 ring-white/10 backdrop-blur-3xl transition-all duration-300 [scrollbar-width:none] sm:px-6 sm:py-5 [&::-webkit-scrollbar]:hidden"
     >
-      {/* Close Button (X) */}
-      {showCloseButton && onClose ? (
-        <button
-          aria-label="Close auth dialog"
-          className="absolute right-5 top-5 grid size-9 place-items-center rounded-full border border-border bg-surface text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
-          onClick={onClose}
-          type="button"
-        >
-          <X size={17} />
-        </button>
-      ) : null}
+      <div className="flex items-start gap-3">
+        {/* Entrance switcher. Decides where you land and, for a Pandit sign-up,
+            whether an application is opened - never what you may do. */}
+        {!lockMode ? (
+          <div
+            aria-label="Account type"
+            className="grid min-h-10 flex-1 grid-cols-3 gap-1 rounded-md border border-border/80 bg-background/35 p-1 backdrop-blur-xl"
+            role="tablist"
+          >
+            {(Object.keys(MODE_COPY) as AuthMode[]).map((option) => (
+              <button
+                aria-selected={mode === option}
+                className={cn(
+                  "rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition duration-200",
+                  mode === option ? "bg-background/70 text-foreground shadow-[var(--shadow-sm)]" : "text-foreground-muted hover:text-foreground",
+                )}
+                key={option}
+                onClick={() => {
+                  setMode(option);
+                  setError(null);
+                  if (option === "team") setTab("signin");
+                }}
+                role="tab"
+                type="button"
+              >
+                {MODE_COPY[option].label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="min-h-10 flex-1" />
+        )}
 
-      {/* Entrance switcher. Decides where you land and, for a Pandit sign-up,
-          whether an application is opened - never what you may do. */}
-      {!lockMode ? (
-        <div aria-label="Account type" className="mb-4 grid grid-cols-3 gap-1 rounded-full border border-border bg-muted p-1" role="tablist">
-          {(Object.keys(MODE_COPY) as AuthMode[]).map((option) => (
+        {showCloseButton && onClose ? (
+          <button
+            aria-label="Close auth dialog"
+            className="grid size-10 shrink-0 place-items-center rounded-md border border-border/80 bg-background/40 text-foreground-muted backdrop-blur-xl transition hover:border-premium hover:bg-surface-hover hover:text-foreground focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-premium"
+            onClick={onClose}
+            type="button"
+          >
+            <X size={17} />
+          </button>
+        ) : null}
+      </div>
+
+      {/* Reserve this block height so switching Customer/Pandit/Team does not resize the card. */}
+      <div className="min-h-[6.75rem]">
+        <Heading className={cn("text-2xl font-bold tracking-tight text-foreground", lockMode ? "mt-0" : "mt-4")}>
+          {title}
+        </Heading>
+        <p className="mt-1.5 body-sm text-foreground-secondary">{copy.subtitle}</p>
+
+        {copy.note ? (
+          <p className="mt-4 rounded-md border border-border bg-background/35 p-3 text-xs leading-5 text-foreground-secondary backdrop-blur-lg">
+            {copy.note}
+          </p>
+        ) : null}
+      </div>
+
+      {/* Auth mode switcher */}
+      <div className="min-h-[2.75rem]">
+        {canSignUp ? (
+          <div className="mx-auto grid w-full max-w-64 grid-cols-2 border-b border-border text-sm font-semibold">
             <button
-              aria-selected={mode === option}
               className={cn(
-                "rounded-full px-3 py-2 text-xs font-semibold transition duration-200",
-                mode === option ? "bg-card text-foreground shadow-sm" : "text-foreground-muted hover:text-foreground",
+                "border-b-2 px-4 py-2 transition",
+                activeTab === "signup" ? "border-premium text-foreground" : "border-transparent text-foreground-muted hover:text-foreground"
               )}
-              key={option}
-              onClick={() => {
-                setMode(option);
-                setError(null);
-                if (option === "team") setTab("signin");
-              }}
-              role="tab"
+              onClick={() => setTab("signup")}
               type="button"
             >
-              {MODE_COPY[option].label}
+              {mode === "pandit" ? "Apply" : "Sign up"}
             </button>
-          ))}
-        </div>
-      ) : null}
-
-      {/* Tab Switcher Pill */}
-      {canSignUp ? (
-        <div className="inline-flex rounded-full border border-border bg-muted p-1">
-          <button
-            className={cn(
-              "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
-              activeTab === "signup" ? "bg-card text-foreground shadow-sm" : "text-foreground-muted hover:text-foreground"
-            )}
-            onClick={() => setTab("signup")}
-            type="button"
-          >
-            {mode === "pandit" ? "Apply" : "Sign up"}
-          </button>
-          <button
-            className={cn(
-              "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
-              activeTab === "signin" ? "bg-card text-foreground shadow-sm" : "text-foreground-muted hover:text-foreground"
-            )}
-            onClick={() => setTab("signin")}
-            type="button"
-          >
-            Sign in
-          </button>
-        </div>
-      ) : null}
-
-      {/* Title Header */}
-      <Heading className="mt-6 text-2xl font-bold tracking-tight text-foreground">
-        {activeTab === "signup" ? copy.signupTitle : copy.signinTitle}
-      </Heading>
-
-      {copy.note ? (
-        <p className="mt-3 rounded-2xl border border-border bg-muted p-3 text-xs text-foreground-secondary">
-          {copy.note}
-        </p>
-      ) : null}
+            <button
+              className={cn(
+                "border-b-2 px-4 py-2 transition",
+                activeTab === "signin" ? "border-premium text-foreground" : "border-transparent text-foreground-muted hover:text-foreground"
+              )}
+              onClick={() => setTab("signin")}
+              type="button"
+            >
+              Sign in
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       {/* Error Notification */}
       {error ? (
-        <p className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 p-3 text-xs text-danger" role="alert">
+        <p className="mt-4 rounded-md border border-danger/40 bg-danger/10 p-3 text-xs text-danger" role="alert">
           {error}
         </p>
       ) : null}
 
       {/* Auth Form */}
-      <form className="mt-6 grid gap-3.5" onSubmit={handleSubmit}>
+      <form className="mt-2 grid gap-3" onSubmit={handleSubmit}>
         {activeTab === "signup" ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <SmoothInput
               aria-label="First name"
               autoComplete="given-name"
-              className="form-control"
+              className="form-control border-border bg-background/60 placeholder:text-foreground-secondary/85 focus:border-premium focus:outline-premium/55"
               name="firstName"
               placeholder="First name"
               required
@@ -262,7 +279,7 @@ export function GlassAuthCard({
             <SmoothInput
               aria-label="Last name (optional)"
               autoComplete="family-name"
-              className="form-control"
+              className="form-control border-border bg-background/60 placeholder:text-foreground-secondary/85 focus:border-premium focus:outline-premium/55"
               name="lastName"
               placeholder="Last name"
               type="text"
@@ -276,7 +293,7 @@ export function GlassAuthCard({
           <SmoothInput
             aria-label="Email address"
             autoComplete="email"
-            className="form-control pl-11"
+            className="form-control border-border bg-background/60 pl-11 placeholder:text-foreground-secondary/85 focus:border-premium focus:outline-premium/55"
             name="email"
             placeholder="Enter your email"
             required
@@ -290,7 +307,7 @@ export function GlassAuthCard({
           <SmoothInput
             aria-label="Password"
             autoComplete={activeTab === "signup" ? "new-password" : "current-password"}
-            className="form-control pl-11"
+            className="form-control border-border bg-background/60 pl-11 placeholder:text-foreground-secondary/85 focus:border-premium focus:outline-premium/55"
             name="password"
             placeholder={activeTab === "signup" ? "Create a password" : "Enter your password"}
             required
@@ -300,7 +317,7 @@ export function GlassAuthCard({
 
         {/* Primary Action Button */}
         <button
-          className="mt-2 min-h-12 w-full rounded-md bg-primary text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50 active:bg-primary-active"
+          className="mt-1 min-h-11 w-full rounded-md bg-premium text-sm font-semibold text-background shadow-[var(--shadow-md)] transition hover:opacity-95 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-premium disabled:opacity-50"
           disabled={pending !== null}
           type="submit"
         >
@@ -313,9 +330,9 @@ export function GlassAuthCard({
       </form>
 
       {/* Divider */}
-      <div className="my-6 flex items-center gap-3">
+      <div className="my-5 flex items-center gap-3">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted/70">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-secondary">
           OR SIGN IN WITH
         </span>
         <div className="h-px flex-1 bg-border" />
@@ -326,7 +343,7 @@ export function GlassAuthCard({
           either fail or quietly sign the visitor in with something else. */}
       <div className="grid gap-3">
         <button
-          className="flex min-h-12 items-center justify-center gap-3 rounded-2xl border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-surface-hover disabled:opacity-50"
+          className="flex min-h-11 items-center justify-center gap-3 rounded-md border border-border-strong bg-surface-raised text-sm font-semibold text-foreground transition hover:border-premium hover:bg-surface-hover focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-premium disabled:opacity-50"
           disabled={pending !== null}
           onClick={handleGoogleSignIn}
           type="button"
@@ -337,10 +354,14 @@ export function GlassAuthCard({
       </div>
 
       {/* Footer Terms */}
-      <p className="mt-6 text-center text-xs text-foreground-muted/70">
+      <p className="mt-6 pb-1 text-center text-xs leading-5 text-foreground-muted">
         By creating an account, you agree to our{" "}
         <a className="text-foreground-secondary underline transition hover:text-foreground" href="/terms">
-          Terms & Service
+          Terms of Service
+        </a>
+        {" "}and{" "}
+        <a className="text-foreground-secondary underline transition hover:text-foreground" href="/privacy">
+          Privacy Policy
         </a>
       </p>
     </GlassCard>
@@ -366,8 +387,15 @@ export function AuthModal({ isOpen, onClose, defaultTab = "signup", returnTo = b
   useEffect(() => {
     if (!isOpen) return;
 
-    const originalStyle = document.body.style.overflow;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
 
     // Remember where focus came from so it can be handed back on close.
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -406,19 +434,21 @@ export function AuthModal({ isOpen, onClose, defaultTab = "signup", returnTo = b
 
     return () => {
       window.clearTimeout(focusFirst);
-      document.body.style.overflow = originalStyle;
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
       window.removeEventListener("keydown", handleKeyDown);
       previouslyFocused?.focus?.();
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
       aria-label="Sign in or create an account"
       aria-modal="true"
-      className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center overflow-y-auto p-4 sm:p-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="fixed inset-0 z-[100] isolate flex min-h-dvh items-center justify-center overflow-y-auto overscroll-contain p-3 sm:p-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       ref={dialogRef}
       role="dialog"
       tabIndex={-1}
@@ -426,7 +456,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "signup", returnTo = b
       {/* Dimmed backdrop overlay. Decorative: the close button is the labelled control. */}
       <div
         aria-hidden="true"
-        className="fixed inset-0 bg-background/88 backdrop-blur-2xl transition-all duration-300"
+        className="fixed inset-0 bg-background/55 backdrop-blur-md backdrop-saturate-150 transition-all duration-300"
         onClick={onClose}
       />
 
@@ -436,7 +466,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = "signup", returnTo = b
         onClose={onClose}
         showCloseButton={true}
       />
-    </div>
+    </div>,
+    document.body,
   );
 }
 
