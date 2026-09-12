@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   AuditAction,
+  Prisma,
   InventoryAdjustmentReason,
   InventoryStatus,
   OrderStatus,
@@ -103,7 +104,70 @@ beforeAll(async () => {
   customer = await createUser("customer", UserRole.CUSTOMER);
 });
 
+/**
+ * Privileged roles this file has temporarily taken away.
+ *
+ * The last-admin and zero-super-admin tests each need to control the global
+ * population of privileged accounts, which means demoting accounts they did not
+ * create - including the ones a developer signs in with.
+ *
+ * Two things about that went wrong before, and both are fixed here:
+ *
+ *  1. The restores wrote a hard-coded `ADMIN` back. Anyone who had been
+ *     SUPER_ADMIN came back as ADMIN, permanently, every single run.
+ *
+ *  2. Recovery lived only in each test's own `finally`. One interrupted run
+ *     left the accounts demoted, and the next run then found nothing to
+ *     remember - so it silently restored nothing and the damage stuck.
+ *
+ * The effect was a developer locked out of every super-admin page with no
+ * indication why. So the borrow is recorded at module scope, with each
+ * account's *actual* prior role, and `afterAll` hands them back too.
+ */
+type BorrowedRole = { id: string; role: UserRole };
+
+let borrowedRoles: BorrowedRole[] = [];
+
+/** Records the current roles of the matching users, then demotes them. */
+async function borrowPrivilegedRoles(
+  where: Prisma.UserWhereInput,
+  demoteTo: UserRole,
+): Promise<BorrowedRole[]> {
+  const found = await prisma.user.findMany({ where, select: { id: true, role: true } });
+
+  borrowedRoles = [...borrowedRoles, ...found];
+
+  await prisma.user.updateMany({
+    where: { id: { in: found.map((user) => user.id) } },
+    data: { role: demoteTo },
+  });
+
+  return found;
+}
+
+/** Puts every borrowed account back to the role it actually had. */
+async function restoreBorrowedRoles(): Promise<void> {
+  if (borrowedRoles.length === 0) return;
+
+  const pending = borrowedRoles;
+  borrowedRoles = [];
+
+  // One update per distinct role, so an account that was SUPER_ADMIN comes back
+  // as SUPER_ADMIN rather than being flattened to ADMIN.
+  for (const role of new Set(pending.map((entry) => entry.role))) {
+    await prisma.user.updateMany({
+      where: { id: { in: pending.filter((entry) => entry.role === role).map((entry) => entry.id) } },
+      data: { role },
+    });
+  }
+}
+
 afterAll(async () => {
+  // Before anything else: hand back the roles we borrowed. A failure here must
+  // be loud, not swallowed - a developer locked out of the admin is worse than
+  // a red test.
+  await restoreBorrowedRoles();
+
   const users = await prisma.user.findMany({ where: { email: { startsWith: `${RUN}.` } }, select: { id: true } });
   const ids = users.map((user) => user.id);
 
@@ -574,15 +638,10 @@ describe("user roles", () => {
 
   it("refuses to demote the last remaining admin", async () => {
     // Isolate: temporarily demote every other admin so only one remains.
-    const others = await prisma.user.findMany({
-      where: { role: { in: [...ADMIN_ROLES] }, id: { notIn: [admin.id] } },
-      select: { id: true, role: true },
-    });
-
-    await prisma.user.updateMany({
-      where: { id: { in: others.map((user) => user.id) } },
-      data: { role: UserRole.CUSTOMER },
-    });
+    await borrowPrivilegedRoles(
+      { role: { in: [...ADMIN_ROLES] }, id: { notIn: [admin.id] } },
+      UserRole.CUSTOMER,
+    );
 
     const attacker = await createUser(`temp-${Date.now()}`, UserRole.ADMIN);
     // Now two admins exist: `admin` and `attacker`. Demote attacker first.
@@ -597,11 +656,8 @@ describe("user roles", () => {
     expect(result).toMatchObject({ ok: false });
     expect((result as { message: string }).message).toContain("last admin");
 
-    // Restore.
-    await prisma.user.updateMany({
-      where: { id: { in: others.map((user) => user.id) } },
-      data: { role: UserRole.ADMIN },
-    });
+    // Each account goes back to the role it actually had, not a hard-coded one.
+    await restoreBorrowedRoles();
   });
 
   it("cannot be raced into leaving the site with zero admins", async () => {
@@ -615,15 +671,10 @@ describe("user roles", () => {
     // which puts both of them inside the window at once. Without row locking in
     // changeUserRole, both would pass the last-admin check and commit, leaving
     // the site with no administrator at all.
-    const others = await prisma.user.findMany({
-      where: { role: { in: [...ADMIN_ROLES] }, id: { notIn: [admin.id] } },
-      select: { id: true },
-    });
-
-    await prisma.user.updateMany({
-      where: { id: { in: others.map((user) => user.id) } },
-      data: { role: UserRole.CUSTOMER },
-    });
+    await borrowPrivilegedRoles(
+      { role: { in: [...ADMIN_ROLES] }, id: { notIn: [admin.id] } },
+      UserRole.CUSTOMER,
+    );
 
     const second = await createUser(`race-${Date.now()}`, UserRole.ADMIN);
     // Exactly two admins now exist: `admin` and `second`.
@@ -670,26 +721,19 @@ describe("user roles", () => {
     const remaining = await prisma.user.count({ where: { role: { in: [...ADMIN_ROLES] } } });
     expect(remaining).toBeGreaterThanOrEqual(1);
 
-    // Restore.
     await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.ADMIN } });
-    await prisma.user.updateMany({
-      where: { id: { in: others.map((user) => user.id) } },
-      data: { role: UserRole.ADMIN },
-    });
+    await restoreBorrowedRoles();
   });
   it("cannot be raced into leaving the system with zero super admins", async () => {
     // The admin-count invariant does not cover this: demoting a super admin to
     // ADMIN keeps the admin count healthy while removing the only account that
     // can reach system settings and provider credentials.
-    const otherSupers = await prisma.user.findMany({
-      where: { role: UserRole.SUPER_ADMIN, id: { notIn: [admin.id] } },
-      select: { id: true },
-    });
-
-    await prisma.user.updateMany({
-      where: { id: { in: otherSupers.map((user) => user.id) } },
-      data: { role: UserRole.ADMIN },
-    });
+    // Recorded before the demotion, so `afterAll` can put them back even if this
+    // test throws somewhere the local `finally` never reaches.
+    await borrowPrivilegedRoles(
+      { role: UserRole.SUPER_ADMIN, id: { notIn: [admin.id] } },
+      UserRole.ADMIN,
+    );
 
     await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.SUPER_ADMIN } });
     const second = await createUser(`super-${Date.now()}`, UserRole.SUPER_ADMIN);
@@ -737,12 +781,11 @@ describe("user roles", () => {
       const remaining = await prisma.user.count({ where: { role: UserRole.SUPER_ADMIN } });
       expect(remaining).toBeGreaterThanOrEqual(1);
     } finally {
-      // Restore super admins regardless of assertion outcomes
+      // The fixture goes back to what it was created as. The borrowed accounts
+      // are restored through the shared helper, which `afterAll` also calls -
+      // so a throw between here and there cannot strand them.
       await prisma.user.update({ where: { id: admin.id }, data: { role: UserRole.ADMIN } }).catch(() => {});
-      await prisma.user.updateMany({
-        where: { id: { in: otherSupers.map((user) => user.id) } },
-        data: { role: UserRole.SUPER_ADMIN },
-      }).catch(() => {});
+      await restoreBorrowedRoles();
     }
   });
 });
