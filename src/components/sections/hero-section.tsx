@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { ArrowRight, ShieldCheck, Star } from "lucide-react";
 import { PageContainer } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
+import { ZodiacHubCycle } from "@/components/visuals/zodiac-hub-cycle";
 import { quickServices } from "@/data/home";
 
 export function HeroSection() {
@@ -39,16 +39,20 @@ export function HeroSection() {
             </div>
           </div>
 
+          {/* The wheel turns, so it is centred by a wrapper and rotated by the
+              child: one element cannot hold both transforms. The halo, the
+              sheen and the signs in the hub are stacked on that same wrapper so
+              they share its centre - and so the signs stay upright while the
+              wheel turns around them. */}
           <div className="relative min-h-[360px] sm:min-h-[420px] lg:min-h-[520px]">
-            <div className="absolute inset-y-0 right-[-34%] w-[145%] sm:right-[-18%] sm:w-[118%]">
-              <Image
-                alt="Celestial kundli orbit artwork"
-                className="h-full w-full object-contain object-right opacity-95 mix-blend-screen"
-                height={1024}
-                priority
-                src="/images/hero-astrolabe.png"
-                width={1536}
-              />
+            <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[108%] -translate-x-1/2 -translate-y-1/2 sm:w-[96%]">
+              {/* All four layers are positioned, so they paint in source order:
+                  halo behind, then the wheel, its sheen, and the sign on top. A
+                  static wheel here would be painted under the halo. */}
+              <div aria-hidden="true" className="zodiac-wheel-halo absolute -inset-[12%]" />
+              <div aria-hidden="true" className="zodiac-wheel absolute inset-0 opacity-90" />
+              <div aria-hidden="true" className="zodiac-wheel-sheen absolute inset-0" />
+              <ZodiacHubCycle />
             </div>
           </div>
         </div>

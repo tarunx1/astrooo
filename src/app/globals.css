@@ -364,6 +364,141 @@ section {
   background: color-mix(in srgb, var(--background) 68%, var(--surface-raised));
 }
 
+/**
+ * The hero's zodiac wheel.
+ *
+ * The artwork is a mask rather than an <img>, so the gold is ours: a CSS
+ * gradient in the premium tokens shows through the line work and follows the
+ * theme, which a flat two-colour file could not do. It also keeps 67KB of path
+ * data out of the HTML and lets the browser cache it.
+ *
+ * The spin lives on this element alone. Centring it is the wrapper's job -
+ * a translate here would be overwritten the moment the rotation starts.
+ * `prefers-reduced-motion` stops it through the global reset below.
+ */
+@keyframes zodiac-wheel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.zodiac-wheel,
+.zodiac-wheel-sheen {
+  -webkit-mask-image: url("/images/zodiac-wheel.svg");
+  mask-image: url("/images/zodiac-wheel.svg");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.zodiac-wheel {
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--premium) 82%, var(--foreground)) 0%,
+      var(--premium) 46%,
+      var(--premium-muted) 100%
+    );
+  animation: zodiac-wheel-spin 150s linear infinite;
+}
+
+/**
+ * The glitter: a second cut of the same artwork carrying bright wedges, turning
+ * the other way. It is the difference between the two speeds that reads as
+ * light travelling around the rim, so the sheen must never share the wheel's
+ * duration or the highlights would simply sit still on it.
+ *
+ * A drop-shadow on the wheel itself cannot do this job: filters are applied
+ * before masking, so the glow would be cut away by the very mask that shapes
+ * the wheel. Hence a halo element behind instead.
+ */
+.zodiac-wheel-sheen {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--premium) 40%, white) 16deg,
+    transparent 40deg,
+    transparent 150deg,
+    color-mix(in srgb, var(--premium) 55%, white) 176deg,
+    transparent 205deg,
+    transparent 300deg,
+    color-mix(in srgb, var(--premium) 45%, white) 326deg,
+    transparent 352deg
+  );
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  animation: zodiac-wheel-spin 34s linear infinite reverse;
+}
+
+@keyframes zodiac-halo-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.78;
+    transform: scale(1.035);
+  }
+}
+
+.zodiac-wheel-halo {
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--premium) 26%, transparent) 0%,
+    color-mix(in srgb, var(--premium) 12%, transparent) 42%,
+    transparent 68%
+  );
+  animation: zodiac-halo-breathe 9s ease-in-out infinite;
+}
+
+/**
+ * A sign in the hollow hub: faint joining lines under a dotted stroke whose
+ * round caps are the stars. `0 9` is a zero-length dash, which a round cap
+ * renders as a dot - so the spacing is measured along the glyph and the stars
+ * follow its curves instead of being placed by hand.
+ */
+.zodiac-hub-line {
+  stroke: color-mix(in srgb, var(--premium) 46%, transparent);
+  stroke-width: 1.1;
+}
+
+.zodiac-hub-stars {
+  stroke: color-mix(in srgb, var(--premium) 55%, white);
+  stroke-width: 5.5;
+  stroke-dasharray: 0 9;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--premium) 70%, transparent));
+}
+
+@keyframes zodiac-hub-sign {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  14%,
+  84% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+}
+
+.zodiac-hub-sign {
+  /* Matches HOLD_MS in zodiac-hub-cycle.tsx: the sign is replaced the moment
+     this finishes, so a shorter animation would leave a gap of empty hub. */
+  animation: zodiac-hub-sign 5200ms ease-in-out both;
+}
+
+.zodiac-hub-name {
+  font-size: 0.58rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

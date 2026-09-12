@@ -14,8 +14,14 @@ import { SIGNS, type ZodiacSign } from "@/config/astrology";
  */
 const STROKE = 7;
 
-/** Path data per sign, drawn in a 0 0 100 100 viewBox. */
-const GLYPH_PATHS: Record<ZodiacSign, string> = {
+/**
+ * Path data per sign, drawn in a 0 0 100 100 viewBox.
+ *
+ * Exported because the hero draws the same glyphs directly rather than through
+ * the sampler - as a dotted stroke, so the line reads as a run of stars. Two
+ * sets of glyph paths would drift apart the first time one was corrected.
+ */
+export const ZODIAC_GLYPH_PATHS: Record<ZodiacSign, string> = {
   // Ram's horns curling out from a central stem.
   Aries:
     "M50 84 V46 M50 48 C50 30 42 18 31 18 C20 18 14 27 14 38 C14 47 18 54 25 57 M50 48 C50 30 58 18 69 18 C80 18 86 27 86 38 C86 47 82 54 75 57",
@@ -79,7 +85,7 @@ export function zodiacShapeFor(sign: ZodiacSign): string {
   const cached = CACHE.get(sign);
   if (cached) return cached;
 
-  const uri = glyphToDataUri(GLYPH_PATHS[sign]);
+  const uri = glyphToDataUri(ZODIAC_GLYPH_PATHS[sign]);
   CACHE.set(sign, uri);
   return uri;
 }
