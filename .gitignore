@@ -44,3 +44,6 @@ next-env.d.ts
 # Local report artefact storage (development only)
 .storage/
 .storage-test/
+
+# Runtime and PM2 logs
+logs/

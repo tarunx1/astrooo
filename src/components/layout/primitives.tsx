@@ -8,7 +8,7 @@ export function Section({
   children,
   className,
   id,
-  tone = "default",
+  tone: _tone = "default",
 }: {
   children: React.ReactNode;
   className?: string;
