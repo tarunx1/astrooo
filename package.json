@@ -16,6 +16,7 @@
     "seed:accounts": "tsx scripts/seed-accounts.ts",
     "tunnel": "bash scripts/start-tunnel.sh",
     "ci:check": "pnpm prisma validate && pnpm lint && pnpm typecheck && pnpm test",
+    "push:deploy": "bash scripts/push-and-deploy.sh",
     "prod:deploy": "bash scripts/deploy-production.sh",
     "prod:pm2": "pm2 start ecosystem.config.cjs",
     "prod:watchdog": "bash scripts/health-watchdog.sh"
