@@ -57,7 +57,7 @@ export function AccountLayout({
   children: React.ReactNode;
 }) {
   return (
-    <section className="min-h-[calc(100vh-var(--header-height))] bg-white">
+    <section className="min-h-[calc(100vh-var(--header-height))] bg-background">
       <AccountDashboardShell currentPath={currentPath}>
         <div className="min-w-0">
           <AccountHeader description={description} eyebrow={eyebrow} title={title} />

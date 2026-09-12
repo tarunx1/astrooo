@@ -14,7 +14,11 @@
     "admin:promote": "tsx scripts/promote-admin.ts",
     "admin:promote-super": "ADMIN_ROLE=SUPER_ADMIN tsx scripts/promote-admin.ts",
     "seed:accounts": "tsx scripts/seed-accounts.ts",
-    "tunnel": "bash scripts/start-tunnel.sh"
+    "tunnel": "bash scripts/start-tunnel.sh",
+    "ci:check": "pnpm prisma validate && pnpm lint && pnpm typecheck && pnpm test",
+    "prod:deploy": "bash scripts/deploy-production.sh",
+    "prod:pm2": "pm2 start ecosystem.config.cjs",
+    "prod:watchdog": "bash scripts/health-watchdog.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1124.0",

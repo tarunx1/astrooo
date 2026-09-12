@@ -20,19 +20,19 @@ type CardProps = React.HTMLAttributes<HTMLDivElement> & {
 };
 
 const variants = {
-  default: "border-border bg-surface",
-  interactive: "border-border bg-surface transition hover:border-primary hover:bg-surface-hover",
-  premium: "border-premium/50 bg-surface shadow-[var(--shadow-md)]",
+  default: "border-border bg-card text-card-foreground",
+  interactive: "border-border bg-card text-card-foreground transition hover:border-primary hover:bg-surface-hover",
+  premium: "border-premium/50 bg-card text-card-foreground shadow-[var(--shadow-md)]",
   commerce: "border-border-strong bg-surface-raised",
   astrology: "border-border bg-background-subtle shadow-[var(--shadow-sm)]",
-  admin: "border-slate-200 bg-white text-slate-900 shadow-xs",
-  "admin-interactive": "border-slate-200 bg-white text-slate-900 shadow-xs transition hover:border-blue-500 hover:shadow-sm",
-  glass: "border-white/10 bg-surface/75 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]",
-  "glass-raised": "border-white/15 bg-surface-raised/80 backdrop-blur-2xl shadow-[0_12px_40px_0_rgba(0,0,0,0.45)]",
+  admin: "border-border bg-card text-card-foreground shadow-xs",
+  "admin-interactive": "border-border bg-card text-card-foreground shadow-xs transition hover:border-primary hover:shadow-sm",
+  glass: "border-border bg-card/75 backdrop-blur-xl shadow-[var(--shadow-md)]",
+  "glass-raised": "border-border-strong bg-surface-raised/80 backdrop-blur-2xl shadow-[var(--shadow-lg)]",
   "glass-premium": "border-premium/40 bg-surface/80 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(214,181,109,0.15)]",
   // The lightest of the four, for a panel nested inside another glass card -
   // stacking two full-strength blurs reads as muddy rather than layered.
-  "glass-subtle": "border-white/5 bg-surface/50 backdrop-blur-md",
+  "glass-subtle": "border-border bg-surface/50 backdrop-blur-md",
 };
 
 export function Card({ children, variant = "default", spotlight = false, className, ...props }: CardProps) {
@@ -56,4 +56,3 @@ export function Card({ children, variant = "default", spotlight = false, classNa
 }
 
 export { GlassCard };
-

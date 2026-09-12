@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { PageContainer } from "@/components/layout/primitives";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
 import { navigation } from "@/config/navigation";
@@ -42,7 +43,7 @@ export async function SiteHeader() {
                 </Link>
               )}
               {item.items.length ? (
-                <div className="invisible absolute left-0 top-10 w-[620px] translate-y-2 rounded-xl border border-white/15 bg-surface/85 p-5 opacity-0 shadow-[0_16px_48px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl transition duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="invisible absolute left-0 top-10 w-[620px] translate-y-2 rounded-xl border border-border bg-popover/90 p-5 text-popover-foreground opacity-0 shadow-[var(--shadow-lg)] backdrop-blur-2xl transition duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                   <div className="grid grid-cols-2 gap-3">
                     {item.items.map((child) =>
                       "planned" in child && child.planned ? (
@@ -60,7 +61,7 @@ export async function SiteHeader() {
                         </span>
                       ) : (
                         <Link
-                          className="group/item rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-white/10 hover:bg-white/5 hover:shadow-lg"
+                          className="group/item rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-surface-hover hover:shadow-lg"
                           href={child.href}
                           key={child.label}
                           prefetch={false}
@@ -80,6 +81,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
+          <ThemeToggle />
           <AccountMenu
             user={
               user
@@ -127,6 +129,10 @@ export async function SiteHeader() {
                   </Link>
                 ),
               )}
+              <div className="flex items-center justify-between rounded-md border border-border bg-surface px-4 py-3">
+                <span className="text-sm font-semibold text-foreground-secondary">Theme</span>
+                <ThemeToggle />
+              </div>
               <Link
                 className="rounded-md border border-primary bg-surface-raised px-4 py-3 text-sm font-semibold"
                 href={user ? accountHref : "/sign-in"}

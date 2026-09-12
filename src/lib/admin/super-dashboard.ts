@@ -3,6 +3,8 @@ import "server-only";
 import { ConsultationStatus, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { getOperationsSummary, getPlatformAnalytics } from "@/lib/analytics/platform";
+import { getUserGeography } from "@/lib/analytics/geography.server";
+import type { GeographySummary } from "@/lib/analytics/geography";
 
 export type SuperDashboardMetricId = "accounts" | "consultations" | "orders" | "reports";
 
@@ -30,6 +32,8 @@ export type SuperAdminDashboardData = {
     role: string;
     createdAt: string;
   }>;
+  geography: GeographySummary | null;
+  geographyError: boolean;
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -99,6 +103,7 @@ export async function getSuperAdminDashboardData(now: Date = new Date()): Promis
     reportRows,
     recentAccounts,
     liveSessions,
+    geographyResult,
   ] = await Promise.all([
     getPlatformAnalytics(now),
     getOperationsSummary(now),
@@ -119,6 +124,9 @@ export async function getSuperAdminDashboardData(now: Date = new Date()): Promis
       distinct: ["userId"],
       select: { user: { select: { role: true } } },
     }),
+    getUserGeography()
+      .then((geography) => ({ geography, error: false as const }))
+      .catch(() => ({ geography: null, error: true as const })),
   ]);
 
   const metricDates: Array<{
@@ -174,5 +182,7 @@ export async function getSuperAdminDashboardData(now: Date = new Date()): Promis
       role: roleLabel(account.role),
       createdAt: account.createdAt.toISOString(),
     })),
+    geography: geographyResult.geography,
+    geographyError: geographyResult.error,
   };
 }

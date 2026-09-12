@@ -1,6 +1,7 @@
 [Unit]
-Description=Tarun Astro Next.js application
+Description=Tarun Astro Next.js Production Service
 After=network.target postgresql.service
+Wants=network-online.target
 
 [Service]
 Type=simple
@@ -10,18 +11,28 @@ WorkingDirectory=/opt/tarun-astro/current
 EnvironmentFile=/etc/tarun-astro/tarun-astro.env
 Environment=NODE_ENV=production
 Environment=PORT=3000
+Environment=NODE_OPTIONS="--max-old-space-size=2048"
+
 ExecStart=/usr/bin/pnpm start
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Crash-Proof Self-Healing Directives
 Restart=always
-RestartSec=5
+RestartSec=3s
+StartLimitIntervalSec=60s
+StartLimitBurst=10
+
+# Graceful termination
 TimeoutStopSec=30
 KillSignal=SIGINT
 
-# Basic hardening. Keep write access available for Next cache/runtime files in
-# the release directory; secrets stay in the root-owned EnvironmentFile.
+# Resource limits & hardening
+MemoryMax=2.5G
+LimitNOFILE=65535
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
-ProtectHome=true
+ProtectHome=read-only
 
 [Install]
 WantedBy=multi-user.target

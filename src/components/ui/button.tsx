@@ -18,7 +18,7 @@ const variants = {
   secondary: "border border-border-strong bg-surface text-foreground hover:bg-surface-hover",
   outline: "border border-border-strong bg-transparent text-foreground hover:border-primary hover:text-primary",
   ghost: "text-foreground-muted hover:text-foreground",
-  danger: "bg-danger text-foreground hover:opacity-90",
+  danger: "bg-danger text-primary-foreground hover:opacity-90",
 };
 
 const sizes = {
@@ -39,7 +39,7 @@ export function Button({
   onClick,
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition duration-[var(--motion-fast)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan",
+    "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition duration-[var(--motion-fast)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
     variants[variant],
     disabled && !href ? "cursor-not-allowed opacity-60" : null,
     disabled && href ? "pointer-events-none opacity-60" : null,

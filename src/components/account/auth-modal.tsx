@@ -162,13 +162,13 @@ export function GlassAuthCard({
     <GlassCard
       variant="glass-raised"
       spotlight={false}
-      className="relative z-10 my-auto max-h-[calc(100vh-3rem)] w-full max-w-[400px] overflow-y-auto rounded-[28px] border border-white/10 bg-[#141824]/90 p-7 shadow-[0_24px_80px_0_rgba(0,0,0,0.85)] backdrop-blur-3xl transition-all duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="relative z-10 my-auto max-h-[calc(100vh-3rem)] w-full max-w-[400px] overflow-y-auto rounded-[28px] border border-border bg-popover/95 p-7 text-popover-foreground shadow-[var(--shadow-lg)] backdrop-blur-3xl transition-all duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {/* Close Button (X) */}
       {showCloseButton && onClose ? (
         <button
           aria-label="Close auth dialog"
-          className="absolute right-5 top-5 grid size-9 place-items-center rounded-full border border-white/10 bg-white/5 text-foreground-muted transition hover:bg-white/15 hover:text-white"
+          className="absolute right-5 top-5 grid size-9 place-items-center rounded-full border border-border bg-surface text-foreground-muted transition hover:bg-surface-hover hover:text-foreground"
           onClick={onClose}
           type="button"
         >
@@ -179,13 +179,13 @@ export function GlassAuthCard({
       {/* Entrance switcher. Decides where you land and, for a Pandit sign-up,
           whether an application is opened - never what you may do. */}
       {!lockMode ? (
-        <div aria-label="Account type" className="mb-4 grid grid-cols-3 gap-1 rounded-full border border-white/10 bg-[#0b0e17] p-1" role="tablist">
+        <div aria-label="Account type" className="mb-4 grid grid-cols-3 gap-1 rounded-full border border-border bg-muted p-1" role="tablist">
           {(Object.keys(MODE_COPY) as AuthMode[]).map((option) => (
             <button
               aria-selected={mode === option}
               className={cn(
                 "rounded-full px-3 py-2 text-xs font-semibold transition duration-200",
-                mode === option ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white",
+                mode === option ? "bg-card text-foreground shadow-sm" : "text-foreground-muted hover:text-foreground",
               )}
               key={option}
               onClick={() => {
@@ -204,11 +204,11 @@ export function GlassAuthCard({
 
       {/* Tab Switcher Pill */}
       {canSignUp ? (
-        <div className="inline-flex rounded-full border border-white/10 bg-[#0b0e17] p-1">
+        <div className="inline-flex rounded-full border border-border bg-muted p-1">
           <button
             className={cn(
               "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
-              activeTab === "signup" ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white"
+              activeTab === "signup" ? "bg-card text-foreground shadow-sm" : "text-foreground-muted hover:text-foreground"
             )}
             onClick={() => setTab("signup")}
             type="button"
@@ -218,7 +218,7 @@ export function GlassAuthCard({
           <button
             className={cn(
               "rounded-full px-5 py-2 text-sm font-semibold transition duration-200",
-              activeTab === "signin" ? "bg-[#252b3d] text-white shadow-sm" : "text-foreground-muted hover:text-white"
+              activeTab === "signin" ? "bg-card text-foreground shadow-sm" : "text-foreground-muted hover:text-foreground"
             )}
             onClick={() => setTab("signin")}
             type="button"
@@ -229,12 +229,12 @@ export function GlassAuthCard({
       ) : null}
 
       {/* Title Header */}
-      <Heading className="mt-6 text-2xl font-bold tracking-tight text-white">
+      <Heading className="mt-6 text-2xl font-bold tracking-tight text-foreground">
         {activeTab === "signup" ? copy.signupTitle : copy.signinTitle}
       </Heading>
 
       {copy.note ? (
-        <p className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-foreground-secondary">
+        <p className="mt-3 rounded-2xl border border-border bg-muted p-3 text-xs text-foreground-secondary">
           {copy.note}
         </p>
       ) : null}
@@ -300,7 +300,7 @@ export function GlassAuthCard({
 
         {/* Primary Action Button */}
         <button
-          className="mt-2 min-h-12 w-full rounded-md bg-primary text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan disabled:opacity-50 active:bg-primary-active"
+          className="mt-2 min-h-12 w-full rounded-md bg-primary text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50 active:bg-primary-active"
           disabled={pending !== null}
           type="submit"
         >
@@ -314,11 +314,11 @@ export function GlassAuthCard({
 
       {/* Divider */}
       <div className="my-6 flex items-center gap-3">
-        <div className="h-px flex-1 bg-white/10" />
+        <div className="h-px flex-1 bg-border" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted/70">
           OR SIGN IN WITH
         </span>
-        <div className="h-px flex-1 bg-white/10" />
+        <div className="h-px flex-1 bg-border" />
       </div>
 
       {/* Social sign-in. Google is the only configured provider, so it is the
@@ -326,7 +326,7 @@ export function GlassAuthCard({
           either fail or quietly sign the visitor in with something else. */}
       <div className="grid gap-3">
         <button
-          className="flex min-h-12 items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#1e2333]/60 text-sm font-semibold text-white transition hover:bg-[#252b3d] disabled:opacity-50"
+          className="flex min-h-12 items-center justify-center gap-3 rounded-2xl border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-surface-hover disabled:opacity-50"
           disabled={pending !== null}
           onClick={handleGoogleSignIn}
           type="button"
@@ -339,7 +339,7 @@ export function GlassAuthCard({
       {/* Footer Terms */}
       <p className="mt-6 text-center text-xs text-foreground-muted/70">
         By creating an account, you agree to our{" "}
-        <a className="text-foreground-secondary underline transition hover:text-white" href="/terms">
+        <a className="text-foreground-secondary underline transition hover:text-foreground" href="/terms">
           Terms & Service
         </a>
       </p>
@@ -426,7 +426,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "signup", returnTo = b
       {/* Dimmed backdrop overlay. Decorative: the close button is the labelled control. */}
       <div
         aria-hidden="true"
-        className="fixed inset-0 bg-black/92 backdrop-blur-2xl transition-all duration-300"
+        className="fixed inset-0 bg-background/88 backdrop-blur-2xl transition-all duration-300"
         onClick={onClose}
       />
 

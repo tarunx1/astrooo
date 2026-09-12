@@ -20,13 +20,13 @@ export interface GlassCardProps extends HTMLAttributes<HTMLElement> {
 
 const variantStyles = {
   glass:
-    "border-white/10 bg-surface/75 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:border-white/20",
+    "border-border bg-card/75 text-card-foreground backdrop-blur-xl shadow-[var(--shadow-md)] hover:border-border-strong",
   "glass-raised":
-    "border-white/15 bg-surface-raised/80 backdrop-blur-2xl shadow-[0_12px_40px_0_rgba(0,0,0,0.45)] hover:border-white/25",
+    "border-border-strong bg-surface-raised/80 text-card-foreground backdrop-blur-2xl shadow-[var(--shadow-lg)] hover:border-primary/45",
   "glass-premium":
     "border-premium/40 bg-surface/80 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(214,181,109,0.15)] hover:border-premium/70",
   "glass-subtle":
-    "border-white/5 bg-surface/50 backdrop-blur-md hover:border-white/15",
+    "border-border bg-surface/50 backdrop-blur-md hover:border-border-strong",
 };
 
 export function GlassCard({

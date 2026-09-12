@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTheme } from "@/components/theme/theme-provider";
 import { useStarFieldSource } from "@/components/visuals/star-field-source";
 
 /**
@@ -29,6 +30,8 @@ const StarFieldCanvas = dynamic(() => import("@/components/visuals/star-field-ca
 export function StarFieldBackground() {
   const pathname = usePathname();
   const isAdminRoute = pathname ? pathname.startsWith("/admin") : false;
+  const { resolvedTheme } = useTheme();
+  const isDarkTheme = resolvedTheme === "dark";
 
   // Undefined until the preference is known, so nothing is requested during the
   // first client render and the decision is never made on a guess.
@@ -53,7 +56,7 @@ export function StarFieldBackground() {
    * On admin routes, the stars are suppressed so the live sky attribute is deleted.
    */
   useEffect(() => {
-    if (!animate || isAdminRoute) {
+    if (!animate || isAdminRoute || !isDarkTheme) {
       delete document.documentElement.dataset.starfield;
       return;
     }
@@ -61,9 +64,9 @@ export function StarFieldBackground() {
     return () => {
       delete document.documentElement.dataset.starfield;
     };
-  }, [animate, isAdminRoute]);
+  }, [animate, isAdminRoute, isDarkTheme]);
 
-  if (!animate || isAdminRoute) return null;
+  if (!animate || isAdminRoute || !isDarkTheme) return null;
 
   return (
     <StarFieldCanvas

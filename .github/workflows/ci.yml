@@ -1,0 +1,88 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-test:
+    name: Lint, Types, Tests & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NODE_ENV: test
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tarun_astro_test
+      BETTER_AUTH_SECRET: ci-test-only-secret-not-for-production-use-32ch
+      BETTER_AUTH_URL: http://localhost:3000
+      CONFIG_ENCRYPTION_KEY: lAiMQZnRBWHenKVhj9Wom97sV5AU5KVvBs93zEwFXS4=
+      ASTROLOGY_PROVIDER: vedastro
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tarun_astro_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Prisma Schema
+        run: pnpm prisma validate
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+
+      - name: Run Database Migrations
+        run: pnpm prisma migrate deploy
+
+      - name: Seed Test Accounts
+        run: pnpm seed:accounts
+
+      - name: ESLint Check
+        run: pnpm lint
+
+      - name: TypeScript Static Analysis
+        run: pnpm typecheck
+
+      - name: Run Vitest Test Suite
+        run: pnpm test
+
+      - name: Production Build Compilation
+        run: pnpm build
