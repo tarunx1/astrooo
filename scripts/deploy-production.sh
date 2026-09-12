@@ -50,7 +50,7 @@ fi
 
 # 2. Dependency Installation
 echo "==> Step 2: Installing dependencies with frozen lockfile..."
-pnpm install --frozen-lockfile
+CI=true pnpm install --frozen-lockfile
 
 # 3. Prisma Schema & Migrations
 echo "==> Step 3: Validating Prisma and applying database migrations..."

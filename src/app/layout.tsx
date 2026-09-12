@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { StarFieldBackground } from "@/components/visuals/star-field-background";
 import { StarFieldProvider } from "@/components/visuals/star-field-source";
 import { SiteHeader } from "@/components/navigation/site-header";
-import { ThemeInitScript, ThemeProvider } from "@/components/theme/theme-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { ThemeInitScript } from "@/components/theme/theme-init-script";
 import { brand } from "@/config/brand";
 import "./globals.css";
 

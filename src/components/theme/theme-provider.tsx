@@ -86,8 +86,3 @@ export function useTheme() {
   return context;
 }
 
-export function ThemeInitScript() {
-  const source = `!function(){try{var k="${THEME_STORAGE_KEY}",p=localStorage.getItem(k);if(p!=="light"&&p!=="dark"&&p!=="system")p="system";var s=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light",t=p==="system"?s:p,r=document.documentElement;r.classList.toggle("dark",t==="dark");r.classList.toggle("light",t==="light");r.dataset.theme=t;r.dataset.themePreference=p;r.style.colorScheme=t}catch(e){}}();`;
-
-  return <script dangerouslySetInnerHTML={{ __html: source }} suppressHydrationWarning />;
-}
