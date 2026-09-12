@@ -51,7 +51,7 @@ export function buildGeographySummary(
   rows: GeographyAggregateRow[],
   totalUsers: number,
 ): GeographySummary {
-  const markers = rows
+  const allMarkers = rows
     .filter(
       (row) =>
         Number.isFinite(row.latitude) &&
@@ -76,12 +76,11 @@ export function buildGeographySummary(
         precision: city ? "CITY" : region ? "REGION" : "COUNTRY",
       } satisfies GeographyMarker;
     })
-    .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id))
-    .slice(0, MAX_MARKERS);
+    .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
 
   const countriesByName = new Map<string, number>();
   let mappedUsers = 0;
-  for (const marker of markers) {
+  for (const marker of allMarkers) {
     mappedUsers += marker.count;
     countriesByName.set(marker.country, (countriesByName.get(marker.country) ?? 0) + marker.count);
   }
@@ -91,12 +90,11 @@ export function buildGeographySummary(
     .sort((a, b) => b.count - a.count || a.country.localeCompare(b.country));
 
   return {
-    markers,
+    markers: allMarkers.slice(0, MAX_MARKERS),
     countries,
     mappedUsers,
     unmappedUsers: Math.max(0, totalUsers - mappedUsers),
-    cityCount: markers.filter((marker) => marker.precision === "CITY").length,
+    cityCount: allMarkers.filter((marker) => marker.precision === "CITY").length,
     countryCount: countries.length,
   };
 }
-

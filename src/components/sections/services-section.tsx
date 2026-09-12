@@ -1,6 +1,8 @@
 import { ArrowRight } from "lucide-react";
-import { Section, SectionHeader } from "@/components/layout/primitives";
-import { GlassCard } from "@/components/ui/glass-card";
+import Link from "next/link";
+import { ResponsiveGrid, Section, SectionHeader } from "@/components/layout/primitives";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardFooter } from "@/components/ui/card";
 import { featuredServices } from "@/data/home";
 
 export function ServicesSection() {
@@ -10,31 +12,42 @@ export function ServicesSection() {
         title="A platform, not a landing page"
         text="The homepage is structured around real service discovery: free tools, paid reports, consultations, puja and commerce can grow without becoming a maze."
       />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <ResponsiveGrid min="15.5rem">
         {featuredServices.map((service, index) => {
           const Icon = service.icon;
           return (
-            <GlassCard
-              variant="glass"
-              spotlight={true}
-              className="p-6 transition-all duration-300 hover:-translate-y-1"
-              href={service.href}
+            <Card
+              equalHeight
+              variant="interactive"
+              className="group overflow-hidden"
               key={service.title}
             >
-              <div className="flex items-start justify-between gap-4">
-                <Icon className="text-premium" size={26} />
-                <span className="caption text-foreground-muted">0{index + 1}</span>
-              </div>
-              <p className="mt-7 caption uppercase text-premium">{service.type}</p>
-              <h3 className="mt-3 heading-lg">{service.title}</h3>
-              <p className="mt-4 body-sm text-foreground-secondary">{service.text}</p>
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition group-hover:text-premium">
-                Open service <ArrowRight size={16} />
-              </span>
-            </GlassCard>
+              <Link
+                className="flex h-full flex-col p-5 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-6"
+                href={service.href}
+                prefetch={false}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <span className="grid size-11 place-items-center rounded-lg border border-border bg-surface-raised text-premium">
+                    <Icon aria-hidden="true" size={22} />
+                  </span>
+                  <span className="caption text-foreground-muted">0{index + 1}</span>
+                </div>
+                <CardBody className="mt-6 gap-3">
+                  <Badge variant="premium">{service.type}</Badge>
+                  <h3 className="heading-md">{service.title}</h3>
+                  <p className="body-sm text-foreground-secondary">{service.text}</p>
+                </CardBody>
+                <CardFooter>
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-premium transition group-hover:text-foreground">
+                    Open service <ArrowRight size={16} />
+                  </span>
+                </CardFooter>
+              </Link>
+            </Card>
           );
         })}
-      </div>
+      </ResponsiveGrid>
     </Section>
   );
 }

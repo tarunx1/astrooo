@@ -2,7 +2,9 @@ import { ContentImage } from "@/components/ui/content-image";
 import Link from "next/link";
 import { ConsultationMode } from "@prisma/client";
 import { BadgeCheck, CalendarCheck, MessageSquare, Phone, Star, Video } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardFooter } from "@/components/ui/card";
+import { PriceDisplay } from "@/components/ui/price-display";
 import { cn } from "@/lib/utils";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 import type { DirectoryPandit } from "@/lib/consultations/directory";
@@ -69,7 +71,7 @@ export function PanditCard({ pandit }: { pandit: DirectoryPandit }) {
   return (
     <Card className="group flex h-full flex-col overflow-hidden" variant="interactive">
       <Link
-        className="flex h-full flex-col p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+        className="flex h-full flex-col p-5 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
         href={`/consultations/${pandit.slug}`}
         prefetch={false}
       >
@@ -111,66 +113,62 @@ export function PanditCard({ pandit }: { pandit: DirectoryPandit }) {
           </div>
         </div>
 
-        <dl className="mt-4 grid gap-1.5">
-          {pandit.expertise.length > 0 ? (
-            <div className="flex gap-2">
-              <dt className="sr-only">Specialisations</dt>
-              <dd className="line-clamp-1 caption text-foreground-secondary">
-                {pandit.expertise.slice(0, 3).join(" · ")}
-              </dd>
-            </div>
-          ) : null}
+        <CardBody className="mt-4 gap-2">
+          <dl className="grid gap-1.5">
+            {pandit.expertise.length > 0 ? (
+              <div className="flex gap-2">
+                <dt className="sr-only">Specialisations</dt>
+                <dd className="line-clamp-1 caption text-foreground-secondary">
+                  {pandit.expertise.slice(0, 3).join(" · ")}
+                </dd>
+              </div>
+            ) : null}
 
-          <div className="flex flex-wrap gap-x-3 gap-y-1 caption text-foreground-muted">
-            {pandit.yearsOfExperience !== null ? (
-              <span>
-                <dt className="sr-only">Experience</dt>
-                <dd className="inline">{pandit.yearsOfExperience} yrs experience</dd>
-              </span>
-            ) : null}
-            {pandit.languages.length > 0 ? (
-              <span>
-                <dt className="sr-only">Languages</dt>
-                <dd className="inline">{pandit.languages.slice(0, 3).join(", ")}</dd>
-              </span>
-            ) : null}
-          </div>
-        </dl>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 caption text-foreground-muted">
+              {pandit.yearsOfExperience !== null ? (
+                <span>
+                  <dt className="sr-only">Experience</dt>
+                  <dd className="inline">{pandit.yearsOfExperience} yrs experience</dd>
+                </span>
+              ) : null}
+              {pandit.languages.length > 0 ? (
+                <span>
+                  <dt className="sr-only">Languages</dt>
+                  <dd className="inline">{pandit.languages.slice(0, 3).join(", ")}</dd>
+                </span>
+              ) : null}
+            </div>
+          </dl>
+        </CardBody>
 
         <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
           {pandit.services.map((service) => {
             const Icon = MODE_ICON[service.mode];
             return (
-              <span
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-raised px-2 py-1 caption text-foreground-secondary"
-                key={service.mode}
-              >
+              <Badge key={service.mode}>
                 <Icon aria-hidden="true" size={12} />
                 {MODE_SHORT[service.mode]}
-              </span>
+              </Badge>
             );
           })}
         </div>
 
-        <div className="mt-3 flex items-end justify-between gap-3 border-t border-border pt-3">
+        <CardFooter className="mt-3 flex items-end justify-between gap-3 border-t border-border pt-3">
           {cheapest ? (
-            <p className="body-sm">
-              <span className="caption text-foreground-muted">from </span>
-              <span className="font-semibold text-foreground">{formatRate(cheapest)}</span>
-            </p>
+            <PriceDisplay amount={`from ${formatRate(cheapest)}`} size="sm" />
           ) : (
             <p className="caption text-foreground-muted">Rates on profile</p>
           )}
 
           {pandit.hasAvailability ? (
-            <span className="inline-flex items-center gap-1.5 caption text-success">
+            <Badge variant="success">
               <CalendarCheck aria-hidden="true" size={13} />
               Taking bookings
-            </span>
+            </Badge>
           ) : (
             <span className="caption text-foreground-muted">No slots listed</span>
           )}
-        </div>
+        </CardFooter>
       </Link>
     </Card>
   );

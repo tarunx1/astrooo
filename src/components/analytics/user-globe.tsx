@@ -13,9 +13,8 @@ import {
   SphereGeometry,
   type InstancedMesh,
 } from "three";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { GeographyMarker } from "@/lib/analytics/geography";
-import { useTheme } from "@/components/theme/theme-provider";
 
 export type UserGlobeMarker = GeographyMarker;
 
@@ -231,6 +230,39 @@ function supportsWebGL() {
   }
 }
 
+function readGlobePalette(): GlobePalette {
+  if (typeof document === "undefined") {
+    return { ocean: "white", land: "slategray", atmosphere: "royalblue", marker: "darkgoldenrod" };
+  }
+  const styles = getComputedStyle(document.documentElement);
+  const token = (name: string) => styles.getPropertyValue(name).trim();
+  return {
+    ocean: token("--card"),
+    land: token("--foreground-secondary"),
+    atmosphere: token("--primary"),
+    marker: token("--astro-gold"),
+  };
+}
+
+class GlobeErrorBoundary extends Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <div className="grid min-h-[320px] place-items-center rounded-lg bg-muted px-6 text-center text-sm text-muted-foreground" role="status">
+          Interactive globe unavailable on this device. Location totals remain available beside the visualization.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -260,9 +292,9 @@ export function UserGlobe({
   const [interacting, setInteracting] = useState(false);
   const [hovered, setHovered] = useState<UserGlobeMarker | null>(null);
   const [selected, setSelected] = useState<UserGlobeMarker | null>(markers[0] ?? null);
+  const [palette, setPalette] = useState<GlobePalette>(readGlobePalette);
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reducedMotion = useReducedMotion();
-  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const node = containerRef.current;
@@ -279,22 +311,11 @@ export function UserGlobe({
   useEffect(() => () => {
     if (resumeTimer.current) clearTimeout(resumeTimer.current);
   }, []);
-
-  const palette = useMemo<GlobePalette>(() => {
-    if (typeof document === "undefined") {
-      return resolvedTheme === "dark"
-        ? { ocean: "navy", land: "white", atmosphere: "royalblue", marker: "goldenrod" }
-        : { ocean: "white", land: "slategray", atmosphere: "royalblue", marker: "darkgoldenrod" };
-    }
-    const styles = getComputedStyle(document.documentElement);
-    const token = (name: string) => styles.getPropertyValue(name).trim();
-    return {
-      ocean: token("--card"),
-      land: token("--foreground-secondary"),
-      atmosphere: token("--primary"),
-      marker: token("--astro-gold"),
-    };
-  }, [resolvedTheme]);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setPalette(readGlobePalette()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    return () => observer.disconnect();
+  }, []);
 
   const stopInteractingSoon = () => {
     if (resumeTimer.current) clearTimeout(resumeTimer.current);
@@ -327,20 +348,22 @@ export function UserGlobe({
       ref={containerRef}
       role="img"
     >
-      <Canvas
-        camera={{ position: [0, 0, 3.05], fov: 40 }}
-        dpr={[1, 2]}
-        frameloop={inView && pageVisible ? "always" : "never"}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-      >
-        <GlobeScene
-          markers={markers}
-          onHover={setHovered}
-          onSelect={setSelected}
-          palette={palette}
-          rotate={autoRotate && !reducedMotion && !interacting && inView && pageVisible}
-        />
-      </Canvas>
+      <GlobeErrorBoundary>
+        <Canvas
+          camera={{ position: [0, 0, 3.05], fov: 40 }}
+          dpr={[1, 2]}
+          frameloop={inView && pageVisible ? "always" : "never"}
+          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        >
+          <GlobeScene
+            markers={markers}
+            onHover={setHovered}
+            onSelect={setSelected}
+            palette={palette}
+            rotate={autoRotate && !reducedMotion && !interacting && inView && pageVisible}
+          />
+        </Canvas>
+      </GlobeErrorBoundary>
       {showLabels && activeMarker ? (
         <div className="pointer-events-none absolute bottom-7 left-1/2 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded border border-border bg-popover/95 px-3 py-2 text-center text-[11px] text-popover-foreground shadow-md backdrop-blur">
           <strong className="block truncate font-semibold">

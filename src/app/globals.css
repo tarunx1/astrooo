@@ -135,15 +135,19 @@ body {
     font-family: var(--font-sans);
     font-size: 0.875rem;
     line-height: 1.5;
-    transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+    transition: border-color var(--motion-fast), box-shadow var(--motion-fast), background-color var(--motion-fast);
   }
 
   .form-control::placeholder { color: var(--foreground-muted); opacity: 1; }
   .form-control:hover:not(:disabled) { border-color: var(--foreground-muted); }
-  .form-control:focus {
+  .form-control:focus,
+  .form-control:focus-visible {
     border-color: var(--ring);
-    outline: 2px solid var(--ring);
+    outline: 3px solid color-mix(in srgb, var(--ring) 58%, transparent);
     outline-offset: 2px;
+  }
+  .form-control:not(:placeholder-shown) {
+    border-color: color-mix(in srgb, var(--border-strong) 78%, var(--foreground));
   }
   .form-control:disabled { cursor: not-allowed; opacity: 0.5; }
   .form-control[readonly] { background: var(--surface); }
@@ -152,14 +156,32 @@ body {
     border-color: var(--danger);
   }
   .form-control[aria-invalid="true"]:focus,
-  .form-field[data-invalid="true"] .form-control:focus { outline-color: var(--danger); }
+  .form-field[data-invalid="true"] .form-control:focus { outline-color: color-mix(in srgb, var(--danger) 58%, transparent); }
   .form-control option { background: var(--surface); color: var(--foreground); }
   :where(form input[type="checkbox"], form input[type="radio"]) {
     accent-color: var(--primary);
   }
   :where(form input[type="checkbox"], form input[type="radio"]):focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 3px solid color-mix(in srgb, var(--ring) 58%, transparent);
     outline-offset: 3px;
+  }
+  .form-field {
+    gap: 0.375rem;
+  }
+  .form-stack {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .form-section {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .form-section-title {
+    color: var(--foreground);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.35;
   }
   :where(form input[type="checkbox"], form input[type="radio"]):disabled {
     cursor: not-allowed;
@@ -306,6 +328,10 @@ body {
  * the same sky far better, and this would sit on top of it - so it stands down
  * to transparent and lets the real one through.
  */
+section {
+  background-color: transparent;
+}
+
 :root.dark[data-starfield="live"] .star-field {
   background-color: transparent;
   background-image: none;
@@ -313,7 +339,7 @@ body {
 
 .star-field {
   position: relative;
-  background-color: var(--background);
+  background-color: transparent;
   background-image:
     radial-gradient(circle at 14% 18%, color-mix(in srgb, var(--premium) 72%, transparent) 0 1px, transparent 1.75px),
     radial-gradient(circle at 76% 12%, color-mix(in srgb, var(--primary) 72%, transparent) 0 1px, transparent 1.7px),
@@ -324,7 +350,7 @@ body {
   background-position: 0 0, 37px 19px, 74px 36px, 0 0, 0 20rem;
 }
 
-.astro-card {
+  .astro-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 94%, transparent), var(--surface));

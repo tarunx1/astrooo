@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BadgeCheck, PackageCheck, PackageX, ShieldCheck, Sparkles, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PriceDisplay as UiPriceDisplay } from "@/components/ui/price-display";
 import { cn } from "@/lib/utils";
 import { formatMoneyMinor, type ProductCardData } from "@/lib/shop/catalog";
 import type { Certification, Specification } from "@/lib/shop/attributes";
@@ -18,22 +19,19 @@ export function PriceDisplay({
   currency: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const priceClass = size === "lg" ? "text-2xl" : size === "sm" ? "text-sm" : "text-lg";
+  const amount = formatMoneyMinor(priceMinor, currency);
+  const compareAt = compareAtPriceMinor ? formatMoneyMinor(compareAtPriceMinor, currency) : null;
+  const discountLabel = compareAtPriceMinor
+    ? `${Math.round(((compareAtPriceMinor - priceMinor) / compareAtPriceMinor) * 100)}% off`
+    : null;
 
   return (
-    <p className="flex flex-wrap items-baseline gap-2">
-      <span className={cn("font-semibold text-foreground", priceClass)}>{formatMoneyMinor(priceMinor, currency)}</span>
-      {compareAtPriceMinor ? (
-        <>
-          <span className="body-sm text-foreground-muted line-through">
-            {formatMoneyMinor(compareAtPriceMinor, currency)}
-          </span>
-          <span className="caption text-success">
-            {Math.round(((compareAtPriceMinor - priceMinor) / compareAtPriceMinor) * 100)}% off
-          </span>
-        </>
-      ) : null}
-    </p>
+    <UiPriceDisplay
+      amount={amount}
+      compareAt={compareAt}
+      discountLabel={discountLabel}
+      size={size}
+    />
   );
 }
 

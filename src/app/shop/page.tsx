@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PackageSearch } from "lucide-react";
 import { PageContainer, Section, SectionHeader } from "@/components/layout/primitives";
 import { ProductGrid } from "@/components/shop/product-primitives";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { listProducts, listShopCategories } from "@/lib/shop/catalog";
 import { brand } from "@/config/brand";
@@ -35,7 +37,7 @@ export default async function ShopPage() {
                     prefetch={false}
                   >
                     {category.name}
-                    <span className="caption text-foreground-muted">{category.productCount}</span>
+                    <Badge>{category.productCount}</Badge>
                   </Link>
                 </li>
               ))}
@@ -44,7 +46,11 @@ export default async function ShopPage() {
         ) : null}
 
         {products.length === 0 ? (
-          <EmptyState message="Our store is being prepared. Please check back shortly." title="No products listed yet" />
+          <EmptyState
+            icon={<PackageSearch aria-hidden="true" size={20} />}
+            message="Our store is being prepared. Please check back shortly."
+            title="No products listed yet"
+          />
         ) : (
           <ProductGrid products={products} />
         )}

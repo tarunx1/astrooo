@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ConsultationMode } from "@prisma/client";
 import { Search, X } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 /**
@@ -100,46 +101,47 @@ export function DirectoryFilters({
   );
 
   const selectClass =
-    "min-h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-foreground transition hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan";
+    "form-control min-h-11 w-full";
 
   return (
-    <search className={cn("grid gap-4", isPending && "opacity-70")}>
-      <div className="relative">
-        <Search
-          aria-hidden="true"
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-foreground-muted"
-          size={17}
-        />
-        <label className="sr-only" htmlFor="pandit-search">
-          Search practitioners by name, specialisation or language
-        </label>
-        <input
-          autoComplete="off"
-          className="form-control min-h-12 w-full pl-11 pr-11"
-          id="pandit-search"
-          onChange={(event) => {
-            typing.current = true;
-            setQuery(event.target.value);
-          }}
-          placeholder="Search by name, specialisation or city"
-          type="search"
-          value={query}
-        />
-        {query ? (
-          <button
-            aria-label="Clear search"
-            className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-foreground-muted transition hover:bg-surface-hover hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
-            onClick={() => {
-              typing.current = false;
-              setQuery("");
-              setParam("q", undefined);
+    <Card className={cn("p-4 sm:p-5", isPending && "opacity-70")}>
+      <search className="grid gap-4">
+        <div className="relative">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-foreground-muted"
+            size={17}
+          />
+          <label className="sr-only" htmlFor="pandit-search">
+            Search practitioners by name, specialisation or language
+          </label>
+          <input
+            autoComplete="off"
+            className="form-control min-h-12 w-full pl-11 pr-11"
+            id="pandit-search"
+            onChange={(event) => {
+              typing.current = true;
+              setQuery(event.target.value);
             }}
-            type="button"
-          >
-            <X size={15} />
-          </button>
-        ) : null}
-      </div>
+            placeholder="Search by name, specialisation or city"
+            type="search"
+            value={query}
+          />
+          {query ? (
+            <button
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-foreground-muted transition hover:bg-surface-hover hover:text-foreground focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              onClick={() => {
+                typing.current = false;
+                setQuery("");
+                setParam("q", undefined);
+              }}
+              type="button"
+            >
+              <X size={15} />
+            </button>
+          ) : null}
+        </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div>
@@ -219,7 +221,7 @@ export function DirectoryFilters({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
         <label className="inline-flex cursor-pointer items-center gap-2 body-sm text-foreground-secondary">
           <input
             checked={current.available === "1"}
@@ -232,7 +234,7 @@ export function DirectoryFilters({
 
         {hasFilters ? (
           <button
-            className="ml-auto inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border px-3 caption font-semibold text-foreground-secondary transition hover:border-border-strong hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+            className="ml-auto inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border px-3 caption font-semibold text-foreground-secondary transition hover:border-border-strong hover:text-foreground focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
             onClick={() => {
               typing.current = false;
               setQuery("");
@@ -244,7 +246,8 @@ export function DirectoryFilters({
             Clear all
           </button>
         ) : null}
-      </div>
-    </search>
+        </div>
+      </search>
+    </Card>
   );
 }

@@ -4,7 +4,7 @@ import { trustMetrics } from "@/data/home";
 
 export function TrustSection() {
   return (
-    <section className="border-y border-border py-12">
+    <section className="relative bg-transparent py-12">
       <PageContainer className="grid gap-7 md:grid-cols-[0.8fr_1fr] md:items-center">
         <div>
           <ShieldCheck className="text-premium" size={30} />

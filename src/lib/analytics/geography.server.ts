@@ -43,7 +43,6 @@ async function queryUserGeography(): Promise<GeographySummary> {
         LOWER(COALESCE(region, '')),
         LOWER(COALESCE(country, 'Unknown'))
       ORDER BY count DESC
-      LIMIT 200
     `,
     prisma.user.count(),
   ]);
@@ -59,4 +58,3 @@ export const getUserGeography = unstable_cache(queryUserGeography, ["user-geogra
   revalidate: 600,
   tags: ["user-geography"],
 });
-

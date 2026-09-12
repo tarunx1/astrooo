@@ -7,7 +7,7 @@ import { quickServices } from "@/data/home";
 
 export function HeroSection() {
   return (
-    <section className="star-field overflow-hidden border-b border-border">
+    <section className="star-field overflow-hidden bg-transparent">
       <PageContainer className="relative py-16">
         <div className="grid min-h-[clamp(520px,calc(100vh-var(--header-height)-18rem),760px)] items-center gap-12 lg:grid-cols-[0.82fr_1fr]">
           <div className="relative z-10 max-w-2xl">

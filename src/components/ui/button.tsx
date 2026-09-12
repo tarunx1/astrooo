@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 type ButtonProps = {
   children: React.ReactNode;
   href?: string;
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "premium" | "danger";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "text" | "premium" | "danger";
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   type?: "button" | "submit";
@@ -18,6 +18,7 @@ const variants = {
   secondary: "border border-border-strong bg-surface text-foreground hover:bg-surface-hover",
   outline: "border border-border-strong bg-transparent text-foreground hover:border-primary hover:text-primary",
   ghost: "text-foreground-muted hover:text-foreground",
+  text: "min-h-0 rounded-none px-0 py-0 text-premium hover:text-foreground hover:underline",
   danger: "bg-danger text-primary-foreground hover:opacity-90",
 };
 
@@ -39,11 +40,11 @@ export function Button({
   onClick,
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition duration-[var(--motion-fast)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+    "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition duration-[var(--motion-fast)] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
     variants[variant],
+    variant !== "text" ? sizes[size] : null,
     disabled && !href ? "cursor-not-allowed opacity-60" : null,
     disabled && href ? "pointer-events-none opacity-60" : null,
-    sizes[size],
     className,
   );
 

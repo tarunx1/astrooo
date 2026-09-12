@@ -8,13 +8,21 @@ export function Section({
   children,
   className,
   id,
+  tone = "default",
 }: {
   children: React.ReactNode;
   className?: string;
   id?: string;
+  tone?: "default" | "subtle" | "surface";
 }) {
   return (
-    <section className={cn("py-[var(--section-space-md)]", className)} id={id}>
+    <section
+      className={cn(
+        "relative bg-transparent py-[var(--section-space-md)]",
+        className,
+      )}
+      id={id}
+    >
       <PageContainer>{children}</PageContainer>
     </section>
   );
@@ -24,16 +32,26 @@ export function SectionHeader({
   title,
   text,
   action,
+  align = "content",
   className,
 }: {
   title: string;
   text?: string;
   action?: React.ReactNode;
+  align?: "content" | "marketing";
   className?: string;
 }) {
   return (
-    <div className={cn("mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between", className)}>
-      <div className="max-w-[var(--container-sm)]">
+    <div
+      className={cn(
+        "mb-10 flex flex-col gap-5",
+        align === "marketing"
+          ? "mx-auto max-w-3xl items-center text-center"
+          : "md:flex-row md:items-end md:justify-between",
+        className,
+      )}
+    >
+      <div className={cn("max-w-[var(--container-sm)]", align === "marketing" && "mx-auto")}>
         <h2 className="heading-xl">{title}</h2>
         {text ? <p className="mt-4 body-lg text-foreground-secondary">{text}</p> : null}
       </div>
@@ -45,11 +63,17 @@ export function SectionHeader({
 export function ResponsiveGrid({
   children,
   className,
+  min = "17rem",
 }: {
   children: React.ReactNode;
   className?: string;
+  min?: string;
 }) {
-  return <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-4", className)}>{children}</div>;
+  return (
+    <div className={cn("grid gap-4", className)} style={{ gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${min}), 1fr))` }}>
+      {children}
+    </div>
+  );
 }
 
 export function Stack({ children, className }: { children: React.ReactNode; className?: string }) {

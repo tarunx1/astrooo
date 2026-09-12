@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { MessageCircle, Phone, Video } from "lucide-react";
 import { Section, SectionHeader } from "@/components/layout/primitives";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GlassCard } from "@/components/ui/glass-card";
+import { Card, CardBody, CardFooter } from "@/components/ui/card";
 import { astrologers } from "@/data/home";
 
 export function ConsultationSection() {
@@ -15,7 +16,7 @@ export function ConsultationSection() {
       />
       <div className="grid gap-4 lg:grid-cols-3">
         {astrologers.map((astrologer) => (
-          <GlassCard variant="glass" spotlight={true} className="p-6" key={astrologer.name}>
+          <Card equalHeight padding="lg" variant="glass" spotlight={true} key={astrologer.name}>
             <div className="flex items-start justify-between gap-4">
               <div className="relative size-16 overflow-hidden rounded-full border border-premium/70 shadow-md">
                 <Image
@@ -26,15 +27,17 @@ export function ConsultationSection() {
                   sizes="64px"
                 />
               </div>
-              <span className="caption flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-success">
+              <Badge variant="success">
                 <span className="size-1.5 rounded-full bg-success animate-pulse" />
                 Online
-              </span>
+              </Badge>
             </div>
-            <h3 className="mt-5 heading-lg">{astrologer.name}</h3>
-            <p className="mt-2 body-sm text-foreground-secondary">{astrologer.skill}</p>
-            <p className="mt-1 body-sm text-foreground-muted">{astrologer.language} · {astrologer.sessions} sessions</p>
-            <div className="mt-6 grid grid-cols-3 gap-2">
+            <CardBody className="mt-5 gap-2">
+              <h3 className="heading-md">{astrologer.name}</h3>
+              <p className="body-sm text-foreground-secondary">{astrologer.skill}</p>
+              <p className="body-sm text-foreground-muted">{astrologer.language} · {astrologer.sessions} sessions</p>
+            </CardBody>
+            <CardFooter className="grid grid-cols-3 gap-2">
               {[
                 { Icon: Phone, label: "Call" },
                 { Icon: MessageCircle, label: "Chat with" },
@@ -49,8 +52,8 @@ export function ConsultationSection() {
                   <Icon aria-hidden="true" size={18} />
                 </button>
               ))}
-            </div>
-          </GlassCard>
+            </CardFooter>
+          </Card>
         ))}
       </div>
     </Section>

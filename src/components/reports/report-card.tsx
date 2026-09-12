@@ -1,14 +1,15 @@
-import Link from "next/link";
 import { ArrowRight, FileText } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardBody, CardFooter } from "@/components/ui/card";
+import { PriceDisplay } from "@/components/ui/price-display";
 import { formatMoneyMinor, type ReportDefinitionSummary } from "@/lib/reports/catalog";
 
 export function ReportCard({ report }: { report: ReportDefinitionSummary }) {
   return (
-    <Card className="h-full p-5" variant="interactive">
-      <div className="flex h-full flex-col gap-5">
+    <Card equalHeight padding="md" variant="interactive">
+      <CardBody className="gap-5">
         <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-surface-raised text-primary">
+          <span className="grid size-11 shrink-0 place-items-center rounded-lg border border-border bg-surface-raised text-primary">
             <FileText aria-hidden="true" size={18} />
           </span>
           <div className="min-w-0">
@@ -17,21 +18,18 @@ export function ReportCard({ report }: { report: ReportDefinitionSummary }) {
           </div>
         </div>
 
-        <div className="mt-auto flex items-center justify-between gap-4 border-t border-border pt-4">
-          <div>
-            <p className="body-sm font-semibold text-foreground">{formatMoneyMinor(report.priceMinor, report.currency)}</p>
-            <p className="caption text-foreground-muted">{report.estimatedPages} page guide</p>
-          </div>
-          <Link
-            className="inline-flex min-h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 py-2 text-xs font-semibold transition hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
-            href={`/reports/${report.slug}`}
-            prefetch={false}
-          >
+        <CardFooter className="flex items-center justify-between gap-4 border-t border-border">
+          <PriceDisplay
+            amount={formatMoneyMinor(report.priceMinor, report.currency)}
+            meta={`${report.estimatedPages} page guide`}
+            size="sm"
+          />
+          <Button href={`/reports/${report.slug}`} size="sm" variant="secondary">
             View
             <ArrowRight aria-hidden="true" size={14} />
-          </Link>
-        </div>
-      </div>
+          </Button>
+        </CardFooter>
+      </CardBody>
     </Card>
   );
 }

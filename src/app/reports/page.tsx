@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FileText } from "lucide-react";
 import { Section, SectionHeader } from "@/components/layout/primitives";
 import { ReportCard } from "@/components/reports/report-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -22,7 +23,11 @@ export default async function ReportsPage() {
       />
 
       {reports.length === 0 ? (
-        <EmptyState message="Report checkout is being prepared." title="No reports available" />
+        <EmptyState
+          icon={<FileText aria-hidden="true" size={20} />}
+          message="Report checkout is being prepared."
+          title="No reports available"
+        />
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {reports.map((report) => (

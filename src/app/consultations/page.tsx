@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ConsultationMode } from "@prisma/client";
+import { SearchX } from "lucide-react";
 import { PageContainer, Section, SectionHeader } from "@/components/layout/primitives";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DirectoryFilters } from "@/components/consultations/directory-filters";
 import { PanditGrid } from "@/components/consultations/pandit-card";
@@ -107,6 +109,8 @@ export default async function ConsultationsPage({
 
           {result.rows.length === 0 ? (
             <EmptyState
+              action={<Button href="/consultations" variant="secondary">Clear filters</Button>}
+              icon={<SearchX aria-hidden="true" size={20} />}
               message={
                 result.total === 0
                   ? "Try widening your filters, or clear them to see everyone currently taking bookings."
