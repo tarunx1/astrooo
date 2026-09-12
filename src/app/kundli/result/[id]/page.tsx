@@ -12,8 +12,10 @@ import {
   PlanetaryPositionsTable,
 } from "@/components/kundli/result-sections";
 import { KundliCharts } from "@/components/astrology/kundli-charts";
+import { TransitChartSection } from "@/components/astrology/transit-chart-section";
 import { DashaTable } from "@/components/astrology/dasha-table";
 import { SaveKundliCard } from "@/components/kundli/save-kundli";
+import { EditKundliDetails } from "@/components/kundli/edit-kundli-details";
 import { getKundliResult } from "@/lib/kundli/service";
 import { getCurrentUser } from "@/lib/auth/session";
 import { consumeContinuation } from "@/lib/auth/continuation";
@@ -43,7 +45,29 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
 
   return (
     <AstrologyPageShell>
-        <KundliOverview result={result} />
+        <KundliOverview
+          actions={
+            result.person && result.location ? (
+              <EditKundliDetails
+                defaults={{
+                  name: result.person.name ?? "",
+                  gender: result.person.gender,
+                  dateOfBirth: result.person.dateOfBirth ?? "",
+                  timeOfBirth: result.person.timeOfBirth ?? "",
+                  timeAccuracy: result.person.timeAccuracy ?? "EXACT",
+                  place: {
+                    placeId: result.location.placeId ?? "",
+                    displayName: result.location.displayName ?? "",
+                    city: result.location.city ?? "",
+                    region: result.location.region ?? "",
+                    country: result.location.country ?? "",
+                  },
+                }}
+              />
+            ) : undefined
+          }
+          result={result}
+        />
         <SaveKundliCard
           calculationId={id}
           hasPendingContinuation={hasPendingContinuation}
@@ -56,10 +80,13 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
           <div className="min-w-0"><KundliCharts result={result} /></div>
           {/* The positions table is short and the charts beside it are tall, so
               the dasha sits under it rather than leaving that column empty
-              half way down the page. */}
+              half way down the page. The transit chart follows for the same
+              reason - it fills the space the dasha leaves, and it belongs next
+              to the positions it is meant to be read against. */}
           <div className="grid min-w-0 gap-6 self-start">
             <PlanetaryPositionsTable result={result} />
             <DashaTable result={result} />
+            <TransitChartSection result={result} />
           </div>
         </section>
         <section className="grid gap-6 lg:grid-cols-2">

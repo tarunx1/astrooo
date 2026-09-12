@@ -3,7 +3,6 @@ import { ChartPanel } from "@/components/astrology/chart-panel";
 import { GocharPanel } from "@/components/astrology/gochar-panel";
 import { KpPanel } from "@/components/astrology/kp-panel";
 import { PlanetPositionTable } from "@/components/astrology/planet-position-table";
-import { TransitChartSwitcher } from "@/components/astrology/transit-chart-switcher";
 import { VedicChart } from "@/components/astrology/vedic-chart";
 import { Card } from "@/components/ui/card";
 import { createChartsFromKundli } from "@/lib/astrology/charts/factory";
@@ -75,22 +74,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
     {
       id: "kp",
       label: "KP",
-      content: (
-        <div className="grid gap-6">
-          {/*
-            KP judges a matter by the cusp, and reading one means comparing where
-            the planets are now against where they were at birth. The switcher
-            keeps both charts in one frame so that comparison does not require
-            holding one of them in your head while scrolling to the other.
-          */}
-          <TransitChartSwitcher
-            natal={rashi}
-            natalLagnaSign={rashi.ascendantSign}
-            natalMoonSign={moonSign}
-          />
-          <KpPanel result={result} />
-        </div>
-      ),
+      content: <KpPanel result={result} />,
     },
   ];
 
