@@ -77,7 +77,6 @@
 html {
   scroll-behavior: smooth;
   overflow-x: clip;
-  background-color: var(--background);
 }
 
 body {
