@@ -27,8 +27,8 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <HeroSection />
-      {/* Each wrapped section steps aside in turn - left, then right, and on
-          down the page - so the sign forms in the half it frees. */}
+      {/* Each wrapped section permanently reserves a gutter - right, then left,
+          and on down the page - and the sign forms in it. Nothing shifts. */}
       <ZodiacRevealProvider>
         <ZodiacReveal index={0}>
           <ServicesSection />

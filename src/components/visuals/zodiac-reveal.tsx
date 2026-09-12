@@ -1,38 +1,31 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, type ReactNode } from "react";
 import { useStarFieldSource } from "@/components/visuals/star-field-source";
 import { ALIGN_MIN_WIDTH, formationHalfHeightFraction } from "@/lib/star-image/formation";
 import { ZODIAC_SIGNS, zodiacShapeFor } from "@/lib/star-image/zodiac-shapes";
 import { cn } from "@/lib/utils";
 
 /**
- * Sections step aside to let a sign form in the space they leave.
+ * Sections keep a permanent strip of sky beside them for a sign to form in.
  *
  * The star field is a fixed backdrop and this page is full-width cards, so a
  * formation anywhere near the content spends its life behind something opaque.
- * The previous answer was to insert empty bands with nothing in them but the
- * sign's name - screens of blank sky whose only job was to be out of the way.
+ * Two earlier answers were worse. Inserting empty bands gave up whole screens
+ * of blank sky whose only job was to be out of the way. Letting the section
+ * step aside as the sign arrived kept the page dense, but it meant content
+ * moved sideways under the reader while they were looking at it.
  *
- * This is the opposite answer. Nothing is added; the section that is already
- * on screen shrinks toward one edge, and the sign forms in the half it frees.
- * Scroll past and the section returns to full size. The side alternates down
- * the page, so one section clears to the left and the next to the right.
+ * So the space is reserved up front instead of taken on arrival. Every wrapped
+ * section is laid out against a gutter it always has, whether a sign is forming
+ * in it or not, and nothing shifts left or right at any point in the scroll.
+ * The gutter alternates down the page - one section clears to the left, the
+ * next to the right - so the reserved strips read as a rhythm rather than as a
+ * permanently lopsided page.
  */
 
-type RevealState = { activeIndex: number | null; side: "left" | "right" };
-
-const ZodiacRevealContext = createContext<RevealState>({ activeIndex: null, side: "left" });
-
-/** Which way the section at this index steps: even to the left, odd to the right. */
-const sideFor = (index: number): "left" | "right" => (index % 2 === 0 ? "left" : "right");
+/** Which side the gutter is on: even sections clear right, odd sections left. */
+const gutterFor = (index: number): "left" | "right" => (index % 2 === 0 ? "right" : "left");
 
 /**
  * Where in the zodiac the page has reached. Kept as a fraction of total scroll
@@ -41,9 +34,15 @@ const sideFor = (index: number): "left" | "right" => (index % 2 === 0 ? "left" :
  */
 const HERO_FRACTION = 0.12;
 
+/**
+ * Drives which sign the shared star field forms as the page scrolls.
+ *
+ * Holds no state of its own. The layout no longer reacts to the active section,
+ * so the only output is the shape handed to the star field - which means a
+ * scroll does not re-render the page under the canvas.
+ */
 export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
   const { setShape } = useStarFieldSource();
-  const [state, setState] = useState<RevealState>({ activeIndex: null, side: "left" });
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -54,12 +53,11 @@ export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
     const update = () => {
       frame = 0;
 
-      // Reduced motion never loads the canvas, and a narrow screen has no room
-      // to put a shape beside anything. In both cases nothing steps aside.
+      // Reduced motion never loads the canvas, and below this width no section
+      // reserves a gutter. In both cases there is nowhere for a sign to form.
       if (motion.matches || window.innerWidth < ALIGN_MIN_WIDTH) {
         if (lastKey !== "off") {
           lastKey = "off";
-          setState({ activeIndex: null, side: "left" });
           setShape({ source: null });
         }
         return;
@@ -68,11 +66,11 @@ export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
       const middle = window.innerHeight / 2;
       const sections = [...document.querySelectorAll<HTMLElement>("[data-zodiac-reveal]")];
 
-      // The sign forms centred in the viewport, so the section has to clear
-      // that whole band - not merely touch the middle of it. Sections have
-      // opaque backgrounds: a section that only overlaps the centre leaves the
-      // top or bottom of the glyph behind the neighbouring one, which is why
-      // the sign appeared cut in half against a section boundary.
+      // The sign forms centred in the viewport, so the section's gutter has to
+      // clear that whole band - not merely touch the middle of it. Sections
+      // have opaque backgrounds: one that only overlaps the centre leaves the
+      // top or bottom of the glyph behind the neighbouring section, which is
+      // why the sign used to appear cut in half at a section boundary.
       const margin = window.innerHeight * (formationHalfHeightFraction() + 0.02);
       const active = sections.find((section) => {
         const rect = section.getBoundingClientRect();
@@ -82,14 +80,12 @@ export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
       if (!active) {
         if (lastKey !== "none") {
           lastKey = "none";
-          setState({ activeIndex: null, side: "left" });
           setShape({ source: null });
         }
         return;
       }
 
       const index = Number(active.dataset.zodiacReveal);
-      const side = sideFor(index);
 
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
@@ -100,9 +96,8 @@ export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
       if (key === lastKey) return;
       lastKey = key;
 
-      setState({ activeIndex: index, side });
-      // The sign takes the half the section is not in.
-      setShape({ source: zodiacShapeFor(sign), label: sign, align: side === "left" ? "right" : "left" });
+      // The sign forms in the gutter this section already keeps empty.
+      setShape({ source: zodiacShapeFor(sign), label: sign, align: gutterFor(index) });
     };
 
     const onScroll = () => {
@@ -125,45 +120,28 @@ export function ZodiacRevealProvider({ children }: { children: ReactNode }) {
     };
   }, [setShape]);
 
-  const value = useMemo(() => state, [state]);
-
-  return <ZodiacRevealContext.Provider value={value}>{children}</ZodiacRevealContext.Provider>;
+  return <>{children}</>;
 }
 
 /**
- * Wraps a section so it can step aside.
+ * Wraps a section so it holds a gutter open for a sign.
  *
- * The section gives up half its width to one side rather than sliding across
- * it. Two earlier attempts were worse: scaling it down shrank the type with
- * it, so it read as minimised rather than moved; translating it kept the type
- * full size but carried the leading edge off the screen, taking a card and a
- * half of real content with it.
+ * Padding rather than a translate or a scale: the content box is simply
+ * narrower on one side, so the cards inside lay out against the width they will
+ * actually keep and no element is ever drawn somewhere it does not stay. The
+ * class is static, so this costs nothing at scroll time.
  *
- * Padding does both jobs. The content box narrows toward one edge, so the
- * section moves and everything in it stays on screen at full size. The column
- * counts here are keyed to the viewport rather than the container, so the
- * cards narrow rather than re-wrapping mid-animation.
- *
- * How far it gives way is a negotiation with the sign, not a free choice. Take
- * too much and a card gets too narrow to set its own heading; take too little
- * and the sign has nowhere to be. The sign was made smaller and pushed further
- * out to meet this at 38%.
+ * The 38% mirrors `FORMATION_SHIFT`, which is how far out the glyph sits. Take
+ * more and a card gets too narrow to set its own heading; take less and the
+ * sign forms partly behind one. Below `lg` the gutter is dropped entirely and
+ * the formation moves above the content instead.
  */
 export function ZodiacReveal({ index, children }: { index: number; children: ReactNode }) {
-  const { activeIndex, side } = useContext(ZodiacRevealContext);
-  const active = activeIndex === index;
+  const gutter = gutterFor(index);
 
   return (
     <div data-zodiac-reveal={index}>
-      <div
-        className={cn(
-          "transition-[padding] duration-500 ease-out motion-reduce:transition-none",
-          active && side === "left" && "md:pr-[38%]",
-          active && side === "right" && "md:pl-[38%]",
-        )}
-      >
-        {children}
-      </div>
+      <div className={cn(gutter === "right" ? "lg:pr-[38%]" : "lg:pl-[38%]")}>{children}</div>
     </div>
   );
 }

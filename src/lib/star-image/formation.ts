@@ -19,17 +19,21 @@ export const FORMATION_FILL = 0.5;
 /**
  * How far off centre an aligned shape sits, as a fraction of visible width.
  *
- * Sized against the distance a section travels when it steps aside. The
- * section shifts rather than shrinks, so it keeps its full width and only its
- * trailing edge clears - the sign has to sit far enough out to be beside it
- * rather than under it.
+ * This is the same number as the gutter a section permanently reserves in
+ * `ZodiacReveal`, and the two have to stay in step: the sign sits in space the
+ * layout has already set aside, so moving one without the other either buries
+ * the glyph under a card or leaves a strip of empty sky nothing ever uses.
  */
 export const FORMATION_SHIFT = 0.38;
 /**
- * Below this the viewport is too narrow to hold a shape beside anything, so an
- * aligned formation moves up rather than sideways.
+ * Below this the viewport is too narrow to spare a gutter, so no section
+ * reserves one and an aligned formation moves up rather than sideways.
+ *
+ * Matches Tailwind's `lg` breakpoint, which is where the reserved gutter turns
+ * on. A viewport between `md` and `lg` can technically fit a glyph beside a
+ * section, but only by squeezing the cards next to it into a single column.
  */
-export const ALIGN_MIN_WIDTH = 768;
+export const ALIGN_MIN_WIDTH = 1024;
 
 export type StarFieldAlign = "left" | "center" | "right";
 
