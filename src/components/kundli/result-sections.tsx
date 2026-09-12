@@ -6,7 +6,7 @@ import { AstrologySection } from "@/components/astrology/section";
 import { AstrologyStatCard } from "@/components/astrology/stat-card";
 import { AstrologyStatusCard } from "@/components/astrology/status-card";
 
-export function KundliOverview({ result }: { result: KundliResult }) {
+export function KundliOverview({ result, actions }: { result: KundliResult; actions?: React.ReactNode }) {
   const rows = [
     ["Name", result.person.name],
     ["Date", result.person.dateOfBirth],
@@ -22,7 +22,10 @@ export function KundliOverview({ result }: { result: KundliResult }) {
           <h1 className="mt-3 text-display-lg">{result.person.name}</h1>
           <p className="mt-3 body text-foreground-secondary">Generated from normalized birth details and calculation metadata.</p>
         </div>
-        <Badge className="gap-2 self-start"><LockKeyhole aria-hidden="true" size={14} /> Private result</Badge>
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
+          {actions}
+          <Badge className="gap-2"><LockKeyhole aria-hidden="true" size={14} /> Private result</Badge>
+        </div>
       </div>
       <dl className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {rows.map(([label, value]) => (

@@ -1,5 +1,5 @@
 import type { PlanetName } from "@/config/astrology";
-import { getNavamsaSign } from "@/lib/astrology/charts/navamsa";
+import { getNavamsaDegree, getNavamsaSign } from "@/lib/astrology/charts/navamsa";
 import {
   getDegreeInSign,
   getSignNumber,
@@ -117,6 +117,9 @@ export function createNavamsaChart(chart: VedicChartData): VedicChartData {
       // The longitude is kept so the source degree stays inspectable; the sign
       // is the navamsa one, which is what placement uses.
       sign: getNavamsaSign(planet.longitude),
+      // The degree has to move with the sign. Left at the Rashi value it would
+      // be displayed against a sign it does not describe.
+      degreeInSign: getNavamsaDegree(planet.longitude),
     })),
     calculatedAt: chart.calculatedAt,
   };

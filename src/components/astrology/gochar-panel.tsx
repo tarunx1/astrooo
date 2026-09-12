@@ -34,7 +34,7 @@ export async function GocharPanel({ moonSign, ascendantSign }: { moonSign: numbe
 
   return (
     <div className="grid gap-5">
-      <VedicChart data={gochar} label="Gochar: transits from the natal Moon" />
+      <VedicChart data={gochar} label="Gochar: transits from the natal Moon" showDegrees />
       <GocharTable ascendantSign={ascendantSign} moonSign={moonSign} transits={gochar} />
       <p className="caption text-foreground-muted">
         Positions for{" "}

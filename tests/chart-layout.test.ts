@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { PLANETS } from "@/config/astrology";
 import { getHouseFromSign } from "@/lib/astrology/charts/houses";
-import { layoutPlanetsInHouse, planetLabel, PLANET_ABBREVIATIONS } from "@/lib/astrology/charts/labels";
 import {
+  estimateLabelHalfWidth,
+  layoutPlanetsInHouse,
+  planetLabel,
+  PLANET_ABBREVIATIONS,
+} from "@/lib/astrology/charts/labels";
+import {
+  houseHalfWidthAt,
   NORTH_INDIAN_HOUSE_ANCHORS,
+  NORTH_INDIAN_HOUSE_POLYGONS,
   NORTH_INDIAN_VIEWBOX,
   SIGN_CLEARANCE,
   signAnchorFor,
@@ -87,6 +94,99 @@ describe("north indian geometry", () => {
         expect(Math.max(...labels.map((l) => l.y))).toBeLessThan(NORTH_INDIAN_VIEWBOX);
       }
     }
+  });
+});
+
+describe("degree labels inside the shape", () => {
+  /** Point-in-polygon, so the assertion is about the drawn house, not an anchor. */
+  const inside = (polygon: readonly (readonly [number, number])[], x: number, y: number): boolean => {
+    let contained = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const [xi, yi] = polygon[i];
+      const [xj, yj] = polygon[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) contained = !contained;
+    }
+    return contained;
+  };
+
+  it("describes each house as a closed shape around its anchor", () => {
+    for (const anchor of NORTH_INDIAN_HOUSE_ANCHORS) {
+      const polygon = NORTH_INDIAN_HOUSE_POLYGONS[anchor.house];
+      expect(polygon, `house ${anchor.house}`).toBeDefined();
+      expect(inside(polygon, anchor.x, anchor.y), `anchor of house ${anchor.house}`).toBe(true);
+      expect(houseHalfWidthAt(anchor.house, anchor.y)).toBeGreaterThan(0);
+    }
+
+    // The twelve shapes tile the frame exactly once: no gap, no overlap.
+    const area = (polygon: readonly (readonly [number, number])[]) => {
+      let total = 0;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        total += (polygon[j][0] + polygon[i][0]) * (polygon[j][1] - polygon[i][1]);
+      }
+      return Math.abs(total / 2);
+    };
+    const covered = Object.values(NORTH_INDIAN_HOUSE_POLYGONS).reduce((sum, p) => sum + area(p), 0);
+    expect(covered).toBeCloseTo(NORTH_INDIAN_VIEWBOX * NORTH_INDIAN_VIEWBOX, 6);
+  });
+
+  it("keeps every degree label inside its own house, at any planet count", () => {
+    // Regression: turning degrees on roughly doubled every label, and a block of
+    // four ran out through the apex of a corner triangle into the house next to
+    // it - where it reads as a placement rather than as a drawing mistake.
+    const failures: string[] = [];
+
+    for (const anchor of NORTH_INDIAN_HOUSE_ANCHORS) {
+      const polygon = NORTH_INDIAN_HOUSE_POLYGONS[anchor.house];
+
+      for (let count = 1; count <= 9; count += 1) {
+        // Retrograde and a two-digit degree: the widest label the chart can draw.
+        const planets = PLANETS.slice(0, count).map((name, index) => ({
+          ...planetAt(name, index * 2 + 27.9),
+          retrograde: true,
+        }));
+
+        const { labels, fontSize } = layoutPlanetsInHouse(planets, anchor, {
+          showDegrees: true,
+          minTop: signAnchorFor(anchor).y + SIGN_CLEARANCE,
+          fitWidth: (y) => houseHalfWidthAt(anchor.house, y),
+        });
+
+        for (const label of labels) {
+          const half = estimateLabelHalfWidth(label.text, fontSize);
+          const top = label.y - fontSize * 0.72;
+          const bottom = label.y + fontSize * 0.22;
+          const corners: Array<[number, number]> = [
+            [label.x - half, top],
+            [label.x + half, top],
+            [label.x - half, bottom],
+            [label.x + half, bottom],
+          ];
+
+          for (const [x, y] of corners) {
+            if (!inside(polygon, x, y)) {
+              failures.push(`house ${anchor.house}, ${count} planets, "${label.text}" at (${Math.round(x)},${Math.round(y)})`);
+            }
+          }
+        }
+      }
+    }
+
+    expect(failures).toEqual([]);
+  });
+
+  it("prefers the size the count asks for when the house is wide enough", () => {
+    // Shrinking must be a response to the shape, not something that happens to
+    // every chart: the kites have room and should keep the readable size.
+    const kite = NORTH_INDIAN_HOUSE_ANCHORS.find((a) => a.house === 1)!;
+    const unconstrained = layoutPlanetsInHouse(PLANETS.slice(0, 2).map((n, i) => planetAt(n, i * 2)), kite, {
+      showDegrees: true,
+    });
+    const constrained = layoutPlanetsInHouse(PLANETS.slice(0, 2).map((n, i) => planetAt(n, i * 2)), kite, {
+      showDegrees: true,
+      fitWidth: (y) => houseHalfWidthAt(1, y),
+    });
+
+    expect(constrained.fontSize).toBe(unconstrained.fontSize);
   });
 });
 

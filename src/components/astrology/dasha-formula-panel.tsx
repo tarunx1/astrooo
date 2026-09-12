@@ -7,6 +7,10 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { DASHA_LEVELS, buildDashaTimeline, dashaChainAt } from "@/lib/astrology/engine/dasha";
+import {
+  calculateKpOccurrenceProbability,
+  KP_PROBABILITY_WEIGHTS,
+} from "@/lib/astrology/kp/probability";
 
 const STORAGE_KEY = "ravish-astro:kp-formulas:v1";
 const RUNNING_DASHA_LEVELS = DASHA_LEVELS.slice(0, 3);
@@ -209,56 +213,93 @@ function RunningDashaFormulaTable({
 }) {
   const highlightHouses = selectedFormula?.houses ?? [];
   const heading = isSameDate(activeAt, new Date()) ? "Running Now" : "Selected Time";
+  const occurrence = useMemo(
+    () =>
+      selectedFormula
+        ? calculateKpOccurrenceProbability(rows, selectedFormula.houses)
+        : null,
+    [rows, selectedFormula],
+  );
 
   return (
-    <div className="overflow-x-auto rounded-md border border-border bg-surface-raised/50">
-      <table className="w-full min-w-[42rem] border-collapse text-left">
-        <caption className="sr-only">
-          Running Vimshottari dasha lords with each lord&apos;s KP star lord and sub lord
-        </caption>
-        <thead>
-          <tr className="border-b border-border">
-            {[heading, "Dasha Lord", "Star Lord", "Sub Lord"].map((columnHeading) => (
-              <th
-                className="px-3 py-2.5 caption uppercase tracking-[0.08em] text-foreground-muted"
-                key={columnHeading}
-                scope="col"
-              >
-                {columnHeading}
-              </th>
-            ))}
-            {selectedFormula ? (
-              <th className="px-3 py-2.5 text-center caption uppercase tracking-[0.08em] text-foreground-muted" scope="col">
-                Match
-              </th>
-            ) : null}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => {
-            const matched = selectedFormula ? rowMatchesFormula(row, selectedFormula.houses) : false;
-
-            return (
-              <tr className="border-b border-border last:border-0" key={row.level}>
-                <th className="px-3 py-3 text-left font-normal" scope="row">
-                  <p className="body-sm font-semibold text-foreground">
-                    {row.periodLord ? `${row.level} ${row.periodLord}` : row.level}
-                  </p>
-                  <p className="mt-1 caption text-foreground-muted">{row.dateLabel}</p>
+    <div className="grid gap-3">
+      <div className="overflow-x-auto rounded-md border border-border bg-surface-raised/50">
+        <table className="w-full min-w-[46rem] border-collapse text-left">
+          <caption className="sr-only">
+            Running Vimshottari dasha lords with each lord&apos;s KP star lord and sub lord
+          </caption>
+          <thead>
+            <tr className="border-b border-border">
+              {[heading, "Dasha Lord", "Star Lord", "Sub Lord"].map((columnHeading) => (
+                <th
+                  className="px-3 py-2.5 caption uppercase tracking-[0.08em] text-foreground-muted"
+                  key={columnHeading}
+                  scope="col"
+                >
+                  {columnHeading}
                 </th>
-                <RunningDashaCell highlightHouses={highlightHouses} lord={row.dashaLord} />
-                <RunningDashaCell highlightHouses={highlightHouses} lord={row.starLord} />
-                <RunningDashaCell highlightHouses={highlightHouses} lord={row.subLord} />
-                {selectedFormula ? (
-                  <td className="px-3 py-3 text-center text-premium">
-                    {matched ? <span aria-label="Formula combination exists">✓</span> : <span aria-hidden="true">—</span>}
-                  </td>
-                ) : null}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              ))}
+              {selectedFormula ? (
+                <th className="px-3 py-2.5 text-center caption uppercase tracking-[0.08em] text-foreground-muted" scope="col">
+                  Probability
+                </th>
+              ) : null}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, rowIndex) => {
+              const rowProbability = occurrence?.rows[rowIndex];
+
+              return (
+                <tr className="border-b border-border last:border-0" key={row.level}>
+                  <th className="px-3 py-3 text-left font-normal" scope="row">
+                    <p className="body-sm font-semibold text-foreground">
+                      {row.periodLord ? `${row.level} ${row.periodLord}` : row.level}
+                    </p>
+                    <p className="mt-1 caption text-foreground-muted">{row.dateLabel}</p>
+                  </th>
+                  <RunningDashaCell highlightHouses={highlightHouses} lord={row.dashaLord} />
+                  <RunningDashaCell highlightHouses={highlightHouses} lord={row.starLord} />
+                  <RunningDashaCell highlightHouses={highlightHouses} lord={row.subLord} />
+                  {selectedFormula ? (
+                    <td className="px-3 py-3 text-center">
+                      <p
+                        aria-label={`${row.level} probability ${formatProbability(rowProbability?.probability ?? 0)}`}
+                        className="body-sm font-semibold tabular-nums text-premium"
+                      >
+                        {formatProbability(rowProbability?.probability ?? 0)}
+                      </p>
+                      <p className="mt-1 whitespace-nowrap text-[0.68rem] tabular-nums text-foreground-muted">
+                        D {formatProbability(rowProbability?.dashaLord ?? 0)} · S{" "}
+                        {formatProbability(rowProbability?.starLord ?? 0)} · Sub{" "}
+                        {formatProbability(rowProbability?.subLord ?? 0)}
+                      </p>
+                    </td>
+                  ) : null}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {selectedFormula && occurrence ? (
+        <div className="grid gap-3 rounded-md border border-premium/30 bg-premium/10 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div>
+            <p className="caption uppercase tracking-[0.08em] text-premium">{selectedFormula.name}</p>
+            <p className="mt-1 body-sm font-semibold text-foreground">Probability of this occurrence</p>
+            <p className="mt-1 caption text-foreground-muted">
+              Sub lord {KP_PROBABILITY_WEIGHTS.subLord}% · Star lord {KP_PROBABILITY_WEIGHTS.starLord}% · Dasha lord{" "}
+              {KP_PROBABILITY_WEIGHTS.dashaLord}% · Each running row{" "}
+              {formatProbability(occurrence.rowWeight)}
+            </p>
+            <p className="mt-1 caption text-foreground-muted">Weighted KP indicator, not a guarantee.</p>
+          </div>
+          <p className="text-3xl font-semibold tabular-nums text-premium">
+            {formatProbability(occurrence.probability)}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -284,11 +325,6 @@ function RunningDashaCell({
       )}
     </td>
   );
-}
-
-function rowMatchesFormula(row: RunningDashaFormulaRow, formulaHouses: number[]) {
-  const rowHouses = [row.dashaLord, row.starLord, row.subLord].flatMap((lord) => lord?.houses ?? []);
-  return formulaHouses.every((house) => rowHouses.includes(house));
 }
 
 function buildRunningRows({
@@ -338,6 +374,10 @@ function selectedDateToDate(value: string) {
 
 function isSameDate(a: Date, b: Date) {
   return a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10);
+}
+
+function formatProbability(value: number) {
+  return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
 }
 
 function parseHouseInput(value: string): { ok: true; houses: number[] } | { ok: false; message: string } {

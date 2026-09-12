@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SIGNS } from "@/config/astrology";
 import { buildHouses, getHouseFromSign, getHouseSign, groupPlanetsByHouse, sortPlanetsForDisplay } from "@/lib/astrology/charts/houses";
-import { getNavamsaIndex, getNavamsaSign, getNavamsaStartSign } from "@/lib/astrology/charts/navamsa";
+import {
+  getNavamsaDegree,
+  getNavamsaIndex,
+  getNavamsaSign,
+  getNavamsaStartSign,
+} from "@/lib/astrology/charts/navamsa";
 import {
   formatDegreeInSign,
   getDegreeInSign,
@@ -245,6 +250,28 @@ describe("navamsa", () => {
 
     // Gemini 0° falls in Libra.
     expect(getNavamsaSign(60)).toBe(7);
+  });
+
+  it("spreads the position inside a navamsa across the whole navamsa sign", () => {
+    // Aries 0° opens the first navamsa, so it opens the navamsa sign too.
+    expect(getNavamsaDegree(0)).toBeCloseTo(0, 9);
+    // Half way through the first navamsa (1°40') is half way through the sign.
+    expect(getNavamsaDegree(30 / 18)).toBeCloseTo(15, 9);
+    // A hair before the next navamsa is a hair before the next sign, never past
+    // it - printing 30° would read as a sign the planet is not in.
+    expect(getNavamsaDegree(30 / 9 - 1e-9)).toBeLessThan(30);
+    // Every navamsa restarts at zero, whatever sign it began from.
+    for (let index = 0; index < 9; index += 1) {
+      expect(getNavamsaDegree(index * (30 / 9)), `navamsa ${index}`).toBeCloseTo(0, 6);
+    }
+  });
+
+  it("never reports a navamsa degree outside its sign, at any longitude", () => {
+    for (let longitude = 0; longitude < 360; longitude += 0.37) {
+      const degree = getNavamsaDegree(longitude);
+      expect(degree, `${longitude}°`).toBeGreaterThanOrEqual(0);
+      expect(degree, `${longitude}°`).toBeLessThanOrEqual(30);
+    }
   });
 
   it("covers all nine navamsas of a sign without repeating", () => {

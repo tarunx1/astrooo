@@ -57,3 +57,58 @@ export function signAnchorFor(anchor: HouseAnchor): { x: number; y: number } {
   const isKite = anchor.house === 1 || anchor.house === 4 || anchor.house === 7 || anchor.house === 10;
   return { x: anchor.x, y: anchor.y - (isKite ? 72 : 54) };
 }
+
+/**
+ * The actual shape of each house.
+ *
+ * The four kites at the edge midpoints and eight triangles in the corners,
+ * as vertices in the same 1000x1000 space. Anchors alone are enough to place a
+ * short label, but not to know whether a long one still fits: a corner triangle
+ * is 500 units across at its base and nothing at all at its apex.
+ */
+export const NORTH_INDIAN_HOUSE_POLYGONS: Record<number, readonly (readonly [number, number])[]> = {
+  1: [[500, 0], [750, 250], [500, 500], [250, 250]],
+  2: [[0, 0], [500, 0], [250, 250]],
+  3: [[0, 0], [250, 250], [0, 500]],
+  4: [[0, 500], [250, 250], [500, 500], [250, 750]],
+  5: [[0, 500], [250, 750], [0, 1000]],
+  6: [[0, 1000], [500, 1000], [250, 750]],
+  7: [[500, 500], [750, 750], [500, 1000], [250, 750]],
+  8: [[500, 1000], [1000, 1000], [750, 750]],
+  9: [[1000, 500], [1000, 1000], [750, 750]],
+  10: [[1000, 500], [750, 250], [500, 500], [750, 750]],
+  11: [[1000, 0], [1000, 500], [750, 250]],
+  12: [[500, 0], [1000, 0], [750, 250]],
+};
+
+/**
+ * How far a label centred on the house's axis may extend at a given height.
+ *
+ * Returns the distance to the *nearer* of the two edges, so a label centred on
+ * the anchor is symmetric and cannot lean out of the shape on one side. Rows
+ * outside the polygon get zero, which is what makes an oversized block shrink
+ * rather than spill.
+ */
+export function houseHalfWidthAt(house: number, y: number): number {
+  const polygon = NORTH_INDIAN_HOUSE_POLYGONS[house];
+  const anchor = NORTH_INDIAN_HOUSE_ANCHORS.find((candidate) => candidate.house === house);
+  if (!polygon || !anchor) return 0;
+
+  // Where the horizontal line at this height crosses the outline.
+  const crossings: number[] = [];
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    if (yi === yj) continue;
+    if (y < Math.min(yi, yj) || y > Math.max(yi, yj)) continue;
+    crossings.push(xi + ((y - yi) / (yj - yi)) * (xj - xi));
+  }
+
+  if (crossings.length < 2) return 0;
+
+  const left = Math.min(...crossings);
+  const right = Math.max(...crossings);
+  if (anchor.x <= left || anchor.x >= right) return 0;
+
+  return Math.min(anchor.x - left, right - anchor.x);
+}

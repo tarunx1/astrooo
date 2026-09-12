@@ -41,6 +41,7 @@ export function DashboardShell({
   description,
   eyebrow,
   actions,
+  contentMode = "standard",
   children,
 }: {
   groups: readonly DashboardNavGroup[];
@@ -51,6 +52,7 @@ export function DashboardShell({
   description?: string;
   eyebrow?: string;
   actions?: React.ReactNode;
+  contentMode?: "standard" | "workspace";
   children: React.ReactNode;
 }) {
   const flatItems = groups.flatMap((group) => group.items);
@@ -67,18 +69,34 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <div className="admin-main min-w-0 bg-white px-4 py-8 text-slate-900 sm:px-6 lg:px-10">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-          <p className="caption font-semibold uppercase tracking-[0.2em] text-slate-400 lg:hidden">{railLabel}</p>
-          <p className="caption text-slate-500 lg:ml-auto">Signed in as {identityLabel}</p>
-        </div>
+      <div
+        className={cn(
+          "admin-main min-w-0 text-slate-900",
+          contentMode === "workspace" ? "bg-slate-100" : "bg-white px-4 py-8 sm:px-6 lg:px-10",
+        )}
+      >
+        {contentMode === "workspace" ? (
+          <>
+            <div className="px-4 pt-4 lg:hidden">
+              <DashboardMobileNav currentPath={currentPath} items={flatItems} />
+            </div>
+            {children}
+          </>
+        ) : (
+          <>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+              <p className="caption font-semibold uppercase tracking-[0.2em] text-slate-400 lg:hidden">{railLabel}</p>
+              <p className="caption text-slate-500 lg:ml-auto">Signed in as {identityLabel}</p>
+            </div>
 
-        <DashboardMobileNav currentPath={currentPath} items={flatItems} />
+            <DashboardMobileNav currentPath={currentPath} items={flatItems} />
 
-        <div className="mt-4 lg:mt-0">
-          <DashboardHeader actions={actions} description={description} eyebrow={eyebrow} title={title} />
-          <div className="grid gap-8">{children}</div>
-        </div>
+            <div className="mt-4 lg:mt-0">
+              <DashboardHeader actions={actions} description={description} eyebrow={eyebrow} title={title} />
+              <div className="grid gap-8">{children}</div>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

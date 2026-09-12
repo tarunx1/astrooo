@@ -1,6 +1,7 @@
 import { buildHouses } from "@/lib/astrology/charts/houses";
 import { layoutPlanetsInHouse, type PlanetLabelMode } from "@/lib/astrology/charts/labels";
 import {
+  houseHalfWidthAt,
   NORTH_INDIAN_HOUSE_ANCHORS,
   NORTH_INDIAN_PATHS,
   NORTH_INDIAN_VIEWBOX,
@@ -64,6 +65,9 @@ export function NorthIndianChart({
           showRetrograde,
           // Keeps a crowded house from growing up into its own sign number.
           minTop: signPosition.y + SIGN_CLEARANCE,
+          // The shape itself, so a long label shrinks rather than crossing into
+          // the neighbouring house - where it would read as a placement.
+          fitWidth: (y: number) => houseHalfWidthAt(anchor.house, y),
         });
 
         return (

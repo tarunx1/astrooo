@@ -32,6 +32,7 @@ export async function AdminLayout({
   actions,
   children,
   adminName,
+  contentMode,
 }: {
   currentPath: string;
   title: string;
@@ -39,6 +40,7 @@ export async function AdminLayout({
   actions?: React.ReactNode;
   children: React.ReactNode;
   adminName: string;
+  contentMode?: "standard" | "workspace";
 }) {
   const viewer = await getViewer();
   const groups = visibleAdminGroups(viewer);
@@ -46,6 +48,7 @@ export async function AdminLayout({
   return (
     <DashboardShell
       actions={actions}
+      contentMode={contentMode}
       currentPath={currentPath}
       description={description}
       groups={groups}

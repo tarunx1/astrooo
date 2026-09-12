@@ -183,7 +183,7 @@ export function TransitChartSwitcher({
       <div aria-busy={loading} aria-live="polite">
         {mode === "lagna" ? (
           <div className="grid gap-3">
-            <VedicChart data={natal} label="Lagna: the birth chart" />
+            <VedicChart data={natal} label="Lagna: the birth chart" showDegrees />
             <p className="caption text-foreground-muted">
               The birth chart, counted from the Lagna in {getSignName(natalLagnaSign)}. Calculated once and
               stored, so it never changes.
@@ -200,7 +200,7 @@ export function TransitChartSwitcher({
           </p>
         ) : (
           <div className={cn("grid gap-3 transition-opacity", loading && "opacity-60")}>
-            <VedicChart data={chart} label="Gochar: transiting planets" />
+            <VedicChart data={chart} label="Gochar: transiting planets" showDegrees />
             <p className="caption text-foreground-muted">
               {atISO ? (
                 <>

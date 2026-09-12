@@ -3,7 +3,7 @@ import { NorthIndianChart } from "@/components/astrology/north-indian-chart";
 import { SouthIndianChart } from "@/components/astrology/south-indian-chart";
 import { buildHouses } from "@/lib/astrology/charts/houses";
 import { PLANET_ABBREVIATIONS, type PlanetLabelMode } from "@/lib/astrology/charts/labels";
-import { getSignName } from "@/lib/astrology/charts/signs";
+import { formatDegreeInSign, getSignName } from "@/lib/astrology/charts/signs";
 import type { VedicChartData } from "@/lib/astrology/charts/types";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,9 @@ export function VedicChart({
               : house.planets
                   .map(
                     (planet) =>
-                      `${planet.planet}${planet.retrograde && showRetrograde ? " retrograde" : ""}`,
+                      `${planet.planet}${showDegrees ? ` at ${formatDegreeInSign(planet.degreeInSign)}` : ""}${
+                        planet.retrograde && showRetrograde ? " retrograde" : ""
+                      }`,
                   )
                   .join(", ")}
           </li>

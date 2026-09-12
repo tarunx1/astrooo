@@ -112,6 +112,9 @@ export function BirthDetailsFields({
             required
             type="time"
           />
+          {timeAccuracy === "UNKNOWN" ? (
+            <input name={fieldName(prefix, "timeOfBirth")} type="hidden" value="12:00" />
+          ) : null}
         </FormRow>
         <FormRow error={error("timeAccuracy")} htmlFor={id("timeAccuracy")} label="Time Accuracy">
           <Select

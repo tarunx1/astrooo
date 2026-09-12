@@ -33,7 +33,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
       label: "D1 Rashi",
       content: (
         <div className="grid gap-5">
-          <VedicChart data={rashi} label="D1 Rashi chart" />
+          <VedicChart data={rashi} label="D1 Rashi chart" showDegrees />
           <PlanetPositionTable caption="Planetary positions in the Rashi chart" data={rashi} />
         </div>
       ),
@@ -45,7 +45,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
             label: "D9 Navamsa",
             content: (
               <div className="grid gap-5">
-                <VedicChart data={navamsa} label="D9 Navamsa chart" />
+                <VedicChart data={navamsa} label="D9 Navamsa chart" showDegrees />
                 <PlanetPositionTable caption="Planetary positions in the Navamsa chart" data={navamsa} />
               </div>
             ),
@@ -57,7 +57,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
       label: "Moon",
       content: (
         <div className="grid gap-5">
-          <VedicChart data={moon} label="Moon chart" />
+          <VedicChart data={moon} label="Moon chart" showDegrees />
           <PlanetPositionTable caption="Planetary positions from the Moon" data={moon} />
         </div>
       ),
