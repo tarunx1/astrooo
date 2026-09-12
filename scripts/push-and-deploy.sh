@@ -36,8 +36,35 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
   git checkout "$CURRENT_BRANCH"
 fi
 
+# 4. Deploy directly to Production Host (astroworld.io)
+SSH_KEY="$HOME/.ssh/visahouse_github_actions"
+SSH_HOST="200.234.47.6"
+SSH_USER="root"
+
+if [ -f "$SSH_KEY" ]; then
+  echo "==> Deploying directly to production host $SSH_HOST (astroworld.io)..."
+  ssh -i "$SSH_KEY" "$SSH_USER@$SSH_HOST" "
+    set -e
+    cd /var/www/ravish-astro/current
+    git fetch origin main
+    git reset --hard origin/main
+    chown -R ravishastro:ravishastro /var/www/ravish-astro/current
+    sudo -u ravishastro bash -c '
+      set -e
+      cd /var/www/ravish-astro/current
+      export \$(grep -v \"^#\" /etc/ravish-astro/ravish-astro.env | xargs)
+      pnpm install --frozen-lockfile
+      pnpm prisma generate
+      pnpm prisma migrate deploy
+      pnpm build
+    '
+    systemctl restart ravish-astro
+  "
+  echo "==> Live server restarted."
+fi
+
 echo "--------------------------------------------------------"
 echo "✅ All code pushed to GitHub (origin/main & origin/$CURRENT_BRANCH)."
-echo "📡 GitHub Actions CI/CD pipeline triggered automatically."
-echo "🌐 Live Deployment: https://polyphonic-passing-doc-resolutions.trycloudflare.com"
+echo "📡 GitHub Actions CI/CD pipeline triggered."
+echo "🌟 Production Server: https://www.astroworld.io"
 echo "--------------------------------------------------------"
