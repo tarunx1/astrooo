@@ -64,8 +64,8 @@ const FORMATION_DEPTH = 0.3;
  * the journey is about 95% done - the last few percent arrive after it, which
  * is why the release is set below three seconds rather than at it.
  */
-const MORPH_IN_SPEED = 1.7;
-const MORPH_OUT_SPEED = 1.15;
+const MORPH_IN_SPEED = 4.2;
+const MORPH_OUT_SPEED = 2.8;
 
 /**
  * Size of a particle that is drawing the sign, relative to a free star.

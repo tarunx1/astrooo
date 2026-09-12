@@ -46,12 +46,18 @@ export function HeroSection() {
               wheel turns around them. */}
           <div className="relative min-h-[360px] sm:min-h-[420px] lg:min-h-[520px]">
             <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[108%] -translate-x-1/2 -translate-y-1/2 sm:w-[96%]">
-              {/* All four layers are positioned, so they paint in source order:
-                  halo behind, then the wheel, its sheen, and the sign on top. A
-                  static wheel here would be painted under the halo. */}
+              {/* Every layer is positioned, so they paint in source order: halo
+                  behind, then the wheel, then the sign. A static wheel here
+                  would be painted under the halo. */}
               <div aria-hidden="true" className="zodiac-wheel-halo absolute -inset-[12%]" />
-              <div aria-hidden="true" className="zodiac-wheel absolute inset-0 opacity-90" />
-              <div aria-hidden="true" className="zodiac-wheel-sheen absolute inset-0" />
+              {/* The sheen is a child of the wheel, not a sibling: a mask
+                  clips an element's whole subtree, so nesting it lets the
+                  highlight travel while the artwork stays single. As a sibling
+                  it carried its own copy of the mask and turned at its own
+                  speed, which drew a second wheel beside the real one. */}
+              <div aria-hidden="true" className="zodiac-wheel absolute inset-0 opacity-90">
+                <div className="zodiac-wheel-sheen" />
+              </div>
               <ZodiacHubCycle />
             </div>
           </div>

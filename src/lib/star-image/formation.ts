@@ -24,7 +24,7 @@ export const FORMATION_FILL = 0.5;
  * layout has already set aside, so moving one without the other either buries
  * the glyph under a card or leaves a strip of empty sky nothing ever uses.
  */
-export const FORMATION_SHIFT = 0.26;
+export const FORMATION_SHIFT = 0.32;
 /**
  * Below this the viewport is too narrow to spare a gutter, so no section
  * reserves one and an aligned formation moves up rather than sideways.
