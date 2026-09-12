@@ -5,24 +5,47 @@ set -euo pipefail
 # Tarun Astro Zero-Downtime Safe Production Deployment Script
 # ==============================================================================
 
-APP_DIR="${APP_DIR:-/opt/tarun-astro/current}"
-PORT="${PORT:-3000}"
+if [ -d "/var/www/ravish-astro/current" ]; then
+  APP_DIR="/var/www/ravish-astro/current"
+  PORT="${PORT:-3001}"
+  SERVICE_NAME="ravish-astro"
+  ENV_FILE="/etc/ravish-astro/ravish-astro.env"
+  USER_RUNNER="ravishastro"
+elif [ -d "/opt/tarun-astro/current" ]; then
+  APP_DIR="/opt/tarun-astro/current"
+  PORT="${PORT:-3000}"
+  SERVICE_NAME="tarun-astro"
+  ENV_FILE="/etc/tarun-astro/tarun-astro.env"
+  USER_RUNNER="Tarun"
+else
+  APP_DIR="${APP_DIR:-$(pwd)}"
+  PORT="${PORT:-3000}"
+  SERVICE_NAME="tarun-astro"
+  ENV_FILE=".env"
+  USER_RUNNER="$(whoami)"
+fi
+
 HEALTH_URL="http://127.0.0.1:${PORT}/api/health"
 READINESS_URL="http://127.0.0.1:${PORT}/api/readiness"
 
 echo "--------------------------------------------------------"
 echo "Starting Tarun Astro Safe Production Deployment"
+echo "Target Dir: $APP_DIR"
+echo "Service: $SERVICE_NAME (Port: $PORT)"
 echo "Date: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "--------------------------------------------------------"
 
-if [ -d "$APP_DIR" ]; then
-  cd "$APP_DIR"
+cd "$APP_DIR"
+
+# 1. Environment Verification & Git Sync
+echo "==> Step 1: Syncing code and checking environment..."
+if [ -d ".git" ]; then
+  git fetch origin main || true
+  git reset --hard origin/main || true
 fi
 
-# 1. Environment Verification
-echo "==> Step 1: Checking environment..."
-if [ ! -f ".env" ] && [ ! -f "/etc/tarun-astro/tarun-astro.env" ]; then
-  echo "WARNING: No .env or environment file found in standard paths!"
+if [ -f "$ENV_FILE" ]; then
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
 fi
 
 # 2. Dependency Installation
@@ -41,17 +64,18 @@ pnpm build
 
 # 5. Zero-Downtime Process Reload
 echo "==> Step 5: Reloading service supervisor..."
-if command -v pm2 >/dev/null 2>&1 && pm2 describe tarun-astro >/dev/null 2>&1; then
+if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
+  echo "Restarting systemd service $SERVICE_NAME..."
+  sudo systemctl restart "$SERVICE_NAME"
+elif command -v pm2 >/dev/null 2>&1 && pm2 describe tarun-astro >/dev/null 2>&1; then
   echo "Reloading via PM2 cluster..."
   pm2 reload ecosystem.config.cjs --update-env
-elif command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet tarun-astro 2>/dev/null; then
-  echo "Restarting systemd service..."
-  sudo systemctl restart tarun-astro
 elif command -v launchctl >/dev/null 2>&1 && [ -f ~/Library/LaunchAgents/com.tarun-astro.app.plist ]; then
   echo "Reloading launchd agent..."
   launchctl kickstart -k gui/$(id -u)/com.tarun-astro.app || true
 else
-  echo "No active supervisor found. If running manually, start with 'pnpm start'."
+  echo "Restarting service $SERVICE_NAME..."
+  sudo systemctl restart "$SERVICE_NAME" 2>/dev/null || true
 fi
 
 # 6. Post-Deployment Health Probe
