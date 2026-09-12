@@ -463,21 +463,22 @@ section {
 }
 
 /**
- * A sign in the hollow hub: faint joining lines under a dotted stroke whose
- * round caps are the stars. `0 9` is a zero-length dash, which a round cap
- * renders as a dot - so the spacing is measured along the glyph and the stars
- * follow its curves instead of being placed by hand.
+ * A sign in the hollow hub, lit like neon tubing.
+ *
+ * The tube is wide and carries the colour; the core is thin and nearly white,
+ * because a lit tube is whitest where the gas burns and takes its colour from
+ * the halo around it. Widths are in the glyph's 100-unit viewBox, so they hold
+ * their proportions at every hero size.
  */
-.zodiac-hub-line {
-  stroke: color-mix(in srgb, var(--premium) 46%, transparent);
-  stroke-width: 1.1;
+.zodiac-hub-neon-tube {
+  stroke: color-mix(in srgb, var(--premium) 88%, white);
+  stroke-width: 4.2;
+  opacity: 0.75;
 }
 
-.zodiac-hub-stars {
-  stroke: color-mix(in srgb, var(--premium) 55%, white);
-  stroke-width: 5.5;
-  stroke-dasharray: 0 9;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--premium) 70%, transparent));
+.zodiac-hub-neon-core {
+  stroke: color-mix(in srgb, white 78%, var(--premium));
+  stroke-width: 1.5;
 }
 
 @keyframes zodiac-hub-sign {
