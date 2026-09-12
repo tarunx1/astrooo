@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ConsultationMode } from "@prisma/client";
 import { SearchX } from "lucide-react";
 import { PageContainer, Section, SectionHeader } from "@/components/layout/primitives";
@@ -130,24 +129,14 @@ export default async function ConsultationsPage({
             </p>
             <div className="flex gap-2">
               {result.page > 1 ? (
-                <Link
-                  className="inline-flex min-h-10 items-center rounded-md border border-border px-4 body-sm font-semibold text-foreground-secondary transition hover:border-border-strong hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
-                  href={hrefForPage(result.page - 1)}
-                  prefetch={false}
-                  rel="prev"
-                >
+                <Button href={hrefForPage(result.page - 1)} size="sm" variant="secondary">
                   Previous
-                </Link>
+                </Button>
               ) : null}
               {result.page < pageCount ? (
-                <Link
-                  className="inline-flex min-h-10 items-center rounded-md border border-border px-4 body-sm font-semibold text-foreground-secondary transition hover:border-border-strong hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
-                  href={hrefForPage(result.page + 1)}
-                  prefetch={false}
-                  rel="next"
-                >
+                <Button href={hrefForPage(result.page + 1)} size="sm" variant="secondary">
                   Next
-                </Link>
+                </Button>
               ) : null}
             </div>
           </nav>

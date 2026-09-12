@@ -40,7 +40,7 @@ export function Button({
   onClick,
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition duration-[var(--motion-fast)] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
+    "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition duration-[var(--motion-fast)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring",
     variants[variant],
     variant !== "text" ? sizes[size] : null,
     disabled && !href ? "cursor-not-allowed opacity-60" : null,

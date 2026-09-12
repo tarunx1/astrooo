@@ -23,7 +23,7 @@ export function ServicesSection() {
               key={service.title}
             >
               <Link
-                className="flex h-full flex-col p-5 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-6"
+                className="flex h-full flex-col p-5 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-6"
                 href={service.href}
                 prefetch={false}
               >

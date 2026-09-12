@@ -24,7 +24,7 @@ export function ShopSection() {
                   className="group"
                 >
                   <Link
-                    className="flex items-center justify-between gap-4 p-4 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    className="flex items-center justify-between gap-4 p-4 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
                     href={category.href}
                     prefetch={false}
                   >

@@ -61,18 +61,21 @@ export function SectionHeader({
 }
 
 export function ResponsiveGrid({
+  as = "div",
   children,
   className,
   min = "17rem",
 }: {
+  as?: "div" | "ul";
   children: React.ReactNode;
   className?: string;
   min?: string;
 }) {
+  const Tag = as;
   return (
-    <div className={cn("grid gap-4", className)} style={{ gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${min}), 1fr))` }}>
+    <Tag className={cn("grid gap-4", className)} style={{ gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${min}), 1fr))` }}>
       {children}
-    </div>
+    </Tag>
   );
 }
 

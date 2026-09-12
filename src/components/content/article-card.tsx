@@ -1,15 +1,16 @@
 import { ContentImage } from "@/components/ui/content-image";
 import Link from "next/link";
 import { BookOpen, Clock } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardFooter } from "@/components/ui/card";
 import type { ArticleCardData } from "@/lib/content/articles";
 
 /** A single article, in a listing. */
 export function ArticleCard({ article }: { article: ArticleCardData }) {
   return (
-    <Card className="group h-full overflow-hidden" variant="interactive">
+    <Card equalHeight className="group overflow-hidden" variant="interactive">
       <Link
-        className="flex h-full flex-col focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+        className="flex h-full flex-col focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
         href={`/articles/${article.slug}`}
         prefetch={false}
       >
@@ -29,15 +30,15 @@ export function ArticleCard({ article }: { article: ArticleCardData }) {
           )}
         </div>
 
-        <div className="flex flex-1 flex-col p-5">
+        <CardBody className="p-5">
           {article.categoryName ? (
-            <p className="caption uppercase tracking-wider text-premium">{article.categoryName}</p>
+            <Badge variant="premium">{article.categoryName}</Badge>
           ) : null}
 
           <h2 className="mt-1.5 heading-sm text-foreground">{article.title}</h2>
           <p className="mt-2 line-clamp-2 body-sm text-foreground-secondary">{article.excerpt}</p>
 
-          <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-4 caption text-foreground-muted">
+          <CardFooter className="flex flex-wrap items-center gap-x-3 gap-y-1 caption text-foreground-muted">
             <time dateTime={article.publishedAt.toISOString()}>
               {article.publishedAt.toLocaleDateString("en-IN", {
                 day: "numeric",
@@ -49,8 +50,8 @@ export function ArticleCard({ article }: { article: ArticleCardData }) {
               <Clock aria-hidden="true" size={12} />
               {article.readingMinutes} min read
             </span>
-          </div>
-        </div>
+          </CardFooter>
+        </CardBody>
       </Link>
     </Card>
   );

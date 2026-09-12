@@ -71,66 +71,73 @@ export function BirthDetailsFields({
 
   return (
     <>
-      <FormRow error={error("name")} htmlFor={id("name")} label={nameLabel}>
-        <Input
-          autoComplete="name"
-          defaultValue={defaults?.name}
-          id={id("name")}
-          name={fieldName(prefix, "name")}
-          placeholder="Enter full name"
-          required
-        />
-      </FormRow>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormRow error={error("dateOfBirth")} htmlFor={id("dateOfBirth")} label="Date of Birth">
+      <div className="form-section">
+        <h3 className="form-section-title">Birth details</h3>
+        <FormRow error={error("name")} htmlFor={id("name")} label={nameLabel}>
           <Input
-            defaultValue={defaults?.dateOfBirth}
-            id={id("dateOfBirth")}
-            name={fieldName(prefix, "dateOfBirth")}
+            autoComplete="name"
+            defaultValue={defaults?.name}
+            id={id("name")}
+            name={fieldName(prefix, "name")}
+            placeholder="Enter full name"
             required
-            type="date"
           />
         </FormRow>
-        <FormRow error={error("gender")} htmlFor={id("gender")} label="Gender">
-          <Select defaultValue={defaults?.gender ?? ""} id={id("gender")} name={fieldName(prefix, "gender")}>
-            <option value="">Prefer not to say</option>
-            <option>Female</option>
-            <option>Male</option>
-            <option>Non-binary</option>
-          </Select>
-        </FormRow>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormRow error={error("dateOfBirth")} htmlFor={id("dateOfBirth")} label="Date of Birth">
+            <Input
+              defaultValue={defaults?.dateOfBirth}
+              id={id("dateOfBirth")}
+              name={fieldName(prefix, "dateOfBirth")}
+              required
+              type="date"
+            />
+          </FormRow>
+          <FormRow error={error("gender")} htmlFor={id("gender")} label="Gender">
+            <Select defaultValue={defaults?.gender ?? ""} id={id("gender")} name={fieldName(prefix, "gender")}>
+              <option value="">Prefer not to say</option>
+              <option>Female</option>
+              <option>Male</option>
+              <option>Non-binary</option>
+            </Select>
+          </FormRow>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[1fr_0.9fr]">
-        <FormRow error={error("timeOfBirth")} htmlFor={id("timeOfBirth")} label="Time of Birth">
-          <Input
-            defaultValue={defaults?.timeOfBirth ?? "12:00"}
-            disabled={timeAccuracy === "UNKNOWN"}
-            id={id("timeOfBirth")}
-            name={fieldName(prefix, "timeOfBirth")}
-            required
-            type="time"
-          />
-          {timeAccuracy === "UNKNOWN" ? (
-            <input name={fieldName(prefix, "timeOfBirth")} type="hidden" value="12:00" />
-          ) : null}
-        </FormRow>
-        <FormRow error={error("timeAccuracy")} htmlFor={id("timeAccuracy")} label="Time Accuracy">
-          <Select
-            id={id("timeAccuracy")}
-            name={fieldName(prefix, "timeAccuracy")}
-            onChange={(event) => setTimeAccuracy(event.target.value)}
-            value={timeAccuracy}
-          >
-            <option value="EXACT">Exact</option>
-            <option value="APPROXIMATE">Approximate</option>
-            <option value="UNKNOWN">Unknown time</option>
-          </Select>
-        </FormRow>
+      <div className="form-section">
+        <h3 className="form-section-title">Time and accuracy</h3>
+        <div className="grid gap-4 sm:grid-cols-[1fr_0.9fr]">
+          <FormRow error={error("timeOfBirth")} htmlFor={id("timeOfBirth")} label="Time of Birth">
+            <Input
+              defaultValue={defaults?.timeOfBirth ?? "12:00"}
+              disabled={timeAccuracy === "UNKNOWN"}
+              id={id("timeOfBirth")}
+              name={fieldName(prefix, "timeOfBirth")}
+              required
+              type="time"
+            />
+            {timeAccuracy === "UNKNOWN" ? (
+              <input name={fieldName(prefix, "timeOfBirth")} type="hidden" value="12:00" />
+            ) : null}
+          </FormRow>
+          <FormRow error={error("timeAccuracy")} htmlFor={id("timeAccuracy")} label="Time Accuracy">
+            <Select
+              id={id("timeAccuracy")}
+              name={fieldName(prefix, "timeAccuracy")}
+              onChange={(event) => setTimeAccuracy(event.target.value)}
+              value={timeAccuracy}
+            >
+              <option value="EXACT">Exact</option>
+              <option value="APPROXIMATE">Approximate</option>
+              <option value="UNKNOWN">Unknown time</option>
+            </Select>
+          </FormRow>
+        </div>
       </div>
 
-      <div className="relative">
+      <div className="form-section relative">
+        <h3 className="form-section-title">Birth location</h3>
         <FormRow error={error("placeId")} htmlFor={id("place")} label="Birth Place">
           <Input
             aria-autocomplete="list"

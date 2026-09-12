@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { BadgeCheck, PackageCheck, PackageX, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PriceDisplay as UiPriceDisplay } from "@/components/ui/price-display";
 import { cn } from "@/lib/utils";
@@ -38,27 +39,31 @@ export function PriceDisplay({
 export function InventoryBadge({ inStock, quantity }: { inStock: boolean; quantity?: number }) {
   if (!inStock) {
     return (
-      <span className="inline-flex items-center gap-1.5 caption text-foreground-muted">
+      <Badge>
         <PackageX aria-hidden="true" size={14} />
         Out of stock
-      </span>
+      </Badge>
     );
   }
 
   const low = quantity !== undefined && quantity > 0 && quantity <= 3;
 
   return (
-    <span className={cn("inline-flex items-center gap-1.5 caption", low ? "text-warning" : "text-success")}>
+    <Badge variant={low ? "warning" : "success"}>
       <PackageCheck aria-hidden="true" size={14} />
       {low ? `Only ${quantity} left` : "In stock"}
-    </span>
+    </Badge>
   );
 }
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   return (
-    <Card className="group overflow-hidden" variant="interactive">
-      <Link className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan" href={`/product/${product.slug}`} prefetch={false}>
+    <Card equalHeight className="group overflow-hidden" variant="interactive">
+      <Link
+        className="flex h-full flex-col focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
+        href={`/product/${product.slug}`}
+        prefetch={false}
+      >
         <div className="relative aspect-square overflow-hidden bg-surface-raised">
           {product.imageUrl ? (
             <Image
@@ -74,17 +79,17 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             </div>
           )}
           {product.certified ? (
-            <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border border-premium/60 bg-background/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-premium backdrop-blur">
+            <Badge className="absolute left-3 top-3 bg-background/85 backdrop-blur" variant="premium">
               <BadgeCheck size={12} />
               Certified
-            </span>
+            </Badge>
           ) : null}
         </div>
 
-        <div className="p-4">
+        <div className="flex flex-1 flex-col p-4">
           {product.categoryName ? <p className="caption text-foreground-muted">{product.categoryName}</p> : null}
           <h3 className="mt-1 heading-sm line-clamp-2 text-foreground">{product.title}</h3>
-          <div className="mt-3">
+          <div className="mt-auto pt-4">
             <PriceDisplay
               compareAtPriceMinor={product.compareAtPriceMinor}
               currency={product.currency}

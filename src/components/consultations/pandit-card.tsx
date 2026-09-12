@@ -71,7 +71,7 @@ export function PanditCard({ pandit }: { pandit: DirectoryPandit }) {
   return (
     <Card className="group flex h-full flex-col overflow-hidden" variant="interactive">
       <Link
-        className="flex h-full flex-col p-5 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="flex h-full flex-col p-5 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
         href={`/consultations/${pandit.slug}`}
         prefetch={false}
       >

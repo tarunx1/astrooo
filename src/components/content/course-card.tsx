@@ -2,7 +2,9 @@ import { ContentImage } from "@/components/ui/content-image";
 import Link from "next/link";
 import { CourseLevel } from "@prisma/client";
 import { BookOpen, Clock, GraduationCap } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardFooter } from "@/components/ui/card";
+import { PriceDisplay } from "@/components/ui/price-display";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 import type { CourseCardData } from "@/lib/content/courses";
 
@@ -21,9 +23,9 @@ const LEVEL_LABEL: Record<CourseLevel, string> = {
  */
 export function CourseCard({ course }: { course: CourseCardData }) {
   return (
-    <Card className="group h-full overflow-hidden" variant="interactive">
+    <Card equalHeight className="group overflow-hidden" variant="interactive">
       <Link
-        className="flex h-full flex-col focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+        className="flex h-full flex-col focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
         href={`/courses/${course.slug}`}
         prefetch={false}
       >
@@ -43,8 +45,8 @@ export function CourseCard({ course }: { course: CourseCardData }) {
           )}
         </div>
 
-        <div className="flex flex-1 flex-col p-5">
-          <p className="caption uppercase tracking-wider text-premium">{LEVEL_LABEL[course.level]}</p>
+        <CardBody className="p-5">
+          <Badge variant="premium">{LEVEL_LABEL[course.level]}</Badge>
           <h2 className="mt-1.5 heading-sm text-foreground">{course.title}</h2>
           <p className="mt-2 line-clamp-2 body-sm text-foreground-secondary">{course.shortDescription}</p>
 
@@ -64,10 +66,14 @@ export function CourseCard({ course }: { course: CourseCardData }) {
             ) : null}
           </div>
 
-          <p className="mt-auto pt-4 body-md font-semibold text-foreground">
-            {course.isFree ? "Free" : formatMoneyMinor(course.pricePaise, course.currency)}
-          </p>
-        </div>
+          <CardFooter>
+            <PriceDisplay
+              amount={course.isFree ? "Free" : formatMoneyMinor(course.pricePaise, course.currency)}
+              meta="Course"
+              size="sm"
+            />
+          </CardFooter>
+        </CardBody>
       </Link>
     </Card>
   );

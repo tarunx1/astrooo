@@ -130,7 +130,7 @@ export function DirectoryFilters({
           {query ? (
             <button
               aria-label="Clear search"
-              className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-foreground-muted transition hover:bg-surface-hover hover:text-foreground focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-foreground-muted transition hover:bg-surface-hover hover:text-foreground focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
               onClick={() => {
                 typing.current = false;
                 setQuery("");
@@ -234,7 +234,7 @@ export function DirectoryFilters({
 
         {hasFilters ? (
           <button
-            className="ml-auto inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border px-3 caption font-semibold text-foreground-secondary transition hover:border-border-strong hover:text-foreground focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="ml-auto inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border px-3 caption font-semibold text-foreground-secondary transition hover:border-border-strong hover:text-foreground focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
             onClick={() => {
               typing.current = false;
               setQuery("");
