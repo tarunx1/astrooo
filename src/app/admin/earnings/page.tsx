@@ -114,13 +114,13 @@ export default async function AdminEarningsPage({
         getKey={(row) => row.id}
         renderCard={(row) => (
           <div className="grid gap-1.5">
-            <p className="body-sm font-semibold text-slate-900">
+            <p className="body-sm font-semibold text-foreground">
               {row.pandit.displayName || row.pandit.user.email}
             </p>
-            <p className="caption text-slate-500">
+            <p className="caption text-foreground-muted">
               {formatPaise(row.grossAmountPaise)} gross · {row.commissionPercent}% platform
             </p>
-            <p className="body-sm font-semibold text-slate-900">{formatPaise(row.netPayablePaise)}</p>
+            <p className="body-sm font-semibold text-foreground">{formatPaise(row.netPayablePaise)}</p>
             <StatusBadge label={row.status} tone={TONE[row.status]} />
           </div>
         )}
@@ -129,10 +129,10 @@ export default async function AdminEarningsPage({
             case "pandit":
               return (
                 <span className="grid">
-                  <Link className="font-semibold text-blue-700 underline" href={`/admin/pandits/${row.pandit.id}`}>
+                  <Link className="font-semibold text-primary underline" href={`/admin/pandits/${row.pandit.id}`}>
                     {row.pandit.displayName || "Pandit"}
                   </Link>
-                  <span className="caption text-slate-500">
+                  <span className="caption text-foreground-muted">
                     {row.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                   </span>
                 </span>
@@ -147,7 +147,7 @@ export default async function AdminEarningsPage({
               return (
                 <span className="grid gap-1">
                   <StatusBadge label={row.status} tone={TONE[row.status]} />
-                  {row.heldReason ? <span className="caption text-amber-700">{row.heldReason}</span> : null}
+                  {row.heldReason ? <span className="caption text-warning">{row.heldReason}</span> : null}
                 </span>
               );
             default:

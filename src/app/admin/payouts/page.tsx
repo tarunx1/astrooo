@@ -17,6 +17,8 @@ import { formatPaise } from "@/lib/payouts/ledger";
 import { getSettings } from "@/lib/settings/service";
 import { prisma } from "@/lib/db/prisma";
 import { createPayoutAction, releaseEarningsAction, transitionPayoutAction } from "@/app/admin/payouts/actions";
+import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Payouts" };
 
@@ -115,21 +117,19 @@ export default async function AdminPayoutsPage({
         />
       </MetricGrid>
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <p className="caption text-slate-600">
-          No payout provider is connected, so this application does not transfer money. These records track
-          what is owed, who released it and which bank reference settled it.
-        </p>
-      </div>
+      <Alert>
+        No payout provider is connected, so this application does not transfer money. These records track
+        what is owed, who released it and which bank reference settled it.
+      </Alert>
 
       {canProcess ? (
         <DashboardSection
           description="Earnings become eligible once their holding period has elapsed."
           title="Maintenance"
         >
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+          <Card padding="md" variant="admin">
             <ReleaseEarningsForm action={releaseEarningsAction} />
-          </div>
+          </Card>
         </DashboardSection>
       ) : null}
 
@@ -149,8 +149,8 @@ export default async function AdminPayoutsPage({
             getKey={(row) => row.panditProfileId}
             renderCard={(row) => (
               <div className="grid gap-1.5">
-                <p className="body-sm font-semibold text-slate-900">{row.name}</p>
-                <p className="caption text-slate-500">
+                <p className="body-sm font-semibold text-foreground">{row.name}</p>
+                <p className="caption text-foreground-muted">
                   {row.earningCount} earnings · {formatPaise(row.amountPaise)}
                 </p>
                 {canProcess ? (
@@ -162,7 +162,7 @@ export default async function AdminPayoutsPage({
               switch (key) {
                 case "pandit":
                   return (
-                    <Link className="font-semibold text-blue-700 underline" href={`/admin/pandits/${row.panditProfileId}`}>
+                    <Link className="font-semibold text-primary underline" href={`/admin/pandits/${row.panditProfileId}`}>
                       {row.name}
                     </Link>
                   );
@@ -208,9 +208,9 @@ export default async function AdminPayoutsPage({
           getKey={(row) => row.id}
           renderCard={(row) => (
             <div className="grid gap-1.5">
-              <p className="body-sm font-semibold text-slate-900">{formatPaise(row.amountPaise)}</p>
-              <p className="caption font-mono text-slate-400">{row.payoutNumber}</p>
-              <p className="caption text-slate-500">{row.pandit.displayName || row.pandit.user.email}</p>
+              <p className="body-sm font-semibold text-foreground">{formatPaise(row.amountPaise)}</p>
+              <p className="caption font-mono text-foreground-muted">{row.payoutNumber}</p>
+              <p className="caption text-foreground-muted">{row.pandit.displayName || row.pandit.user.email}</p>
               <StatusBadge label={row.status} tone={TONE[row.status]} />
               {canProcess ? (
                 <PayoutControls action={transitionPayoutAction} payoutId={row.id} status={row.status} />
@@ -223,12 +223,12 @@ export default async function AdminPayoutsPage({
                 return (
                   <span className="grid">
                     <span className="font-mono text-xs">{row.payoutNumber}</span>
-                    <span className="caption text-slate-500">{row._count.earnings} earnings</span>
+                    <span className="caption text-foreground-muted">{row._count.earnings} earnings</span>
                   </span>
                 );
               case "pandit":
                 return (
-                  <Link className="text-blue-700 underline" href={`/admin/pandits/${row.pandit.id}`}>
+                  <Link className="text-primary underline" href={`/admin/pandits/${row.pandit.id}`}>
                     {row.pandit.displayName || row.pandit.user.email}
                   </Link>
                 );
@@ -238,9 +238,9 @@ export default async function AdminPayoutsPage({
                 return (
                   <span className="grid gap-1">
                     <StatusBadge label={row.status} tone={TONE[row.status]} />
-                    {row.reference ? <span className="caption text-slate-500">Ref {row.reference}</span> : null}
+                    {row.reference ? <span className="caption text-foreground-muted">Ref {row.reference}</span> : null}
                     {row.failureReason ? (
-                      <span className="caption text-rose-700">{row.failureReason}</span>
+                      <span className="caption text-danger">{row.failureReason}</span>
                     ) : null}
                   </span>
                 );

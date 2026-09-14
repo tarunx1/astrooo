@@ -5,6 +5,7 @@ import { PayoutSettingsForm } from "@/components/admin/payout-forms";
 import { requireSuperAdminViewer } from "@/lib/auth/access";
 import { getSettings } from "@/lib/settings/service";
 import { updatePayoutSettingsAction } from "@/app/admin/payouts/actions";
+import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Commission and payout rules" };
 
@@ -35,7 +36,7 @@ export default async function PayoutSettingsPage() {
       title="Commission and payout rules"
     >
       <DashboardSection title="Rules">
-        <div className="max-w-2xl rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+        <Card className="max-w-2xl" padding="md" variant="admin">
           <PayoutSettingsForm
             action={updatePayoutSettingsAction}
             defaults={{
@@ -46,17 +47,17 @@ export default async function PayoutSettingsPage() {
               platformCommissionPercent: String(settings["payouts.platformCommissionPercent"]),
             }}
           />
-        </div>
+        </Card>
       </DashboardSection>
 
       <DashboardSection title="Automatic transfers">
-        <div className="max-w-2xl rounded-lg border border-slate-200 bg-slate-50 p-5">
-          <p className="body-sm text-slate-700">
+        <div className="max-w-2xl rounded-lg border border-border bg-surface-muted p-5">
+          <p className="body-sm text-foreground-secondary">
             Off, and not switchable on from here. Turning it on would need a payout provider with a connected-
             account model - Razorpay Route or an equivalent - and that is a business decision with its own
             onboarding and KYC, not a setting.
           </p>
-          <p className="mt-3 caption text-slate-600">
+          <p className="mt-3 caption text-foreground-secondary">
             Until then the ledger, eligibility, batching and audit trail are real; the transfer itself is made
             by an operator and recorded against its bank reference.
           </p>

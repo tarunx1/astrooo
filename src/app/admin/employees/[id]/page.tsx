@@ -14,6 +14,8 @@ import {
   setEmployeePermissionsAction,
   updateEmployeeAction,
 } from "@/app/admin/employees/actions";
+import { Alert } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Employee" };
 
@@ -41,12 +43,10 @@ export default async function AdminEmployeeDetailPage({ params }: { params: Prom
       title={employee.name || "Employee"}
     >
       {isSelf ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="body-sm text-slate-800">
-            This is your own account. Nobody changes their own permissions or employment status here - the
-            actions refuse it.
-          </p>
-        </div>
+        <Alert variant="warning">
+          This is your own account. Nobody changes their own permissions or employment status here - the
+          actions refuse it.
+        </Alert>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -54,9 +54,9 @@ export default async function AdminEmployeeDetailPage({ params }: { params: Prom
           description="This is their complete set. Unticking removes."
           title="Permissions"
         >
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+          <Card padding="md" variant="admin">
             {isSelf ? (
-              <p className="body-sm text-slate-600">Not editable for your own account.</p>
+              <p className="body-sm text-foreground-secondary">Not editable for your own account.</p>
             ) : (
               <PermissionPicker
                 action={setEmployeePermissionsAction}
@@ -65,19 +65,19 @@ export default async function AdminEmployeeDetailPage({ params }: { params: Prom
                 targetUserId={employee.userId}
               />
             )}
-          </div>
+          </Card>
         </DashboardSection>
 
         <div className="grid gap-4 self-start">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
-            <p className="caption font-semibold uppercase tracking-wider text-slate-500">Status</p>
+          <Card padding="md" variant="admin">
+            <p className="caption font-semibold uppercase tracking-wider text-foreground-muted">Status</p>
             <div className="mt-2">
               <StatusBadge
                 label={employee.active ? "Active" : "Deactivated"}
                 tone={employee.active ? "positive" : "neutral"}
               />
             </div>
-            <p className="mt-3 caption text-slate-500">
+            <p className="mt-3 caption text-foreground-muted">
               Added{" "}
               {employee.createdAt.toLocaleDateString("en-IN", {
                 day: "numeric",
@@ -94,10 +94,10 @@ export default async function AdminEmployeeDetailPage({ params }: { params: Prom
                 />
               </div>
             ) : null}
-          </div>
+          </Card>
 
           <DashboardSection title="Details">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+            <Card padding="md" variant="admin">
               <EmployeeDetailsForm
                 action={updateEmployeeAction}
                 defaults={{
@@ -106,21 +106,21 @@ export default async function AdminEmployeeDetailPage({ params }: { params: Prom
                 }}
                 targetUserId={employee.userId}
               />
-            </div>
+            </Card>
           </DashboardSection>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
-            <p className="caption font-semibold uppercase tracking-wider text-slate-500">
+          <Card padding="md" variant="admin">
+            <p className="caption font-semibold uppercase tracking-wider text-foreground-muted">
               From their role
             </p>
             <ul className="mt-2 grid gap-1">
               {employee.roleDefaults.map((permission) => (
-                <li className="caption font-mono text-slate-500" key={permission}>
+                <li className="caption font-mono text-foreground-muted" key={permission}>
                   {permission}
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         </div>
       </div>
     </AdminLayout>

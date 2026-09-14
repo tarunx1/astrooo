@@ -11,6 +11,7 @@ import { PUJA_MODE_LABEL } from "@/lib/puja/catalog";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 import { prisma } from "@/lib/db/prisma";
 import { assignPujaPanditAction, transitionPujaBookingAction } from "@/app/admin/puja/actions";
+import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Puja booking" };
 
@@ -71,7 +72,7 @@ export default async function AdminPujaBookingPage({ params }: { params: Promise
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="grid gap-6">
           <DashboardSection title="Booking">
-            <dl className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-xs sm:grid-cols-2">
+            <dl className="grid gap-3 rounded-lg border border-border bg-card p-5 shadow-xs sm:grid-cols-2">
               <Field label="Reference" value={booking.bookingNumber} />
               <Field label="How it is performed" value={PUJA_MODE_LABEL[booking.mode]} />
               <Field
@@ -111,12 +112,12 @@ export default async function AdminPujaBookingPage({ params }: { params: Promise
             </dl>
 
             {booking.cancellationReason ? (
-              <p className="rounded-lg border border-rose-200 bg-rose-50 p-4 body-sm text-slate-700">
+              <p className="rounded-lg border border-danger/50 bg-danger/10 p-4 body-sm text-foreground-secondary">
                 {booking.cancellationReason}
               </p>
             ) : null}
             {booking.operatorNote ? (
-              <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 body-sm text-slate-700">
+              <p className="rounded-lg border border-border bg-surface-muted p-4 body-sm text-foreground-secondary">
                 Internal note: {booking.operatorNote}
               </p>
             ) : null}
@@ -127,7 +128,7 @@ export default async function AdminPujaBookingPage({ params }: { params: Promise
             title="Sankalp"
           >
             {sankalp ? (
-              <dl className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-xs sm:grid-cols-2">
+              <dl className="grid gap-3 rounded-lg border border-border bg-card p-5 shadow-xs sm:grid-cols-2">
                 <Field label="Name" value={sankalp.fullName} />
                 <Field label="Gotra" value={sankalp.gotra ?? "Not given"} />
                 <Field
@@ -139,7 +140,7 @@ export default async function AdminPujaBookingPage({ params }: { params: Promise
                 {sankalp.intention ? <Field label="Intention" value={sankalp.intention} /> : null}
               </dl>
             ) : (
-              <p className="rounded-lg border border-slate-200 bg-white p-5 body-sm text-slate-500 shadow-xs">
+              <p className="rounded-lg border border-border bg-card p-5 body-sm text-foreground-muted shadow-xs">
                 No Sankalp details were recorded for this booking.
               </p>
             )}
@@ -147,15 +148,15 @@ export default async function AdminPujaBookingPage({ params }: { params: Promise
         </div>
 
         <div className="grid gap-4 self-start">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
-            <p className="caption font-semibold uppercase tracking-wider text-slate-500">Status</p>
+          <Card padding="md" variant="admin">
+            <p className="caption font-semibold uppercase tracking-wider text-foreground-muted">Status</p>
             <div className="mt-2">
               <StatusBadge
                 label={PUJA_STATUS_LABEL[booking.status]}
                 tone={PUJA_STATUS_TONE[booking.status]}
               />
             </div>
-            <p className="mt-3 caption text-slate-500">
+            <p className="mt-3 caption text-foreground-muted">
               Booked{" "}
               {booking.createdAt.toLocaleDateString("en-IN", {
                 day: "numeric",
@@ -163,17 +164,17 @@ export default async function AdminPujaBookingPage({ params }: { params: Promise
                 year: "numeric",
               })}
             </p>
-          </div>
+          </Card>
 
           <DashboardSection title="Practitioner">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+            <Card padding="md" variant="admin">
               <AssignPanditForm
                 action={assignPujaPanditAction}
                 bookingId={booking.id}
                 currentPanditId={booking.panditProfileId}
                 pandits={pandits}
               />
-            </div>
+            </Card>
           </DashboardSection>
 
           <DashboardSection title="Move this booking on">
@@ -192,8 +193,8 @@ export default async function AdminPujaBookingPage({ params }: { params: Promise
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="caption text-slate-500">{label}</dt>
-      <dd className="body-sm text-slate-800">{value}</dd>
+      <dt className="caption text-foreground-muted">{label}</dt>
+      <dd className="body-sm text-foreground">{value}</dd>
     </div>
   );
 }

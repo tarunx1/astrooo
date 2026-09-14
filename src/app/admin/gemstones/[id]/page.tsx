@@ -10,6 +10,7 @@ import { getAdminProduct } from "@/lib/admin/products";
 import { parseProductAttributes } from "@/lib/shop/attributes";
 import { prisma } from "@/lib/db/prisma";
 import { setGemstoneActiveAction } from "@/app/admin/gemstones/actions";
+import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Gemstone" };
 
@@ -72,14 +73,14 @@ export default async function AdminGemstoneDetailPage({ params }: { params: Prom
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <DashboardSection title="Details">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+          <Card padding="md" variant="admin">
             <GemstoneForm initial={initial} />
-          </div>
+          </Card>
         </DashboardSection>
 
         <div className="grid gap-4 self-start">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
-            <p className="caption font-semibold uppercase tracking-wider text-slate-500">Listing</p>
+          <Card padding="md" variant="admin">
+            <p className="caption font-semibold uppercase tracking-wider text-foreground-muted">Listing</p>
             <div className="mt-2">
               <StatusBadge
                 label={product.active ? "Listed" : "Archived"}
@@ -102,11 +103,11 @@ export default async function AdminGemstoneDetailPage({ params }: { params: Prom
                 <input name="active" type="hidden" value={product.active ? "false" : "true"} />
               </AdminForm>
             </div>
-            <p className="mt-3 caption text-slate-500">
+            <p className="mt-3 caption text-foreground-muted">
               Archiving never deletes. Orders reference the product, and history that points at a deleted row
               is not history.
             </p>
-          </div>
+          </Card>
         </div>
       </div>
     </AdminLayout>

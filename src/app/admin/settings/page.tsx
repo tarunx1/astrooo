@@ -57,16 +57,16 @@ export default async function AdminSystemPage() {
     >
       <div className="grid gap-6">
         <section aria-labelledby="runtime-heading">
-          <h2 className="heading-md text-slate-900" id="runtime-heading">
+          <h2 className="heading-md text-foreground" id="runtime-heading">
             Runtime
           </h2>
-          <Card className="mt-3 divide-y divide-slate-100" variant="admin">
+          <Card className="mt-3 divide-y divide-border" variant="admin">
             <div className="flex items-center justify-between gap-4 p-4">
-              <span className="body-sm text-slate-800">Database</span>
+              <span className="body-sm text-foreground">Database</span>
               <AdminStatusBadge label={database ? "Ready" : "Unavailable"} tone={database ? "positive" : "danger"} />
             </div>
             <div className="flex items-center justify-between gap-4 p-4">
-              <span className="body-sm text-slate-800">Credential encryption</span>
+              <span className="body-sm text-foreground">Credential encryption</span>
               <AdminStatusBadge
                 label={hasRootKey() ? "Configured" : "Missing"}
                 tone={hasRootKey() ? "positive" : "danger"}
@@ -74,7 +74,7 @@ export default async function AdminSystemPage() {
             </div>
           </Card>
           {!hasRootKey() ? (
-            <p className="mt-3 body-sm text-slate-600">
+            <p className="mt-3 body-sm text-foreground-secondary">
               Credentials cannot be stored here until an encryption key is set on the deployment. Provider
               configuration falls back to environment variables in the meantime.
             </p>
@@ -82,15 +82,15 @@ export default async function AdminSystemPage() {
         </section>
 
         <section aria-labelledby="integrations-heading">
-          <h2 className="heading-md text-slate-900" id="integrations-heading">
+          <h2 className="heading-md text-foreground" id="integrations-heading">
             Integrations
           </h2>
-          <Card className="mt-3 divide-y divide-slate-100" variant="admin">
+          <Card className="mt-3 divide-y divide-border" variant="admin">
             {integrations.map(({ label, status }) => (
               <div className="flex flex-wrap items-center justify-between gap-3 p-4" key={label}>
                 <div className="min-w-0">
-                  <p className="body-sm font-medium text-slate-800">{label}</p>
-                  <p className="caption text-slate-500">
+                  <p className="body-sm font-medium text-foreground">{label}</p>
+                  <p className="caption text-foreground-muted">
                     {status.configured
                       ? `${status.source === "admin" ? "Configured here" : status.source === "environment" ? "Configured via environment" : status.source === "built-in" ? "Built in, nothing to configure" : "Available"}${status.detail ? ` · ${status.detail}` : ""}`
                       : "Not configured"}
@@ -106,21 +106,21 @@ export default async function AdminSystemPage() {
         </section>
 
         <section aria-labelledby="environment-heading">
-          <h2 className="heading-md text-slate-900" id="environment-heading">
+          <h2 className="heading-md text-foreground" id="environment-heading">
             Environment managed
           </h2>
-          <p className="mt-2 body-sm text-slate-600">
+          <p className="mt-2 body-sm text-foreground-secondary">
             These belong to the deployment and cannot be viewed or edited here. Anything editable from a browser
             session is only as strong as that session, and these are what the session itself rests on.
           </p>
-          <Card className="mt-3 divide-y divide-slate-100" variant="admin">
+          <Card className="mt-3 divide-y divide-border" variant="admin">
             {ENVIRONMENT_MANAGED.map((item) => {
               const present = envPresent(item.key);
               return (
                 <div className="flex flex-wrap items-center justify-between gap-3 p-4" key={item.key}>
                   <div className="min-w-0">
-                    <p className="body-sm font-medium text-slate-800">{item.label}</p>
-                    <p className="caption text-slate-500">{item.reason}</p>
+                    <p className="body-sm font-medium text-foreground">{item.label}</p>
+                    <p className="caption text-foreground-muted">{item.reason}</p>
                   </div>
                   <AdminStatusBadge
                     label={present ? "Configured" : "Missing"}
@@ -133,7 +133,7 @@ export default async function AdminSystemPage() {
         </section>
 
         <section aria-labelledby="areas-heading">
-          <h2 className="heading-md text-slate-900" id="areas-heading">
+          <h2 className="heading-md text-foreground" id="areas-heading">
             Settings
           </h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -142,15 +142,15 @@ export default async function AdminSystemPage() {
                 {area.planned ? (
                   <div>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="heading-sm text-slate-500">{area.title}</p>
-                      <span className="rounded-sm bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Managed in .env</span>
+                      <p className="heading-sm text-foreground-muted">{area.title}</p>
+                      <span className="rounded-sm bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">Managed in .env</span>
                     </div>
-                    <p className="mt-1 body-sm text-slate-400">{area.description}</p>
+                    <p className="mt-1 body-sm text-foreground-muted">{area.description}</p>
                   </div>
                 ) : (
-                  <Link className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" href={area.href}>
-                    <p className="heading-sm text-slate-900">{area.title}</p>
-                    <p className="mt-1 body-sm text-slate-600">{area.description}</p>
+                  <Link className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={area.href}>
+                    <p className="heading-sm text-foreground">{area.title}</p>
+                    <p className="mt-1 body-sm text-foreground-secondary">{area.description}</p>
                   </Link>
                 )}
               </Card>

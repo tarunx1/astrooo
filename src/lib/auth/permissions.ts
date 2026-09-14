@@ -187,6 +187,29 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, readonly Permission[]> =
   [UserRole.EDITOR]: [],
 };
 
+/**
+ * The roles an operator may actually assign.
+ *
+ * ASTROLOGER and EDITOR are scaffold leftovers kept in the enum only so old
+ * rows stay readable; both map to no permissions at all. Offering them in a
+ * role picker is a trap - assigning one silently strips the account of
+ * everything, and nothing indicates why. They are excluded here rather than
+ * removed from the enum, which would need a migration and would break any row
+ * still holding one.
+ *
+ * This is the single list a picker and a server action both read, so the two
+ * cannot drift into disagreeing about what is assignable.
+ */
+export const ASSIGNABLE_ROLES = [
+  UserRole.CUSTOMER,
+  UserRole.PANDIT,
+  UserRole.EMPLOYEE,
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN,
+] as const;
+
+export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
+
 export type PermissionOverride = { permission: string; granted: boolean };
 
 /**

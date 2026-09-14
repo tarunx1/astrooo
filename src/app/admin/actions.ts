@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { InventoryAdjustmentReason, OrderStatus, UserRole } from "@prisma/client";
+import { InventoryAdjustmentReason, OrderStatus } from "@prisma/client";
+import { ASSIGNABLE_ROLES } from "@/lib/auth/permissions";
 import { z } from "zod";
 import { authorizeAdminAction } from "@/lib/auth/admin";
 import { checkRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
@@ -410,8 +411,11 @@ export async function changeUserRoleAction(_state: AdminActionState, formData: F
   const auth = await authorizeAdminAction("users.manage");
   if (!auth.ok) return denied(auth.error);
 
+  // Validated against the assignable list, not the whole enum: a Server Action
+  // is a public endpoint, so the dead roles have to be refused here too and not
+  // merely left out of the picker.
   const parsed = z
-    .object({ targetUserId: idSchema, role: z.nativeEnum(UserRole) })
+    .object({ targetUserId: idSchema, role: z.enum(ASSIGNABLE_ROLES) })
     .safeParse({ targetUserId: formData.get("targetUserId"), role: formData.get("role") });
 
   if (!parsed.success) return failure("That role is not recognised.");

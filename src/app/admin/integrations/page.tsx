@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { AdminLayout } from "@/components/admin/admin-shell";
 import { DataTable, StatusBadge } from "@/components/dashboard/dashboard-shell";
 import { requireSuperAdminViewer } from "@/lib/auth/access";
 import { describeIntegrations } from "@/lib/settings/integrations";
+import { Alert } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Integrations" };
 export const dynamic = "force-dynamic";
@@ -22,12 +23,9 @@ export default async function AdminIntegrationsPage() {
   return (
     <AdminLayout
       actions={
-        <Link
-          className="min-h-10 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-          href="/admin/api-keys"
-        >
+        <Button href="/admin/api-keys" size="sm" variant="primary">
           Manage credentials
-        </Link>
+        </Button>
       }
       adminName={viewer.name || viewer.email}
       currentPath="/admin/integrations"
@@ -45,8 +43,8 @@ export default async function AdminIntegrationsPage() {
         getKey={(row) => row.definition.id}
         renderCard={(row) => (
           <div className="grid gap-1.5">
-            <p className="body-sm font-semibold text-slate-900">{row.definition.label}</p>
-            <p className="caption text-slate-500">{row.definition.description}</p>
+            <p className="body-sm font-semibold text-foreground">{row.definition.label}</p>
+            <p className="caption text-foreground-muted">{row.definition.description}</p>
             <StatusBadge
               label={
                 row.definition.builtIn
@@ -72,8 +70,8 @@ export default async function AdminIntegrationsPage() {
             case "service":
               return (
                 <span className="grid">
-                  <span className="font-semibold text-slate-800">{row.definition.label}</span>
-                  <span className="caption text-slate-500">{row.definition.description}</span>
+                  <span className="font-semibold text-foreground">{row.definition.label}</span>
+                  <span className="caption text-foreground-muted">{row.definition.description}</span>
                 </span>
               );
             case "state":
@@ -106,13 +104,13 @@ export default async function AdminIntegrationsPage() {
         rows={integrations}
       />
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <p className="caption text-slate-600">
+      <Alert>
+        <p className="caption text-foreground-secondary">
           Server secrets never reach a browser. Where a client needs to talk to a provider directly - a
           calling session, for example - the server mints a short-lived, scoped token; the app secret stays
           here.
         </p>
-      </div>
+      </Alert>
     </AdminLayout>
   );
 }

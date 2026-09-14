@@ -8,6 +8,7 @@ import { ArticleForm, ArticleStatusControls, type ArticleFormValues } from "@/co
 import { requirePermission } from "@/lib/auth/access";
 import { getArticleForAdmin } from "@/lib/content/articles";
 import { prisma } from "@/lib/db/prisma";
+import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Article" };
 
@@ -51,19 +52,19 @@ export default async function AdminArticlePage({ params }: { params: Promise<{ i
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <DashboardSection title="Content">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+          <Card padding="md" variant="admin">
             <ArticleForm categories={categories} initial={initial} />
-          </div>
+          </Card>
         </DashboardSection>
 
         <div className="grid gap-4 self-start">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
-            <p className="caption font-semibold uppercase tracking-wider text-slate-500">Status</p>
+          <Card padding="md" variant="admin">
+            <p className="caption font-semibold uppercase tracking-wider text-foreground-muted">Status</p>
             <div className="mt-2">
               <StatusBadge label={article.status} tone={TONE[article.status]} />
             </div>
             {article.publishedAt ? (
-              <p className="mt-3 caption text-slate-500">
+              <p className="mt-3 caption text-foreground-muted">
                 First published{" "}
                 {article.publishedAt.toLocaleDateString("en-IN", {
                   day: "numeric",
@@ -72,12 +73,12 @@ export default async function AdminArticlePage({ params }: { params: Promise<{ i
                 })}
               </p>
             ) : (
-              <p className="mt-3 caption text-slate-500">Never published.</p>
+              <p className="mt-3 caption text-foreground-muted">Never published.</p>
             )}
 
             {article.status === ArticleStatus.PUBLISHED ? (
               <Link
-                className="mt-3 inline-block text-sm font-semibold text-blue-700 underline"
+                className="mt-3 inline-block text-sm font-semibold text-primary underline"
                 href={`/articles/${article.slug}`}
                 prefetch={false}
                 target="_blank"
@@ -85,7 +86,7 @@ export default async function AdminArticlePage({ params }: { params: Promise<{ i
                 View live
               </Link>
             ) : null}
-          </div>
+          </Card>
 
           <DashboardSection title="Publishing">
             <ArticleStatusControls articleId={article.id} status={article.status} />

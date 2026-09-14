@@ -5,6 +5,7 @@ import { AdminField, AdminForm, adminInputClass } from "@/components/admin/admin
 import { SmoothInput } from "@/components/ui/smooth-input";
 import { PAYOUT_TRANSITIONS } from "@/lib/payouts/states";
 import type { AdminActionState } from "@/lib/admin/action-state";
+import { Alert } from "@/components/ui/alert";
 
 /**
  * Payout controls.
@@ -36,13 +37,13 @@ export function PayoutControls({
   const next = PAYOUT_TRANSITIONS[status];
 
   if (next.length === 0) {
-    return <p className="caption text-slate-500">Settled. Nothing further to do.</p>;
+    return <p className="caption text-foreground-muted">Settled. Nothing further to do.</p>;
   }
 
   return (
     <div className="grid gap-2">
       {next.map((target) => (
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-3" key={target}>
+        <div className="rounded-md border border-border bg-surface-muted p-3" key={target}>
           <AdminForm
             action={action}
             confirm={
@@ -100,7 +101,7 @@ export function RaisePayoutForm({ action, panditProfileId }: { action: Action; p
 export function ReleaseEarningsForm({ action }: { action: Action }) {
   return (
     <AdminForm action={action} pendingLabel="Checking..." submitLabel="Release matured earnings" variant="secondary">
-      <p className="caption text-slate-600">
+      <p className="caption text-foreground-secondary">
         Moves earnings past their holding period from pending to eligible. Safe to run repeatedly - it only
         touches rows whose holding period has actually elapsed.
       </p>
@@ -125,10 +126,10 @@ export function PayoutSettingsForm({
     <AdminForm action={action} pendingLabel="Saving..." submitLabel="Save payout rules">
       {(state) => (
         <>
-          <p className="rounded-md border border-amber-200 bg-amber-50 p-3 caption text-slate-700">
+          <Alert variant="warning">
             These decide what every Pandit is owed on work done from now on. Earnings already settled keep the
             commission they were settled at and are not rewritten.
-          </p>
+          </Alert>
 
           <AdminField label="Payout cycle" name="cycle">
             <select className={adminInputClass} defaultValue={defaults.cycle} id="cycle" name="cycle">

@@ -64,12 +64,12 @@ export function PanditList({
         getKey={(row) => row.id}
         renderCard={(row) => (
           <div className="grid gap-1.5">
-            <Link className="body-sm font-semibold text-blue-700 underline" href={`${basePath}/${row.id}`}>
+            <Link className="body-sm font-semibold text-primary underline" href={`${basePath}/${row.id}`}>
               {row.displayName || row.email}
             </Link>
-            <p className="caption text-slate-500">{row.email}</p>
+            <p className="caption text-foreground-muted">{row.email}</p>
             <StatusBadge label={STATUS_LABEL[row.status]} tone={STATUS_TONE[row.status]} />
-            <p className="caption text-slate-500">
+            <p className="caption text-foreground-muted">
               {row.expertise.slice(0, 3).join(", ") || "No specialisations"}
             </p>
           </div>
@@ -79,10 +79,10 @@ export function PanditList({
             case "applicant":
               return (
                 <span className="grid">
-                  <Link className="font-semibold text-blue-700 underline" href={`${basePath}/${row.id}`}>
+                  <Link className="font-semibold text-primary underline" href={`${basePath}/${row.id}`}>
                     {row.displayName || "Unnamed"}
                   </Link>
-                  <span className="caption text-slate-500">{row.email}</span>
+                  <span className="caption text-foreground-muted">{row.email}</span>
                 </span>
               );
             case "status":

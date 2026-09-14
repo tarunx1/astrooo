@@ -6,6 +6,7 @@ import { CreateEmployeeForm } from "@/components/admin/employee-forms";
 import { requireSuperAdminViewer } from "@/lib/auth/access";
 import { listEmployees } from "@/lib/admin/employees";
 import { createEmployeeAction } from "@/app/admin/employees/actions";
+import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Employees" };
 
@@ -55,10 +56,10 @@ export default async function AdminEmployeesPage({
             getKey={(row) => row.userId}
             renderCard={(row) => (
               <div className="grid gap-1.5">
-                <Link className="body-sm font-semibold text-blue-700 underline" href={`/admin/employees/${row.userId}`}>
+                <Link className="body-sm font-semibold text-primary underline" href={`/admin/employees/${row.userId}`}>
                   {row.name || row.email}
                 </Link>
-                <p className="caption text-slate-500">{row.email}</p>
+                <p className="caption text-foreground-muted">{row.email}</p>
                 <StatusBadge
                   label={row.active ? "Active" : "Deactivated"}
                   tone={row.active ? "positive" : "neutral"}
@@ -71,12 +72,12 @@ export default async function AdminEmployeesPage({
                   return (
                     <span className="grid">
                       <Link
-                        className="font-semibold text-blue-700 underline"
+                        className="font-semibold text-primary underline"
                         href={`/admin/employees/${row.userId}`}
                       >
                         {row.name || "Unnamed"}
                       </Link>
-                      <span className="caption text-slate-500">{row.email}</span>
+                      <span className="caption text-foreground-muted">{row.email}</span>
                     </span>
                   );
                 case "role":
@@ -107,9 +108,9 @@ export default async function AdminEmployeesPage({
         </DashboardSection>
 
         <DashboardSection title="Add an employee">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+          <Card padding="md" variant="admin">
             <CreateEmployeeForm action={createEmployeeAction} />
-          </div>
+          </Card>
         </DashboardSection>
       </div>
     </AdminLayout>

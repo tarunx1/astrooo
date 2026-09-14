@@ -78,7 +78,7 @@ export default async function AdminAnalyticsPage() {
             emptyMessage="No applications yet."
             getKey={(row) => row.status}
             renderCard={(row) => (
-              <p className="body-sm text-slate-800">
+              <p className="body-sm text-foreground">
                 {STATUS_LABEL[row.status as keyof typeof STATUS_LABEL]}: {row.count}
               </p>
             )}

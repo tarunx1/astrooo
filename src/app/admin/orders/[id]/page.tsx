@@ -99,12 +99,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           {nextStatuses.length > 0 ? (
             <OrderTransitionControls nextStatuses={[...nextStatuses]} orderId={order.id} />
           ) : (
-            <p className="body-sm text-slate-500">
+            <p className="body-sm text-foreground-muted">
               No further fulfilment steps are available from this state.
             </p>
           )}
 
-          <p className="caption text-slate-500">
+          <p className="caption text-foreground-muted">
             Payment status is set by verified payment processing and cannot be changed here.
           </p>
         </Card>
@@ -128,13 +128,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <li key={item.id}>
                 <Card className="flex flex-wrap items-start justify-between gap-3 p-4" variant="admin">
                   <div className="min-w-0">
-                    <p className="body-sm font-semibold text-slate-900">{item.title}</p>
-                    {item.skuSnapshot ? <p className="caption text-slate-500">SKU {item.skuSnapshot}</p> : null}
-                    <p className="caption text-slate-500">
+                    <p className="body-sm font-semibold text-foreground">{item.title}</p>
+                    {item.skuSnapshot ? <p className="caption text-foreground-muted">SKU {item.skuSnapshot}</p> : null}
+                    <p className="caption text-foreground-muted">
                       {formatMoneyMinor(item.unitPricePaise, order.currency)} x {item.quantity}
                     </p>
                   </div>
-                  <p className="shrink-0 body-sm text-slate-900">{formatMoneyMinor(item.totalPaise, order.currency)}</p>
+                  <p className="shrink-0 body-sm text-foreground">{formatMoneyMinor(item.totalPaise, order.currency)}</p>
                 </Card>
               </li>
             ))}
@@ -150,9 +150,9 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             ) : null}
             <Row label="Shipping" value={order.shippingPaise === 0 ? "Free" : formatMoneyMinor(order.shippingPaise, order.currency)} />
             {order.taxPaise > 0 ? <Row label="Tax" value={formatMoneyMinor(order.taxPaise, order.currency)} /> : null}
-            <div className="mt-1 flex justify-between gap-3 border-t border-slate-200 pt-2">
-              <span className="body-sm font-semibold text-slate-900">Total</span>
-              <span className="body-sm font-semibold text-slate-900">{formatMoneyMinor(order.totalPaise, order.currency)}</span>
+            <div className="mt-1 flex justify-between gap-3 border-t border-border pt-2">
+              <span className="body-sm font-semibold text-foreground">Total</span>
+              <span className="body-sm font-semibold text-foreground">{formatMoneyMinor(order.totalPaise, order.currency)}</span>
             </div>
           </Card>
         </AdminSection>
@@ -161,13 +161,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <AdminSection title="Shipping address">
             <Card className="p-5" variant="admin">
               {addressLines.length > 0 ? (
-                <address className="grid gap-1 not-italic body-sm text-slate-700">
+                <address className="grid gap-1 not-italic body-sm text-foreground-secondary">
                   {addressLines.map((line) => (
                     <span key={line}>{line}</span>
                   ))}
                 </address>
               ) : (
-                <p className="body-sm text-slate-500">No address recorded.</p>
+                <p className="body-sm text-foreground-muted">No address recorded.</p>
               )}
             </Card>
           </AdminSection>
@@ -175,7 +175,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <AdminSection description="Status and amount only." title="Payments">
             <Card className="grid gap-2 p-5" variant="admin">
               {order.payments.length === 0 ? (
-                <p className="body-sm text-slate-500">No payment recorded.</p>
+                <p className="body-sm text-foreground-muted">No payment recorded.</p>
               ) : (
                 order.payments.map((payment) => (
                   <div className="flex flex-wrap items-center justify-between gap-2" key={payment.id}>
@@ -183,8 +183,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                       label={payment.status}
                       tone={payment.status === "CAPTURED" ? "positive" : payment.status === "FAILED" ? "danger" : "neutral"}
                     />
-                    <span className="body-sm text-slate-900">{formatMoneyMinor(payment.amountPaise, payment.currency)}</span>
-                    <span className="caption text-slate-500">
+                    <span className="body-sm text-foreground">{formatMoneyMinor(payment.amountPaise, payment.currency)}</span>
+                    <span className="caption text-foreground-muted">
                       {(payment.capturedAt ?? payment.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -201,8 +201,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <Card className="grid gap-2 p-5" variant="admin">
               {timeline.map((entry) => (
                 <div className="flex justify-between gap-3" key={entry.label}>
-                  <span className="body-sm text-slate-500">{entry.label}</span>
-                  <span className="body-sm text-slate-900">
+                  <span className="body-sm text-foreground-muted">{entry.label}</span>
+                  <span className="body-sm text-foreground">
                     {entry.at!.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                   </span>
                 </div>
@@ -218,8 +218,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-3">
-      <span className="body-sm text-slate-500">{label}</span>
-      <span className="body-sm text-slate-900">{value}</span>
+      <span className="body-sm text-foreground-muted">{label}</span>
+      <span className="body-sm text-foreground">{value}</span>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InventoryStatus, ProductType } from "@prisma/client";
+import { Button } from "@/components/ui/button";
 import { AdminLayout } from "@/components/admin/admin-shell";
 import { DataTable, MetricCard, MetricGrid, Pagination, SearchBar, StatusBadge } from "@/components/dashboard/dashboard-shell";
 import { requireAnyPermission, viewerCan } from "@/lib/auth/access";
@@ -58,12 +59,9 @@ export default async function AdminGemstonesPage({
     <AdminLayout
       actions={
         canManage ? (
-          <Link
-            className="min-h-10 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-            href="/admin/gemstones/new"
-          >
+          <Button href="/admin/gemstones/new" size="sm" variant="primary">
             New gemstone
-          </Link>
+          </Button>
         ) : null
       }
       adminName={viewer.name || viewer.email}
@@ -97,14 +95,14 @@ export default async function AdminGemstonesPage({
         renderCard={(row) => (
           <div className="grid gap-1.5">
             {canManage ? (
-              <Link className="body-sm font-semibold text-blue-700 underline" href={`/admin/gemstones/${row.id}`}>
+              <Link className="body-sm font-semibold text-primary underline" href={`/admin/gemstones/${row.id}`}>
                 {row.title}
               </Link>
             ) : (
-              <p className="body-sm font-semibold text-slate-900">{row.title}</p>
+              <p className="body-sm font-semibold text-foreground">{row.title}</p>
             )}
-            <p className="caption text-slate-500">{row.sku ?? row.slug}</p>
-            <p className="caption text-slate-500">
+            <p className="caption text-foreground-muted">{row.sku ?? row.slug}</p>
+            <p className="caption text-foreground-muted">
               {formatPaise(row.salePricePaise ?? row.pricePaise)} · {row.quantity} in stock
             </p>
             <StatusBadge label={row.status} tone={STOCK_TONE[row.status]} />
@@ -116,20 +114,20 @@ export default async function AdminGemstonesPage({
               return (
                 <span className="grid">
                   {canManage ? (
-                    <Link className="font-semibold text-blue-700 underline" href={`/admin/gemstones/${row.id}`}>
+                    <Link className="font-semibold text-primary underline" href={`/admin/gemstones/${row.id}`}>
                       {row.title}
                     </Link>
                   ) : (
-                    <span className="font-semibold text-slate-800">{row.title}</span>
+                    <span className="font-semibold text-foreground">{row.title}</span>
                   )}
-                  <span className="caption text-slate-500">{row.sku ?? row.slug}</span>
+                  <span className="caption text-foreground-muted">{row.sku ?? row.slug}</span>
                 </span>
               );
             case "price":
               return row.salePricePaise ? (
                 <span className="grid">
                   <span className="font-semibold">{formatPaise(row.salePricePaise)}</span>
-                  <span className="caption text-slate-400 line-through">{formatPaise(row.pricePaise)}</span>
+                  <span className="caption text-foreground-muted line-through">{formatPaise(row.pricePaise)}</span>
                 </span>
               ) : (
                 formatPaise(row.pricePaise)

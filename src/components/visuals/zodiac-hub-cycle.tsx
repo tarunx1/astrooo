@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SIGNS } from "@/config/astrology";
-import { ZODIAC_GLYPH_PATHS } from "@/lib/star-image/zodiac-shapes";
+import { ZODIAC_HUB_ART } from "./zodiac-hub-art";
 
 /**
  * The signs taking their turn in the hollow centre of the hero wheel.
@@ -17,7 +17,7 @@ import { ZODIAC_GLYPH_PATHS } from "@/lib/star-image/zodiac-shapes";
  */
 
 /** How long each sign holds the centre, fade in and out included. */
-const HOLD_MS = 5200;
+const HOLD_MS = 6500;
 
 /** Filter id. Fixed rather than generated - only one hub exists per page. */
 const NEON_FILTER = "zodiac-hub-neon";
@@ -39,7 +39,7 @@ export function ZodiacHubCycle() {
   }, []);
 
   const sign = SIGNS[index];
-  const path = ZODIAC_GLYPH_PATHS[sign];
+  const path = ZODIAC_HUB_ART[sign];
 
   return (
     <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[31%] -translate-x-1/2 -translate-y-1/2">
@@ -56,10 +56,11 @@ export function ZodiacHubCycle() {
                 measured in the 100-unit viewBox. A CSS blur would be in screen
                 pixels and would grow or shrink with the hero's width. */}
             <filter id={NEON_FILTER} x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur in="SourceGraphic" result="wide" stdDeviation="2.6" />
+              <feGaussianBlur in="SourceGraphic" result="wide" stdDeviation="2.2" />
+              <feGaussianBlur in="SourceGraphic" result="tight" stdDeviation="0.65" />
               <feMerge>
                 <feMergeNode in="wide" />
-                <feMergeNode in="wide" />
+                <feMergeNode in="tight" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
@@ -77,6 +78,7 @@ export function ZodiacHubCycle() {
           />
           <path
             className="zodiac-hub-neon-core"
+            pathLength={1}
             d={path}
             fill="none"
             strokeLinecap="round"

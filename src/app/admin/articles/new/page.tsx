@@ -3,6 +3,7 @@ import { AdminLayout } from "@/components/admin/admin-shell";
 import { ArticleForm } from "@/components/admin/article-form";
 import { requirePermission } from "@/lib/auth/access";
 import { prisma } from "@/lib/db/prisma";
+import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "New article" };
 
@@ -21,9 +22,9 @@ export default async function NewArticlePage() {
       description="Created as a draft. Publishing is a separate step."
       title="New article"
     >
-      <div className="max-w-3xl rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+      <Card className="max-w-3xl" padding="md" variant="admin">
         <ArticleForm categories={categories} />
-      </div>
+      </Card>
     </AdminLayout>
   );
 }

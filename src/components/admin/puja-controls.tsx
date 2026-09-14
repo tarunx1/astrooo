@@ -65,13 +65,13 @@ export function PujaStatusControls({
   const next = PUJA_TRANSITIONS[status];
 
   if (next.length === 0) {
-    return <p className="caption text-slate-500">This booking is closed.</p>;
+    return <p className="caption text-foreground-muted">This booking is closed.</p>;
   }
 
   return (
     <div className="grid gap-2">
       {next.map((target) => (
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-3" key={target}>
+        <div className="rounded-md border border-border bg-surface-muted p-3" key={target}>
           <AdminForm
             action={action}
             confirm={

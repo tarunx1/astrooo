@@ -4,6 +4,7 @@ import { AdminField, AdminForm, adminInputClass } from "@/components/admin/admin
 import { SmoothInput } from "@/components/ui/smooth-input";
 import { PERMISSIONS, type Permission } from "@/lib/auth/permissions";
 import type { AdminActionState } from "@/lib/admin/action-state";
+import { Alert } from "@/components/ui/alert";
 
 /**
  * Staff management forms.
@@ -19,10 +20,10 @@ export function CreateEmployeeForm({ action }: { action: Action }) {
     <AdminForm action={action} pendingLabel="Adding..." submitLabel="Add to staff">
       {(state) => (
         <>
-          <p className="rounded-md border border-slate-200 bg-slate-50 p-3 caption text-slate-600">
+          <Alert>
             The person signs up normally first. Adding them here grants the staff role and the default
             employee permissions - there is no invitation or second password to manage.
-          </p>
+          </Alert>
 
           <AdminField error={state.fieldErrors.email?.[0]} label="Their account email" name="email">
             <SmoothInput className={adminInputClass} id="email" name="email" required type="email" />
@@ -101,22 +102,22 @@ export function PermissionPicker({
     <AdminForm action={action} pendingLabel="Saving..." submitLabel="Save permissions">
       <input name="targetUserId" type="hidden" value={targetUserId} />
 
-      <p className="rounded-md border border-slate-200 bg-slate-50 p-3 caption text-slate-600">
+      <Alert>
         Tick everything this person should have. What you save here is their complete set, so unticking
         removes. Credentials, commission, payout rules and staff management are not delegable and are
         refused even if submitted.
-      </p>
+      </Alert>
 
       <div className="grid gap-4">
         {[...grouped.entries()].map(([group, permissions]) => (
           <fieldset className="grid gap-2" key={group}>
-            <legend className="caption font-semibold uppercase tracking-wider text-slate-500">
+            <legend className="caption font-semibold uppercase tracking-wider text-foreground-muted">
               {group.replace(/_/g, " ")}
             </legend>
             <div className="grid gap-1.5">
               {permissions.map((permission) => (
                 <label
-                  className="flex cursor-pointer items-start gap-2.5 rounded-md border border-slate-200 bg-white p-2.5 transition hover:bg-slate-50 has-checked:border-blue-300 has-checked:bg-blue-50"
+                  className="flex cursor-pointer items-start gap-2.5 rounded-md border border-border bg-card p-2.5 transition hover:bg-surface-hover has-checked:border-primary has-checked:bg-secondary"
                   key={permission}
                 >
                   <input
@@ -127,8 +128,8 @@ export function PermissionPicker({
                     value={permission}
                   />
                   <span className="grid">
-                    <span className="body-sm font-medium text-slate-800">{PERMISSIONS[permission]}</span>
-                    <span className="caption font-mono text-slate-400">{permission}</span>
+                    <span className="body-sm font-medium text-foreground">{PERMISSIONS[permission]}</span>
+                    <span className="caption font-mono text-foreground-muted">{permission}</span>
                   </span>
                 </label>
               ))}

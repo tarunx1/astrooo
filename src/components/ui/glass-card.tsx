@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, type ElementType, type HTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import { useRef, type CSSProperties, type ElementType, type HTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
+import styles from "./glass-card.module.css";
 import { cn } from "@/lib/utils";
 
 export interface GlassCardProps extends HTMLAttributes<HTMLElement> {
@@ -33,8 +34,8 @@ export function GlassCard({
   children,
   className,
   spotlight = true,
-  spotlightColor = "rgba(101, 215, 255, 0.12)",
-  borderShineColor = "rgba(255, 255, 255, 0.35)",
+  spotlightColor = "color-mix(in srgb, var(--premium) 15%, transparent)",
+  borderShineColor = "color-mix(in srgb, var(--premium) 80%, transparent)",
   variant = "glass",
   as,
   href,
@@ -53,71 +54,47 @@ export function GlassCard({
   const assignRef = (node: HTMLElement | null) => {
     cardRef.current = node;
   };
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
+  const updatePointer = (e: MouseEvent<HTMLElement>) => {
+    if (!spotlight || !cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    cardRef.current.style.setProperty("--glow-x", `${e.clientX - rect.left}px`);
+    cardRef.current.style.setProperty("--glow-y", `${e.clientY - rect.top}px`);
+  };
 
   const handleMouseMove = (e: MouseEvent<HTMLElement>) => {
-    if (spotlight && cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      setMousePos({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-    }
+    updatePointer(e);
     onMouseMove?.(e);
   };
 
   const handleMouseEnter = (e: MouseEvent<HTMLElement>) => {
-    setIsHovered(true);
+    updatePointer(e);
     onMouseEnter?.(e);
-  };
-
-  const handleMouseLeave = (e: MouseEvent<HTMLElement>) => {
-    setIsHovered(false);
-    onMouseLeave?.(e);
   };
 
   const commonProps = {
     ref: assignRef,
     "data-glass-card": "",
+    "data-spotlight": spotlight ? "true" : undefined,
     className: cn(
       "group relative overflow-hidden rounded-xl border transition-all duration-300",
       variantStyles[variant],
+      styles.card,
       className
     ),
     onMouseEnter: handleMouseEnter,
-    onMouseLeave: handleMouseLeave,
+    onMouseLeave,
     onMouseMove: handleMouseMove,
-    style,
+    style: { "--glow-color": spotlightColor, "--glow-border": borderShineColor, ...style } as CSSProperties,
     ...props,
   };
 
   const innerContent = (
     <>
-      {/* Background Spotlight Radial Glow */}
       {spotlight && (
-        <div
-          className="pointer-events-none absolute -inset-px transition-opacity duration-700 ease-out"
-          style={{
-            opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(750px circle at ${mousePos.x}px ${mousePos.y}px, ${spotlightColor}, rgba(75, 123, 255, 0.03) 35%, rgba(214, 181, 109, 0.01) 65%, transparent 100%)`,
-          }}
-        />
-      )}
-
-      {/* Border Shine Effect on Cursor Hover */}
-      {spotlight && (
-        <div
-          className="pointer-events-none absolute -inset-px rounded-[inherit] transition-opacity duration-700 ease-out"
-          style={{
-            opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(450px circle at ${mousePos.x}px ${mousePos.y}px, ${borderShineColor}, rgba(101, 215, 255, 0.12) 35%, transparent 75%)`,
-            maskImage: "linear-gradient(black, black) content-box, linear-gradient(black, black)",
-            maskComposite: "exclude",
-            WebkitMaskComposite: "xor",
-            padding: "1px",
-          }}
-        />
+        <>
+          <div aria-hidden="true" className={styles.glow} />
+          <div aria-hidden="true" className={styles.shine} />
+        </>
       )}
 
       {/* Card Content */}

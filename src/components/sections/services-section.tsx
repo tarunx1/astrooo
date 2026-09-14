@@ -1,3 +1,4 @@
+import styles from "./home-cards.module.css";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { ResponsiveGrid, Section, SectionHeader } from "@/components/layout/primitives";
@@ -18,9 +19,9 @@ export function ServicesSection() {
           return (
             <Card
               equalHeight
-              spotlight
+              spotlight={true}
               variant="glass"
-              className="group overflow-hidden"
+              className={`group overflow-hidden ${styles.card} ${styles.lift}`}
               key={service.title}
             >
               <Link
@@ -29,7 +30,7 @@ export function ServicesSection() {
                 prefetch={false}
               >
                 <div className="flex items-start justify-between gap-4">
-                  <span className="grid size-11 place-items-center rounded-lg border border-border bg-surface-raised text-premium">
+                  <span className={styles.celestialIcon}>
                     <Icon aria-hidden="true" size={22} />
                   </span>
                   <span className="caption text-foreground-muted">0{index + 1}</span>

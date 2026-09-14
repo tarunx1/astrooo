@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { UserRole } from "@prisma/client";
 import { changeUserRoleAction } from "@/app/admin/actions";
 import { INITIAL_ADMIN_STATE } from "@/lib/admin/action-state";
+import { ASSIGNABLE_ROLES } from "@/lib/auth/permissions";
 
 /**
  * Role change.
@@ -50,7 +51,10 @@ export function RoleForm({
           id={`role-${targetUserId}`}
           name="role"
         >
-          {Object.values(UserRole).map((role) => (
+          {/* Assignable roles only. The enum still carries two dead ones that
+              grant nothing, and offering them here let an operator lock an
+              account out of everything with no hint as to why. */}
+          {ASSIGNABLE_ROLES.map((role) => (
             <option key={role} value={role}>
               {role}
             </option>

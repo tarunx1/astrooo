@@ -16,6 +16,7 @@ import { STATUS_LABEL, STATUS_TONE } from "@/lib/pandit/onboarding";
 import { formatPaise } from "@/lib/payouts/ledger";
 import type { PanditDetail } from "@/lib/pandit/queries";
 import type { AdminActionState } from "@/lib/admin/action-state";
+import { Card } from "@/components/ui/card";
 
 /**
  * One application, as a reviewer sees it.
@@ -61,7 +62,7 @@ export function PanditCaseFile({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="grid gap-6">
         <DashboardSection title="Applicant">
-          <dl className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-xs sm:grid-cols-2">
+          <dl className="grid gap-3 rounded-lg border border-border bg-card p-5 shadow-xs sm:grid-cols-2">
             <Field label="Name" value={detail.displayName || detail.user.name} />
             <Field label="Email" value={detail.user.email} />
             <Field label="Phone" value={detail.phone ?? "Not given"} />
@@ -96,10 +97,10 @@ export function PanditCaseFile({
           </dl>
 
           {detail.bio ? (
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
-              <p className="caption font-semibold uppercase tracking-wider text-slate-500">Bio</p>
-              <p className="mt-2 body-sm whitespace-pre-wrap text-slate-800">{detail.bio}</p>
-            </div>
+            <Card padding="md" variant="admin">
+              <p className="caption font-semibold uppercase tracking-wider text-foreground-muted">Bio</p>
+              <p className="mt-2 body-sm whitespace-pre-wrap text-foreground">{detail.bio}</p>
+            </Card>
           ) : null}
         </DashboardSection>
 
@@ -115,13 +116,13 @@ export function PanditCaseFile({
           ) : (
             <div className="grid gap-3">
               {detail.documents.map((document) => (
-                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs" key={document.id}>
+                <div className="rounded-lg border border-border bg-card p-4 shadow-xs" key={document.id}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="body-sm font-semibold text-slate-900">
+                      <p className="body-sm font-semibold text-foreground">
                         {DOCUMENT_TYPE_LABEL[document.type]}
                       </p>
-                      <p className="caption text-slate-500">
+                      <p className="caption text-foreground-muted">
                         {document.fileName} · {(document.fileSize / 1024).toFixed(0)} KB ·{" "}
                         {document.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                       </p>
@@ -129,7 +130,7 @@ export function PanditCaseFile({
                     <div className="flex items-center gap-2">
                       <StatusBadge label={document.status} tone={DOCUMENT_TONE[document.status]} />
                       <Link
-                        className="text-sm font-semibold text-blue-700 underline"
+                        className="text-sm font-semibold text-primary underline"
                         href={`/api/pandit-documents/${document.id}`}
                         prefetch={false}
                         rel="noopener"
@@ -141,14 +142,14 @@ export function PanditCaseFile({
                   </div>
 
                   {document.note ? (
-                    <p className="mt-2 caption text-slate-600">Applicant’s note: {document.note}</p>
+                    <p className="mt-2 caption text-foreground-secondary">Applicant’s note: {document.note}</p>
                   ) : null}
                   {document.rejectionReason ? (
-                    <p className="mt-2 caption text-rose-700">{document.rejectionReason}</p>
+                    <p className="mt-2 caption text-danger">{document.rejectionReason}</p>
                   ) : null}
 
                   {can.review ? (
-                    <div className="mt-3 border-t border-slate-100 pt-3">
+                    <div className="mt-3 border-t border-border pt-3">
                       <DocumentReviewForm
                         action={documentAction}
                         currentStatus={document.status}
@@ -169,15 +170,15 @@ export function PanditCaseFile({
             <ul className="grid gap-2">
               {detail.services.map((service) => (
                 <li
-                  className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-xs"
+                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4 shadow-xs"
                   key={service.id}
                 >
-                  <span className="body-sm font-semibold text-slate-900">{MODE_LABEL[service.mode]}</span>
+                  <span className="body-sm font-semibold text-foreground">{MODE_LABEL[service.mode]}</span>
                   <StatusBadge
                     label={service.enabled ? "Offered" : "Off"}
                     tone={service.enabled ? "positive" : "neutral"}
                   />
-                  <span className="caption text-slate-600">
+                  <span className="caption text-foreground-secondary">
                     {formatPaise(service.ratePaise)} · {RATE_TYPE_LABEL[service.rateType]}
                     {service.sessionMinutes ? ` · ${service.sessionMinutes} min` : ""}
                   </span>
@@ -202,8 +203,8 @@ export function PanditCaseFile({
       </div>
 
       <div className="grid gap-4 self-start">
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
-          <p className="caption font-semibold uppercase tracking-wider text-slate-500">Current status</p>
+        <Card padding="md" variant="admin">
+          <p className="caption font-semibold uppercase tracking-wider text-foreground-muted">Current status</p>
           <div className="mt-2">
             <StatusBadge label={STATUS_LABEL[detail.status]} tone={STATUS_TONE[detail.status]} />
           </div>
@@ -223,26 +224,26 @@ export function PanditCaseFile({
           </dl>
 
           {detail.changeRequestNote ? (
-            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 caption text-slate-700">
+            <p className="mt-3 rounded-md border border-warning/45 bg-warning/10 p-3 caption text-foreground-secondary">
               Outstanding request: {detail.changeRequestNote}
             </p>
           ) : null}
           {detail.rejectionReason ? (
-            <p className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 caption text-slate-700">
+            <p className="mt-3 rounded-md border border-danger/50 bg-danger/10 p-3 caption text-foreground-secondary">
               {detail.rejectionReason}
             </p>
           ) : null}
           {detail.suspensionReason ? (
-            <p className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 caption text-slate-700">
+            <p className="mt-3 rounded-md border border-danger/50 bg-danger/10 p-3 caption text-foreground-secondary">
               {detail.suspensionReason}
             </p>
           ) : null}
 
-          <p className="mt-4 caption text-slate-500">
+          <p className="mt-4 caption text-foreground-muted">
             {detail._count.consultations} consultation
             {detail._count.consultations === 1 ? "" : "s"} booked
           </p>
-        </div>
+        </Card>
 
         <DashboardSection title="Decisions">
           <PanditDecisionPanel
@@ -255,14 +256,14 @@ export function PanditCaseFile({
 
         {can.setCommission && commissionAction ? (
           <DashboardSection title="Commission">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs">
+            <Card padding="md" variant="admin">
               <CommissionForm
                 action={commissionAction}
                 current={detail.commissionPercent}
                 panditProfileId={detail.id}
                 platformDefault={platformCommission}
               />
-            </div>
+            </Card>
           </DashboardSection>
         ) : null}
       </div>
@@ -273,8 +274,8 @@ export function PanditCaseFile({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="caption text-slate-500">{label}</dt>
-      <dd className="body-sm text-slate-800">{value}</dd>
+      <dt className="caption text-foreground-muted">{label}</dt>
+      <dd className="body-sm text-foreground">{value}</dd>
     </div>
   );
 }
@@ -282,8 +283,8 @@ function Field({ label, value }: { label: string; value: string }) {
 function TimestampRow({ label, value }: { label: string; value: Date }) {
   return (
     <div className="flex justify-between gap-3">
-      <dt className="caption text-slate-500">{label}</dt>
-      <dd className="caption text-slate-700">
+      <dt className="caption text-foreground-muted">{label}</dt>
+      <dd className="caption text-foreground-secondary">
         {value.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
       </dd>
     </div>

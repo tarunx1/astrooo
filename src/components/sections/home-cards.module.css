@@ -1,0 +1,55 @@
+.card {
+  --background: #080f20;
+  --surface: #101b30;
+  --foreground: #f5f0e6;
+  --foreground-secondary: #bac5d7;
+  --foreground-muted: #94a3bb;
+  --card-foreground: #f5f0e6;
+  --premium: #d6b56d;
+  --border: #2d3a50;
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid color-mix(in srgb, var(--premium) 24%, transparent);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 10%);
+  backdrop-filter: none;
+}
+
+.card h2, .card h3 { color: var(--foreground); font-family: var(--font-display); }
+.card:hover { border-color: color-mix(in srgb, var(--premium) 48%, transparent); }
+.lift { transition: transform 180ms ease, border-color 180ms ease; }
+.lift:focus-within { border-color: var(--premium); }
+
+.celestialIcon {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border: 1px solid color-mix(in srgb, var(--premium) 40%, transparent);
+  border-radius: 50%;
+  color: var(--premium);
+  outline: 1px solid color-mix(in srgb, var(--premium) 15%, transparent);
+  outline-offset: 7px;
+  margin: 8px;
+}
+
+.feature { border-top: 2px solid var(--premium); }
+.featureArt { color: var(--premium); margin-bottom: 20px; }
+.tool {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+.tool:hover, .tool:focus-visible { border-color: var(--premium); background: var(--surface); }
+.almanac { border-top: 2px solid var(--premium); }
+.almanacRows > div { border-bottom: 1px solid color-mix(in srgb, var(--premium) 18%, transparent); }
+.almanacRows > div:last-child { border-bottom: 0; }
+.editorialImage { position: relative; height: 180px; overflow: hidden; background: var(--background); }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .lift:hover { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card, .card * { transition: none !important; }
+}

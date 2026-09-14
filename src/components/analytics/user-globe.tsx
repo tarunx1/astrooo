@@ -1,19 +1,32 @@
 "use client";
 
-import { OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import { Html, Line, OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
-  BackSide,
-  BufferGeometry,
+  CircleGeometry,
   Color,
-  Float32BufferAttribute,
   MeshBasicMaterial,
   Object3D,
-  PointsMaterial,
+  ShaderMaterial,
+  Vector3,
   SphereGeometry,
+  type Camera,
   type InstancedMesh,
+  type Mesh,
 } from "three";
-import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  Component,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ElementRef,
+  type RefObject,
+} from "react";
+import landPolygons from "./globe-land.json";
+import styles from "./user-globe.module.css";
 import type { GeographyMarker } from "@/lib/analytics/geography";
 
 export type UserGlobeMarker = GeographyMarker;
@@ -28,27 +41,39 @@ export type UserGlobeProps = {
 type GlobePalette = {
   ocean: string;
   land: string;
-  atmosphere: string;
   marker: string;
 };
 
 type Point = readonly [longitude: number, latitude: number];
 
-// Deliberately low-detail continent silhouettes. They are sampled into one
-// WebGL point cloud; no map tiles, textures, tracking SDK or DOM point field is
-// involved. The renderer stays generic and receives location markers only.
-const LAND_POLYGONS: readonly (readonly Point[])[] = [
-  [[-168, 66], [-150, 72], [-124, 72], [-95, 80], [-57, 60], [-52, 47], [-67, 42], [-81, 25], [-97, 16], [-111, 22], [-124, 32], [-130, 50]],
-  [[-81, 12], [-70, 11], [-58, 5], [-47, -18], [-54, -36], [-67, -55], [-76, -42], [-80, -10]],
-  [[-18, 36], [-9, 50], [6, 58], [30, 71], [59, 70], [88, 78], [128, 53], [151, 59], [161, 45], [142, 31], [121, 20], [105, 7], [78, 8], [60, 24], [43, 12], [34, 31], [17, 40]],
-  [[-17, 35], [10, 37], [33, 31], [51, 12], [42, -17], [29, -35], [15, -35], [2, -17], [-8, 7]],
-  [[112, -11], [131, -11], [153, -25], [146, -42], [124, -35], [113, -23]],
-  [[-54, 60], [-28, 74], [-20, 82], [-52, 84], [-73, 76]],
-  [[47, -13], [51, -17], [49, -26], [44, -20]],
-  [[95, 5], [106, -7], [119, -8], [132, -4], [142, -9], [129, -11], [111, -9]],
-  [[130, 34], [141, 45], [146, 43], [140, 32]],
-  [[166, -34], [178, -38], [176, -47], [168, -46]],
-];
+type OrbitControlsImpl = ElementRef<typeof OrbitControls>;
+
+type AxisControlsRef = RefObject<OrbitControlsImpl | null>;
+
+type AxisControlsHandle = {
+  getAzimuthalAngle: () => number;
+  getPolarAngle: () => number;
+  update: () => void;
+};
+
+const LABEL_OFFSETS = [
+  { x: -92, y: -18 },
+  { x: 64, y: -58 },
+  { x: 96, y: -20 },
+  { x: -24, y: -54 },
+  { x: 28, y: -92 },
+] as const;
+
+const ROUTE_LABEL_OFFSETS = [
+  { x: 0, y: -22 },
+  { x: 18, y: -92 },
+] as const;
+
+// Natural Earth 1:110m land, public domain. Vendored to avoid runtime map requests.
+// https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson
+const LAND_POLYGONS: Point[][] = landPolygons.map((polygon) =>
+  polygon.map(([longitude, latitude]): Point => [longitude, latitude]),
+);
 
 function pointInPolygon(longitude: number, latitude: number, polygon: readonly Point[]) {
   let inside = false;
@@ -77,12 +102,12 @@ let landPositionsCache: Float32Array | null = null;
 function getLandPositions() {
   if (landPositionsCache) return landPositionsCache;
   const values: number[] = [];
-  for (let latitude = -57; latitude <= 82; latitude += 3) {
-    const longitudeOffset = Math.abs(Math.round(latitude / 3)) % 2 ? 1.5 : 0;
-    for (let longitude = -177; longitude <= 177; longitude += 3) {
+  for (let latitude = -84; latitude <= 84; latitude += 1.5) {
+    const longitudeOffset = Math.abs(Math.round(latitude / 1.5)) % 2 ? 0.75 : 0;
+    for (let longitude = -180; longitude < 180; longitude += 1.5 / Math.cos(latitude * Math.PI / 180)) {
       const sampleLongitude = longitude + longitudeOffset;
       if (!LAND_POLYGONS.some((polygon) => pointInPolygon(sampleLongitude, latitude, polygon))) continue;
-      const point = latLngToVector(latitude, sampleLongitude, 1.012);
+      const point = latLngToVector(latitude, sampleLongitude, 1.002);
       values.push(point.x, point.y, point.z);
     }
   }
@@ -91,19 +116,139 @@ function getLandPositions() {
 }
 
 function LandDots({ color }: { color: string }) {
-  const geometry = useMemo(() => {
-    const next = new BufferGeometry();
-    next.setAttribute("position", new Float32BufferAttribute(getLandPositions(), 3));
-    return next;
-  }, []);
-  const material = useMemo(
-    () => new PointsMaterial({ color: new Color(color), size: 0.012, sizeAttenuation: true, transparent: true, opacity: 0.78 }),
-    [color],
-  );
+  const ref = useRef<InstancedMesh>(null);
+  const positions = useMemo(() => getLandPositions(), []);
+  const geometry = useMemo(() => new CircleGeometry(0.0046, 10), []);
+  const material = useMemo(() => new MeshBasicMaterial({ color }), [color]);
+  useLayoutEffect(() => {
+    const object = new Object3D();
+    for (let i = 0; i < positions.length; i += 3) {
+      object.position.fromArray(positions, i);
+      object.lookAt(object.position.clone().multiplyScalar(2));
+      object.updateMatrix();
+      ref.current?.setMatrixAt(i / 3, object.matrix);
+    }
+    if (ref.current) ref.current.instanceMatrix.needsUpdate = true;
+  }, [positions]);
+  useEffect(() => () => { geometry.dispose(); }, [geometry]);
+  useEffect(() => () => { material.dispose(); }, [material]);
+  return <instancedMesh ref={ref} args={[geometry, material, positions.length / 3]} />;
+}
 
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  useEffect(() => () => material.dispose(), [material]);
-  return <points geometry={geometry} material={material} />;
+const routeName = (marker: UserGlobeMarker) => {
+  const name = locationName(marker);
+  return name.length > 10 ? name.split(/\s+/).map((word) => word[0]).join("") : name;
+};
+
+const locationName = (marker: UserGlobeMarker) => marker.city ?? marker.region ?? marker.country;
+
+function CityLabel({ marker, globeRef, offset, onSelect }: {
+  marker: UserGlobeMarker;
+  globeRef: RefObject<Mesh | null>;
+  offset: { x: number; y: number };
+  onSelect: (marker: UserGlobeMarker) => void;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const world = useMemo(() => new Vector3(), []);
+  const direction = useMemo(() => new Vector3(), []);
+  const point = latLngToVector(marker.latitude, marker.longitude, 1.045);
+  useFrame(({ camera }) => {
+    if (!globeRef.current || !ref.current) return;
+    world.set(point.x, point.y, point.z).applyMatrix4(globeRef.current.matrixWorld);
+    direction.copy(world).sub(camera.position);
+    const distance = direction.length();
+    direction.normalize();
+    const projection = camera.position.dot(direction);
+    const discriminant = projection * projection - (camera.position.lengthSq() - 1);
+    const hit = discriminant >= 0 ? -projection - Math.sqrt(discriminant) : Infinity;
+    ref.current.dataset.hidden = hit > 0 && hit < distance - 0.001 ? "true" : "false";
+  });
+  return <Html position={[point.x, point.y, point.z]} center zIndexRange={[30, 0]}>
+    <button ref={ref} className={styles.cityLabel} onClick={() => onSelect(marker)}
+      aria-label={`${locationName(marker)}: ${marker.count} registered users`}
+      style={{ "--label-x": `${offset.x}px`, "--label-y": `${offset.y}px` } as CSSProperties}>
+      <span>{locationName(marker)}</span>
+      <span className={styles.cityCount}>{marker.count.toLocaleString("en-IN")}</span>
+    </button>
+  </Html>;
+}
+
+function returnCameraToEquator(camera: Camera, controls: AxisControlsHandle, delta: number) {
+  const radius = camera.position.length();
+  const theta = controls.getAzimuthalAngle();
+  const phi = controls.getPolarAngle();
+  const nextPhi = phi + (Math.PI / 2 - phi) * Math.min(1, delta * 3.6);
+
+  camera.position.set(
+    radius * Math.sin(nextPhi) * Math.sin(theta),
+    radius * Math.cos(nextPhi),
+    radius * Math.sin(nextPhi) * Math.cos(theta),
+  );
+  controls.update();
+}
+
+function AxisReturn({ controlsRef, enabled }: {
+  controlsRef: AxisControlsRef;
+  enabled: boolean;
+}) {
+  useFrame(({ camera }, delta) => {
+    if (!enabled || !controlsRef.current) return;
+    if (Math.abs(controlsRef.current.getPolarAngle() - Math.PI / 2) < 0.002) return;
+    returnCameraToEquator(camera, controlsRef.current, delta);
+  });
+  return null;
+}
+
+function LocationAnnotations({ markers, color, onSelect, globeRef }: {
+  markers: readonly UserGlobeMarker[];
+  color: string;
+  globeRef: RefObject<Mesh | null>;
+  onSelect: (marker: UserGlobeMarker) => void;
+}) {
+  const featured = markers.slice(0, 5);
+  const routes = useMemo(() => markers.slice(1, 3).flatMap((end) => {
+    const start = markers[0];
+    if (!start) return [];
+    const a = latLngToVector(start.latitude, start.longitude, 1);
+    const b = latLngToVector(end.latitude, end.longitude, 1);
+    const from = new Vector3(a.x, a.y, a.z);
+    const to = new Vector3(b.x, b.y, b.z);
+    const angle = from.angleTo(to);
+    // Coincident and antipodal points have no unique connecting arc.
+    if (angle < 0.05 || angle > Math.PI - 0.05) return [];
+    const points = Array.from({ length: 65 }, (_, i) => {
+      const t = i / 64;
+      return from.clone().multiplyScalar(Math.sin((1 - t) * angle))
+        .addScaledVector(to, Math.sin(t * angle)).divideScalar(Math.sin(angle))
+        .multiplyScalar(1.025 + Math.sin(t * Math.PI) * Math.min(0.28, angle * 0.17));
+    });
+    return [{ id: end.id, points, title: `${routeName(start)} → ${routeName(end)}` }];
+  }), [markers]);
+  return <>
+    {routes.map((route, index) => <group key={route.id}>
+      <Line points={route.points} color={color} lineWidth={1.5} />
+      <Html position={route.points[32]} center occlude={[globeRef as RefObject<Mesh>]} zIndexRange={[20, 0]} className={styles.routeAnchor}>
+        <span
+          className={styles.routeLabel}
+          style={{
+            "--route-x": `${ROUTE_LABEL_OFFSETS[index]?.x ?? 0}px`,
+            "--route-y": `${ROUTE_LABEL_OFFSETS[index]?.y ?? -22}px`,
+          } as CSSProperties}
+        >
+          {route.title}
+        </span>
+      </Html>
+    </group>)}
+    {featured.map((marker, index) => (
+      <CityLabel
+        key={marker.id}
+        marker={marker}
+        globeRef={globeRef}
+        offset={LABEL_OFFSETS[index] ?? LABEL_OFFSETS[0]}
+        onSelect={onSelect}
+      />
+    ))}
+  </>;
 }
 
 function LocationMarkers({
@@ -129,8 +274,8 @@ function LocationMarkers({
     if (!mesh) return;
     const object = new Object3D();
     markers.forEach((marker, index) => {
-      const point = latLngToVector(marker.latitude, marker.longitude, 1.035);
-      const scale = Math.min(0.036, 0.016 + Math.log2(marker.count + 1) * 0.0035);
+      const point = latLngToVector(marker.latitude, marker.longitude, 1.018);
+      const scale = Math.min(0.018, 0.009 + Math.log2(marker.count + 1) * 0.001);
       object.position.set(point.x, point.y, point.z);
       object.scale.setScalar(scale);
       object.updateMatrix();
@@ -167,43 +312,46 @@ function GlobeScene({
   markers,
   palette,
   rotate,
+  restoreAxis,
+  showLabels,
   onHover,
   onSelect,
 }: {
   markers: readonly UserGlobeMarker[];
   palette: GlobePalette;
   rotate: boolean;
+  restoreAxis: boolean;
+  showLabels: boolean;
   onHover: (marker: UserGlobeMarker | null) => void;
   onSelect: (marker: UserGlobeMarker) => void;
 }) {
+  const globeRef = useRef<Mesh>(null);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  useFrame(() => { globeRef.current?.updateWorldMatrix(true, false); }, -1);
   const globeGeometry = useMemo(() => new SphereGeometry(1, 64, 64), []);
-  const atmosphereGeometry = useMemo(() => new SphereGeometry(1.075, 64, 64), []);
-  const globeMaterial = useMemo(
-    () => new MeshBasicMaterial({ color: new Color(palette.ocean), transparent: true, opacity: 0.82 }),
-    [palette.ocean],
-  );
-  const atmosphereMaterial = useMemo(
-    () => new MeshBasicMaterial({ color: new Color(palette.atmosphere), transparent: true, opacity: 0.09, side: BackSide }),
-    [palette.atmosphere],
-  );
-
-  useEffect(
-    () => () => {
-      globeGeometry.dispose();
-      atmosphereGeometry.dispose();
-    },
-    [atmosphereGeometry, globeGeometry],
-  );
+  const globeMaterial = useMemo(() => new ShaderMaterial({
+    uniforms: { ocean: { value: new Color(palette.ocean) } },
+    vertexShader: `varying vec3 vNormal;
+      void main() { vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform vec3 ocean; varying vec3 vNormal;
+      void main() { float facing = max(normalize(vNormal).z, 0.0);
+        float shade = 1.0 - 0.17 * pow(1.0 - facing, 2.0);
+        shade += 0.06 * smoothstep(0.0, 0.08, 1.0 - facing) * (1.0 - smoothstep(0.08, 0.2, facing));
+        gl_FragColor = vec4(ocean * min(shade, 1.0), 1.0);
+        #include <colorspace_fragment>
+      }`,
+  }), [palette.ocean]);
+  useEffect(() => () => globeGeometry.dispose(), [globeGeometry]);
   useEffect(() => () => globeMaterial.dispose(), [globeMaterial]);
-  useEffect(() => () => atmosphereMaterial.dispose(), [atmosphereMaterial]);
 
   return (
     <>
-      <group rotation={[0.12, -0.7, 0]}>
-        <mesh geometry={globeGeometry} material={globeMaterial} />
+      <group rotation={[0, 2.79, 0]}>
+        <mesh ref={globeRef} geometry={globeGeometry} material={globeMaterial} />
         <LandDots color={palette.land} />
         <LocationMarkers color={palette.marker} markers={markers} onHover={onHover} onSelect={onSelect} />
-        <mesh geometry={atmosphereGeometry} material={atmosphereMaterial} />
+        {showLabels ? <LocationAnnotations globeRef={globeRef} markers={markers} color={palette.marker} onSelect={onSelect} /> : null}
       </group>
       <OrbitControls
         autoRotate={rotate}
@@ -215,8 +363,10 @@ function GlobeScene({
         makeDefault
         minPolarAngle={0.35}
         maxPolarAngle={Math.PI - 0.35}
+        ref={controlsRef}
         rotateSpeed={0.45}
       />
+      <AxisReturn controlsRef={controlsRef} enabled={restoreAxis} />
     </>
   );
 }
@@ -231,17 +381,9 @@ function supportsWebGL() {
 }
 
 function readGlobePalette(): GlobePalette {
-  if (typeof document === "undefined") {
-    return { ocean: "white", land: "slategray", atmosphere: "royalblue", marker: "darkgoldenrod" };
-  }
   const styles = getComputedStyle(document.documentElement);
   const token = (name: string) => styles.getPropertyValue(name).trim();
-  return {
-    ocean: token("--card"),
-    land: token("--foreground-secondary"),
-    atmosphere: token("--primary"),
-    marker: token("--astro-gold"),
-  };
+  return { ocean: token("--globe-ocean"), land: token("--globe-land"), marker: token("--globe-route") };
 }
 
 class GlobeErrorBoundary extends Component<{ children: React.ReactNode }, { failed: boolean }> {
@@ -291,7 +433,7 @@ export function UserGlobe({
   );
   const [interacting, setInteracting] = useState(false);
   const [hovered, setHovered] = useState<UserGlobeMarker | null>(null);
-  const [selected, setSelected] = useState<UserGlobeMarker | null>(markers[0] ?? null);
+  const [selected, setSelected] = useState<UserGlobeMarker | null>(null);
   const [palette, setPalette] = useState<GlobePalette>(readGlobePalette);
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reducedMotion = useReducedMotion();
@@ -338,7 +480,7 @@ export function UserGlobe({
   return (
     <div
       aria-label={ariaLabel}
-      className="relative mx-auto aspect-square w-full max-w-[640px] touch-none overflow-hidden rounded-full [cursor:grab] active:[cursor:grabbing]"
+      className={styles.globe}
       onPointerDown={() => {
         setInteracting(true);
         if (resumeTimer.current) clearTimeout(resumeTimer.current);
@@ -346,31 +488,34 @@ export function UserGlobe({
       onPointerLeave={stopInteractingSoon}
       onPointerUp={stopInteractingSoon}
       ref={containerRef}
-      role="img"
+      role="group"
     >
       <GlobeErrorBoundary>
         <Canvas
-          camera={{ position: [0, 0, 3.05], fov: 40 }}
+          camera={{ position: [0, 0, 3.65], fov: 40 }}
           dpr={[1, 2]}
           frameloop={inView && pageVisible ? "always" : "never"}
           gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         >
           <GlobeScene
             markers={markers}
+            showLabels={showLabels}
             onHover={setHovered}
             onSelect={setSelected}
             palette={palette}
+            restoreAxis={!interacting && inView && pageVisible}
             rotate={autoRotate && !reducedMotion && !interacting && inView && pageVisible}
           />
         </Canvas>
       </GlobeErrorBoundary>
+      <p className={styles.hint}>Drag to rotate · Arcs illustrate connections between locations</p>
       {showLabels && activeMarker ? (
-        <div className="pointer-events-none absolute bottom-7 left-1/2 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded border border-border bg-popover/95 px-3 py-2 text-center text-[11px] text-popover-foreground shadow-md backdrop-blur">
-          <strong className="block truncate font-semibold">
+        <div className={styles.selection}>
+          <strong className={styles.selectionTitle}>
             {activeMarker.city ?? activeMarker.region ?? activeMarker.country}
             {activeMarker.city ? `, ${activeMarker.country}` : ""}
           </strong>
-          <span className="text-muted-foreground">{activeMarker.count.toLocaleString("en-IN")} registered {activeMarker.count === 1 ? "user" : "users"}</span>
+          <span>{activeMarker.count.toLocaleString("en-IN")} registered {activeMarker.count === 1 ? "user" : "users"}</span>
         </div>
       ) : null}
     </div>

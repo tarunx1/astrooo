@@ -2,6 +2,7 @@ import { ArrowRight, ShieldCheck, Star } from "lucide-react";
 import { PageContainer } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
+import { ZodiacDial } from "@/components/visuals/zodiac-dial";
 import { ZodiacHubCycle } from "@/components/visuals/zodiac-hub-cycle";
 import { quickServices } from "@/data/home";
 
@@ -45,19 +46,12 @@ export function HeroSection() {
               they share its centre - and so the signs stay upright while the
               wheel turns around them. */}
           <div className="relative min-h-[360px] sm:min-h-[420px] lg:min-h-[520px]">
-            <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[108%] -translate-x-1/2 -translate-y-1/2 sm:w-[96%]">
+            <div className="zodiac-orbit-frame pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[108%] -translate-x-1/2 -translate-y-1/2 sm:w-[96%]">
               {/* Every layer is positioned, so they paint in source order: halo
                   behind, then the wheel, then the sign. A static wheel here
                   would be painted under the halo. */}
               <div aria-hidden="true" className="zodiac-wheel-halo absolute -inset-[12%]" />
-              {/* The sheen is a child of the wheel, not a sibling: a mask
-                  clips an element's whole subtree, so nesting it lets the
-                  highlight travel while the artwork stays single. As a sibling
-                  it carried its own copy of the mask and turned at its own
-                  speed, which drew a second wheel beside the real one. */}
-              <div aria-hidden="true" className="zodiac-wheel absolute inset-0 opacity-90">
-                <div className="zodiac-wheel-sheen" />
-              </div>
+              <ZodiacDial />
               <ZodiacHubCycle />
             </div>
           </div>

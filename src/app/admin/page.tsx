@@ -12,10 +12,10 @@ export const metadata: Metadata = { title: "Operations" };
 function Metric({ label, value, href, tone }: { label: string; value: string | number; href?: string; tone?: "warning" | "danger" }) {
   const body = (
     <Card className="h-full p-4" variant={href ? "admin-interactive" : "admin"}>
-      <p className="caption text-slate-500">{label}</p>
+      <p className="caption text-foreground-muted">{label}</p>
       <p
         className={`mt-1.5 font-display text-3xl leading-none ${
-          tone === "danger" ? "text-rose-600" : tone === "warning" ? "text-amber-600" : "text-slate-900"
+          tone === "danger" ? "text-danger" : tone === "warning" ? "text-warning" : "text-foreground"
         }`}
       >
         {value}
@@ -24,7 +24,7 @@ function Metric({ label, value, href, tone }: { label: string; value: string | n
   );
 
   return href ? (
-    <Link className="block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" href={href} prefetch={false}>
+    <Link className="block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={href} prefetch={false}>
       {body}
     </Link>
   ) : (
@@ -116,8 +116,8 @@ export default async function AdminDashboardPage() {
         <AdminSection description="Summed from captured payments only. Nothing here is estimated or projected." title="Captured payments">
           <Card className="flex flex-wrap items-center justify-between gap-3 p-5" variant="admin">
             <div>
-              <p className="caption text-slate-500">Total captured</p>
-              <p className="mt-1 font-display text-3xl leading-none text-amber-700">
+              <p className="caption text-foreground-muted">Total captured</p>
+              <p className="mt-1 font-display text-3xl leading-none text-warning">
                 {formatMoneyMinor(metrics.capturedRevenuePaise, "INR")}
               </p>
             </div>

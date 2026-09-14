@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { OrderStatus } from "@prisma/client";
 import { AdminLayout, AdminPagination, AdminSearch, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
+import { FilterBar } from "@/components/dashboard/dashboard-shell";
 import { prisma } from "@/lib/db/prisma";
 import { formatMoneyMinor } from "@/lib/shop/pricing";
 import { ORDER_STATUS_LABELS } from "@/lib/shop/order-status";
@@ -75,22 +76,16 @@ export default async function AdminOrdersPage({
     >
       <div className="flex flex-wrap items-center gap-3">
         <AdminSearch action="/admin/orders" defaultValue={search} extra={{ status }} placeholder="Search order number or email" />
-        <div className="flex flex-wrap gap-2">
-          {[undefined, OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED].map((value) => (
-            <Link
-              className={`min-h-9 rounded-md border px-3 py-2 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
-                status === value
-                  ? "border-slate-900 bg-slate-900 text-white shadow-xs"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-              href={value ? `/admin/orders?status=${value}` : "/admin/orders"}
-              key={value ?? "all"}
-              prefetch={false}
-            >
-              {value ? ORDER_STATUS_LABELS[value] : "All"}
-            </Link>
-          ))}
-        </div>
+        <FilterBar
+          basePath="/admin/orders"
+          current={status}
+          options={[
+            { label: "All", value: undefined },
+            ...[OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED].map(
+              (value) => ({ label: ORDER_STATUS_LABELS[value], value }),
+            ),
+          ]}
+        />
       </div>
 
       <AdminTable

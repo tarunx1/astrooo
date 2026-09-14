@@ -1,7 +1,8 @@
-import { LockKeyhole, MapPin } from "lucide-react";
+import styles from "./home-cards.module.css";
+import { ArrowRight, LockKeyhole, MapPin, Orbit } from "lucide-react";
 import { Section } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, GlassCard } from "@/components/ui/card";
 import { calculators, panchangRows } from "@/data/home";
 import { SmoothInput } from "@/components/ui/smooth-input";
 
@@ -24,8 +25,9 @@ export function CalculatorAndPanchang() {
     <Section tone="subtle">
       <div className="@container ml-auto max-w-[1180px]">
         <div className="grid gap-6 @2xl:grid-cols-2 @5xl:grid-cols-[1.05fr_1fr_0.94fr] @5xl:items-start @5xl:gap-7">
-        <Card className="border-border/55 bg-surface/62 p-5 shadow-none sm:p-6" variant="glass" spotlight={true}>
-          <p className="caption uppercase tracking-[0.18em] text-premium">Private birth chart</p>
+        <Card className={`${styles.card} ${styles.feature} p-5 sm:p-6`} variant="glass" spotlight={true}>
+          <Orbit className={styles.featureArt} size={72} strokeWidth={0.75} aria-hidden="true" />
+          <p className="caption text-premium">Private birth chart</p>
           <h2 className="mt-3 heading-lg">
             Generate Your <span className="text-premium">Free Kundli</span>
           </h2>
@@ -51,7 +53,7 @@ export function CalculatorAndPanchang() {
           </form>
         </Card>
 
-        <Card className="border-border/45 bg-surface/55 p-5 shadow-none sm:p-6" variant="glass" spotlight={true}>
+        <Card className={`${styles.card} p-5 sm:p-6`} variant="glass" spotlight={true}>
           {/* Wraps rather than squeezing: when the heading and the link cannot
               share a line, the link drops to its own and stays right-aligned,
               instead of crushing "Free Calculators" into two lines beside it. */}
@@ -65,7 +67,8 @@ export function CalculatorAndPanchang() {
             {calculators.map((calculator) => {
               const Icon = calculator.icon;
               return (
-                <a className="group flex items-center gap-4 rounded-[12px] p-2.5 transition-colors hover:bg-surface/65" href="/calculators" key={calculator.title}>
+                <GlassCard spotlight className={styles.tool} href="/calculators" key={calculator.title}>
+                  <span className="flex items-center gap-4 p-3">
                   <span className="grid size-12 shrink-0 place-items-center rounded-[12px] border border-border/50 bg-background/45 text-premium transition group-hover:border-premium/40 group-hover:bg-premium/10">
                     <Icon size={22} strokeWidth={1.8} />
                   </span>
@@ -73,18 +76,20 @@ export function CalculatorAndPanchang() {
                     <span className="block text-sm font-semibold text-foreground transition-colors group-hover:text-premium">{calculator.title}</span>
                     <span className="body-sm text-foreground-secondary">{calculator.text}</span>
                   </span>
-                </a>
+                  <ArrowRight size={16} className="ml-auto shrink-0 text-premium" aria-hidden="true" />
+                  </span>
+                </GlassCard>
               );
             })}
           </div>
         </Card>
 
-        <Card className="border-border/55 bg-surface/62 p-5 shadow-none @2xl:col-span-2 @5xl:col-span-1 sm:p-6" variant="glass" spotlight={true}>
+        <Card className={`${styles.card} ${styles.almanac} p-5 @2xl:col-span-2 @5xl:col-span-1 sm:p-6`} variant="glass" spotlight={true}>
           <p className="inline-flex items-center gap-2 body-sm text-foreground-muted">
             <MapPin size={16} className="text-premium" /> New Delhi
           </p>
           <h2 className="mt-3 heading-lg">Today&apos;s Panchang</h2>
-          <div className="mt-5 divide-y divide-white/10">
+          <div className={`mt-5 ${styles.almanacRows}`}>
             {/* A value is never broken mid-phrase. If the pair does not fit on
                 one line the whole value moves to the next, still right-aligned -
                 rather than "10:42 AM - 12:18" sitting above a stranded "PM". */}

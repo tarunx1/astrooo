@@ -31,7 +31,16 @@ export type ConsultationStatus =
 
 export type InventoryStatus = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" | "PREORDER";
 
-export type UserRole = "CUSTOMER" | "ASTROLOGER" | "EDITOR" | "ADMIN" | "SUPER_ADMIN";
+/**
+ * The roles that carry meaning.
+ *
+ * This had drifted badly: it still listed ASTROLOGER and EDITOR, which grant no
+ * permissions and are assigned by nothing, while omitting PANDIT and EMPLOYEE,
+ * which are two of the live roles the platform runs on. Nothing imported it, so
+ * the drift was invisible rather than harmful - but read as documentation it
+ * described a system that does not exist.
+ */
+export type UserRole = "CUSTOMER" | "PANDIT" | "EMPLOYEE" | "ADMIN" | "SUPER_ADMIN";
 
 export type BirthProfile = {
   id: string;

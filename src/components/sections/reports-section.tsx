@@ -1,3 +1,4 @@
+import styles from "./home-cards.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
@@ -6,14 +7,6 @@ import { Card, CardBody, CardFooter, GlassCard } from "@/components/ui/card";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { ResponsiveGrid, Section, SectionHeader } from "@/components/layout/primitives";
 import { reports } from "@/data/home";
-
-const tones = {
-  chart: "from-primary/30 via-surface-raised to-background",
-  mountain: "from-accent-cyan/20 via-surface-raised to-background",
-  heart: "from-premium/25 via-surface-raised to-background",
-  tree: "from-success/20 via-surface-raised to-background",
-  planet: "from-primary-hover/25 via-surface-raised to-background",
-};
 
 export function ReportsSection() {
   return (
@@ -25,8 +18,8 @@ export function ReportsSection() {
       />
       <ResponsiveGrid min="13.5rem">
         {reports.map((report) => (
-          <Card
-            className="group overflow-hidden"
+          <Card spotlight
+            className={`group overflow-hidden ${styles.card} ${styles.lift}`}
             equalHeight
             key={report.title}
             variant="interactive"
@@ -36,18 +29,19 @@ export function ReportsSection() {
               href="/reports"
               prefetch={false}
             >
-              <div className={`relative h-40 overflow-hidden bg-gradient-to-br ${tones[report.tone]} p-4 flex items-center justify-center`}>
-                <div className="relative size-24 overflow-hidden rounded-full border border-premium/60 shadow-[var(--shadow-md)]">
+              <div className={styles.editorialImage}>
+                <div className="absolute inset-0">
                   <Image
                     src={report.image}
                     alt={report.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="96px"
+                    sizes="(max-width: 640px) 90vw, 320px"
                   />
                 </div>
               </div>
               <CardBody className="gap-3 p-5">
+                <p className="caption text-premium">Personal astrology</p>
                 <h3 className="heading-md">{report.title}</h3>
                 <p className="body-sm text-foreground-secondary">{report.text}</p>
                 <CardFooter className="pt-2">
@@ -61,7 +55,7 @@ export function ReportsSection() {
       <GlassCard
         variant="glass-premium"
         spotlight={true}
-        className="mt-10 grid items-center gap-8 p-7 md:grid-cols-[1fr_auto]"
+        className={`${styles.card} mt-10 grid items-center gap-8 p-7 md:grid-cols-[1fr_auto]`}
       >
         <div>
           <h3 className="heading-xl text-premium">Kundli Matching</h3>

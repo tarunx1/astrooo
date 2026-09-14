@@ -9,6 +9,7 @@ import { hasRootKey } from "@/lib/settings/crypto";
 import { describeIntegrations } from "@/lib/settings/integrations";
 import { ENVIRONMENT_MANAGED } from "@/lib/settings/registry";
 import { prisma } from "@/lib/db/prisma";
+import { Alert } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "API keys" };
 export const dynamic = "force-dynamic";
@@ -62,22 +63,17 @@ export default async function AdminApiKeysPage() {
       title="API keys"
     >
       {!encryptionReady ? (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4">
-          <p className="body-sm font-semibold text-rose-800">Encryption is not configured.</p>
-          <p className="mt-1 body-sm text-slate-700">
-            CONFIG_ENCRYPTION_KEY is not set on this deployment, so credentials cannot be stored here.
-            Providers fall back to their environment variables until it is.
-          </p>
-        </div>
+        <Alert role="alert" title="Encryption is not configured." variant="danger">
+          CONFIG_ENCRYPTION_KEY is not set on this deployment, so credentials cannot be stored here.
+          Providers fall back to their environment variables until it is.
+        </Alert>
       ) : null}
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <p className="caption text-slate-600">
-          There is deliberately no &ldquo;show&rdquo;, &ldquo;copy&rdquo; or &ldquo;export&rdquo; here. A
-          credential you can read from a browser is a credential that can leak from a browser, so the only
-          operations are replace and remove. Every change is recorded below.
-        </p>
-      </div>
+      <Alert>
+        There is deliberately no &ldquo;show&rdquo;, &ldquo;copy&rdquo; or &ldquo;export&rdquo; here. A
+        credential you can read from a browser is a credential that can leak from a browser, so the only
+        operations are replace and remove. Every change is recorded below.
+      </Alert>
 
       {editable.map((row) => (
         <DashboardSection
@@ -87,9 +83,9 @@ export default async function AdminApiKeysPage() {
         >
           <div className="grid gap-3">
             {row.definition.notImplemented ? (
-              <p className="rounded-md border border-amber-200 bg-amber-50 p-3 caption text-slate-700">
+              <Alert variant="warning">
                 No provider is implemented for this yet. A key stored now is held safely but nothing uses it.
-              </p>
+              </Alert>
             ) : null}
 
             {row.secrets.map((secret) => (
@@ -117,12 +113,12 @@ export default async function AdminApiKeysPage() {
         <ul className="grid gap-2">
           {ENVIRONMENT_MANAGED.map((item) => (
             <li
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-xs"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 shadow-xs"
               key={item.key}
             >
               <div>
-                <p className="body-sm font-semibold text-slate-900">{item.label}</p>
-                <p className="caption text-slate-500">{item.reason}</p>
+                <p className="body-sm font-semibold text-foreground">{item.label}</p>
+                <p className="caption text-foreground-muted">{item.reason}</p>
               </div>
               <StatusBadge
                 label={process.env[item.key]?.trim() ? "Present" : "Not set"}
@@ -135,7 +131,7 @@ export default async function AdminApiKeysPage() {
 
       <DashboardSection
         actions={
-          <Link className="text-sm font-semibold text-blue-700 underline" href="/admin/audit">
+          <Link className="text-sm font-semibold text-primary underline" href="/admin/audit">
             Full audit log
           </Link>
         }

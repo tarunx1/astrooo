@@ -129,9 +129,9 @@ export function ArticleForm({
             <SmoothInput className={adminInputClass} defaultValue={initial?.tags} id="tags" name="tags" />
           </AdminField>
 
-          <fieldset className="grid gap-4 border-t border-slate-200 pt-4">
-            <legend className="body-sm font-semibold text-slate-800">Search appearance</legend>
-            <p className="caption text-slate-500">
+          <fieldset className="grid gap-4 border-t border-border pt-4">
+            <legend className="body-sm font-semibold text-foreground">Search appearance</legend>
+            <p className="caption text-foreground-muted">
               Optional. Leave blank to use the headline and excerpt.
             </p>
 

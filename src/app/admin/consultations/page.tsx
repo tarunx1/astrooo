@@ -108,7 +108,7 @@ export default async function AdminConsultationsPage({
         getKey={(row) => row.id}
         renderCard={(row) => (
           <div className="grid gap-1.5">
-            <p className="body-sm font-semibold text-slate-900">
+            <p className="body-sm font-semibold text-foreground">
               {row.scheduledStart.toLocaleString("en-IN", {
                 day: "numeric",
                 month: "short",
@@ -116,7 +116,7 @@ export default async function AdminConsultationsPage({
                 minute: "2-digit",
               })}
             </p>
-            <p className="caption text-slate-500">
+            <p className="caption text-foreground-muted">
               {row.pandit.displayName} · {row.user.name || row.user.email}
             </p>
             <StatusBadge label={STATUS_LABEL[row.status]} tone={TONE[row.status]} />
@@ -133,7 +133,7 @@ export default async function AdminConsultationsPage({
               });
             case "pandit":
               return (
-                <Link className="text-blue-700 underline" href={`/admin/pandits/${row.pandit.id}`}>
+                <Link className="text-primary underline" href={`/admin/pandits/${row.pandit.id}`}>
                   {row.pandit.displayName}
                 </Link>
               );
@@ -148,7 +148,7 @@ export default async function AdminConsultationsPage({
                 <span className="grid gap-1">
                   <StatusBadge label={STATUS_LABEL[row.status]} tone={TONE[row.status]} />
                   {row.earning ? (
-                    <span className="caption text-slate-500">Settled: {row.earning.status}</span>
+                    <span className="caption text-foreground-muted">Settled: {row.earning.status}</span>
                   ) : null}
                 </span>
               );

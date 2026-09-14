@@ -53,7 +53,7 @@ export function GemstoneForm({ initial }: { initial?: GemstoneFormValues }) {
           {isEdit ? <input name="productId" type="hidden" value={initial!.id} /> : null}
 
           <fieldset className="grid gap-4">
-            <legend className="body-sm font-semibold text-slate-800">Listing</legend>
+            <legend className="body-sm font-semibold text-foreground">Listing</legend>
 
             <AdminField error={state.fieldErrors.title?.[0]} label="Title" name="title">
               <SmoothInput className={adminInputClass} defaultValue={initial?.title} id="title" name="title" required />
@@ -125,7 +125,7 @@ export function GemstoneForm({ initial }: { initial?: GemstoneFormValues }) {
               />
             </AdminField>
 
-            <label className="inline-flex cursor-pointer items-center gap-2 body-sm font-medium text-slate-800">
+            <label className="inline-flex cursor-pointer items-center gap-2 body-sm font-medium text-foreground">
               <input
                 className="size-4 accent-blue-600"
                 defaultChecked={initial?.active}
@@ -136,8 +136,8 @@ export function GemstoneForm({ initial }: { initial?: GemstoneFormValues }) {
             </label>
           </fieldset>
 
-          <fieldset className="grid gap-4 border-t border-slate-200 pt-5">
-            <legend className="body-sm font-semibold text-slate-800">Measured properties</legend>
+          <fieldset className="grid gap-4 border-t border-border pt-5">
+            <legend className="body-sm font-semibold text-foreground">Measured properties</legend>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <AdminField error={state.fieldErrors.gemstoneType?.[0]} label="Stone" name="gemstoneType">
@@ -215,10 +215,10 @@ export function GemstoneForm({ initial }: { initial?: GemstoneFormValues }) {
             </div>
           </fieldset>
 
-          <fieldset className="grid gap-4 border-t border-slate-200 pt-5">
-            <legend className="body-sm font-semibold text-slate-800">Certification</legend>
+          <fieldset className="grid gap-4 border-t border-border pt-5">
+            <legend className="body-sm font-semibold text-foreground">Certification</legend>
 
-            <label className="inline-flex cursor-pointer items-center gap-2 body-sm font-medium text-slate-800">
+            <label className="inline-flex cursor-pointer items-center gap-2 body-sm font-medium text-foreground">
               <input
                 className="size-4 accent-blue-600"
                 defaultChecked={initial?.certified}
@@ -256,9 +256,9 @@ export function GemstoneForm({ initial }: { initial?: GemstoneFormValues }) {
             </div>
           </fieldset>
 
-          <fieldset className="grid gap-4 border-t border-slate-200 pt-5">
-            <legend className="body-sm font-semibold text-slate-800">Traditional association</legend>
-            <p className="caption text-slate-500">
+          <fieldset className="grid gap-4 border-t border-border pt-5">
+            <legend className="body-sm font-semibold text-foreground">Traditional association</legend>
+            <p className="caption text-foreground-muted">
               Shown separately from the specification table, and never presented as a proven effect.
             </p>
 

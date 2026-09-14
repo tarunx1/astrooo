@@ -1,4 +1,14 @@
 :root {
+  --globe-panel: var(--surface);
+  --globe-ocean: #eef5ff;
+  --globe-land: #273348;
+  --globe-route: #2563eb;
+  --globe-label: var(--foreground);
+  --globe-label-foreground: var(--background);
+  --globe-route-label: var(--surface-elevated);
+  --globe-route-label-foreground: var(--foreground);
+  --globe-muted: var(--muted-foreground);
+  --globe-shadow: rgb(16 24 40 / 0.12);
   color-scheme: light;
   --background: #f8fafc;
   --background-subtle: #edf2f7;
@@ -130,6 +140,16 @@
     --selection-background: rgb(101 215 255 / 0.28);
     --star-bright: rgb(247 249 255 / 0.72);
     --star-warm: rgb(214 181 109 / 0.55);
+    --globe-panel: #081026;
+    --globe-ocean: #dbeafe;
+    --globe-land: rgb(21 33 55 / 0.94);
+    --globe-route: #6f95ff;
+    --globe-label: #10182d;
+    --globe-label-foreground: #f7f9ff;
+    --globe-route-label: #f8fafc;
+    --globe-route-label-foreground: #10182d;
+    --globe-muted: #74809b;
+    --globe-shadow: rgb(0 0 0 / 0.34);
     --shadow-sm: 0 8px 24px rgb(0 0 0 / 0.2);
     --shadow-md: 0 18px 50px rgb(0 0 0 / 0.28);
     --shadow-lg: 0 28px 90px rgb(0 0 0 / 0.38);
@@ -188,6 +208,16 @@
   --selection-background: rgb(101 215 255 / 0.28);
   --star-bright: rgb(247 249 255 / 0.72);
   --star-warm: rgb(214 181 109 / 0.55);
+  --globe-panel: #081026;
+  --globe-ocean: #dbeafe;
+  --globe-land: rgb(21 33 55 / 0.94);
+  --globe-route: #6f95ff;
+  --globe-label: #10182d;
+  --globe-label-foreground: #f7f9ff;
+  --globe-route-label: #f8fafc;
+  --globe-route-label-foreground: #10182d;
+  --globe-muted: #74809b;
+  --globe-shadow: rgb(0 0 0 / 0.34);
   --shadow-sm: 0 8px 24px rgb(0 0 0 / 0.2);
   --shadow-md: 0 18px 50px rgb(0 0 0 / 0.28);
   --shadow-lg: 0 28px 90px rgb(0 0 0 / 0.38);

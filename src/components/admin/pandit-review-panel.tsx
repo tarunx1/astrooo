@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/dashboard/dashboard-shell";
 import { STATUS_LABEL, STATUS_TONE, allowedTransitions } from "@/lib/pandit/onboarding";
 import { DOCUMENT_TYPE_LABEL } from "@/lib/pandit/catalog";
 import type { AdminActionState } from "@/lib/admin/action-state";
+import { Alert } from "@/components/ui/alert";
 
 /**
  * Reviewer controls for one application.
@@ -64,18 +65,18 @@ export function PanditDecisionPanel({
 
   if (permitted.length === 0) {
     return (
-      <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 body-sm text-slate-600">
+      <Alert>
         There is nothing for you to decide on this application right now.
-      </p>
+      </Alert>
     );
   }
 
   return (
     <div className="grid gap-3">
       {permitted.map((rule) => (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs" key={rule.to}>
+        <div className="rounded-lg border border-border bg-card p-4 shadow-xs" key={rule.to}>
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <p className="body-sm font-semibold text-slate-900">{rule.label}</p>
+            <p className="body-sm font-semibold text-foreground">{rule.label}</p>
             <StatusBadge label={STATUS_LABEL[rule.to]} tone={STATUS_TONE[rule.to]} />
           </div>
 

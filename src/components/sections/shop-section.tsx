@@ -18,7 +18,7 @@ export function ShopSection() {
           />
           <div className="grid gap-3">
             {storeCategories.map((category) => (
-                <Card
+                <Card spotlight
                   key={category.title}
                   variant="interactive"
                   className="group"
@@ -50,7 +50,7 @@ export function ShopSection() {
           </div>
         </div>
 
-        <Card variant="premium" className="relative overflow-hidden p-6 sm:p-7">
+        <Card spotlight variant="premium" className="relative overflow-hidden p-6 sm:p-7">
           <div className="relative max-w-xl">
             <Badge variant="premium">
               <BadgeCheck aria-hidden="true" size={14} />
@@ -64,9 +64,9 @@ export function ShopSection() {
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {["Lab certificate", "Authenticity guarantee", "Inventory variants", "Responsible belief copy"].map((item) => (
-                <div className="rounded-lg border border-border bg-surface-raised p-4 body-sm font-semibold text-foreground" key={item}>
+                <Card spotlight className="rounded-lg border border-border bg-surface-raised p-4 body-sm font-semibold text-foreground" key={item}>
                   {item}
-                </div>
+                </Card>
               ))}
             </div>
           </div>

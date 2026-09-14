@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ReportStatus } from "@prisma/client";
 import { AdminLayout, AdminPagination, AdminStatusBadge, AdminTable } from "@/components/admin/admin-shell";
+import { FilterBar } from "@/components/dashboard/dashboard-shell";
 import { RetryReportForm } from "@/components/admin/retry-report-form";
 import { categoriseFailure, listGeneratedReports } from "@/lib/admin/catalog-admin";
 import { requirePermission } from "@/lib/auth/access";
@@ -31,22 +31,16 @@ export default async function AdminGeneratedReportsPage({
       description="Failure reasons are shown as categories. Prompts and raw provider payloads are never displayed here."
       title="Generated reports"
     >
-      <div className="flex flex-wrap gap-2">
-        {[undefined, ReportStatus.QUEUED, ReportStatus.RENDERING, ReportStatus.READY, ReportStatus.FAILED].map((value) => (
-          <Link
-            className={`min-h-9 rounded-md border px-3 py-2 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
-              status === value
-                ? "border-slate-900 bg-slate-900 text-white shadow-xs"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-            }`}
-            href={value ? `/admin/generated-reports?status=${value}` : "/admin/generated-reports"}
-            key={value ?? "all"}
-            prefetch={false}
-          >
-            {value ?? "All"}
-          </Link>
-        ))}
-      </div>
+      <FilterBar
+        basePath="/admin/generated-reports"
+        current={status}
+        options={[
+          { label: "All", value: undefined },
+          ...[ReportStatus.QUEUED, ReportStatus.RENDERING, ReportStatus.READY, ReportStatus.FAILED].map(
+            (value) => ({ label: value, value }),
+          ),
+        ]}
+      />
 
       <AdminTable
         caption="Generated reports"

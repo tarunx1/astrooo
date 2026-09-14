@@ -84,11 +84,11 @@ export default async function AdminPujaBookingsPage({
         getKey={(row) => row.id}
         renderCard={(row) => (
           <div className="grid gap-1.5">
-            <Link className="body-sm font-semibold text-blue-700 underline" href={`/admin/puja/bookings/${row.id}`}>
+            <Link className="body-sm font-semibold text-primary underline" href={`/admin/puja/bookings/${row.id}`}>
               {row.title}
             </Link>
-            <p className="caption font-mono text-slate-400">{row.bookingNumber}</p>
-            <p className="caption text-slate-500">{row.customerName}</p>
+            <p className="caption font-mono text-foreground-muted">{row.bookingNumber}</p>
+            <p className="caption text-foreground-muted">{row.customerName}</p>
             <StatusBadge label={PUJA_STATUS_LABEL[row.status]} tone={PUJA_STATUS_TONE[row.status]} />
           </div>
         )}
@@ -97,10 +97,10 @@ export default async function AdminPujaBookingsPage({
             case "booking":
               return (
                 <span className="grid">
-                  <Link className="font-semibold text-blue-700 underline" href={`/admin/puja/bookings/${row.id}`}>
+                  <Link className="font-semibold text-primary underline" href={`/admin/puja/bookings/${row.id}`}>
                     {row.title}
                   </Link>
-                  <span className="caption font-mono text-slate-400">{row.bookingNumber}</span>
+                  <span className="caption font-mono text-foreground-muted">{row.bookingNumber}</span>
                 </span>
               );
             case "customer":

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArticleStatus } from "@prisma/client";
+import { Button } from "@/components/ui/button";
 import { AdminLayout } from "@/components/admin/admin-shell";
 import { DataTable, FilterBar, Pagination, SearchBar, StatusBadge } from "@/components/dashboard/dashboard-shell";
 import { requirePermission } from "@/lib/auth/access";
@@ -35,12 +36,9 @@ export default async function AdminArticlesPage({
   return (
     <AdminLayout
       actions={
-        <Link
-          className="min-h-10 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-          href="/admin/articles/new"
-        >
+        <Button href="/admin/articles/new" size="sm" variant="primary">
           New article
-        </Link>
+        </Button>
       }
       adminName={viewer.name || viewer.email}
       currentPath="/admin/articles"
@@ -73,10 +71,10 @@ export default async function AdminArticlesPage({
         getKey={(row) => row.id}
         renderCard={(row) => (
           <div className="grid gap-1.5">
-            <Link className="body-sm font-semibold text-blue-700 underline" href={`/admin/articles/${row.id}`}>
+            <Link className="body-sm font-semibold text-primary underline" href={`/admin/articles/${row.id}`}>
               {row.title}
             </Link>
-            <p className="caption font-mono text-slate-400">{row.slug}</p>
+            <p className="caption font-mono text-foreground-muted">{row.slug}</p>
             <StatusBadge label={row.status} tone={TONE[row.status]} />
           </div>
         )}
@@ -85,10 +83,10 @@ export default async function AdminArticlesPage({
             case "title":
               return (
                 <span className="grid">
-                  <Link className="font-semibold text-blue-700 underline" href={`/admin/articles/${row.id}`}>
+                  <Link className="font-semibold text-primary underline" href={`/admin/articles/${row.id}`}>
                     {row.title}
                   </Link>
-                  <span className="caption font-mono text-slate-400">{row.slug}</span>
+                  <span className="caption font-mono text-foreground-muted">{row.slug}</span>
                 </span>
               );
             case "category":

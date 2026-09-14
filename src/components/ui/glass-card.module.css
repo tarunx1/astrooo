@@ -1,0 +1,28 @@
+.card { isolation: isolate; }
+.glow, .shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 280ms ease-out;
+}
+.glow {
+  background: radial-gradient(360px circle at var(--glow-x, 50%) var(--glow-y, 50%), var(--glow-color), transparent 75%);
+}
+.shine {
+  z-index: 20;
+  padding: 1px;
+  background: radial-gradient(240px circle at var(--glow-x, 50%) var(--glow-y, 50%), var(--glow-border), transparent 75%);
+  mask: linear-gradient(black, black) content-box, linear-gradient(black, black);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
+@media (hover: hover) and (pointer: fine) {
+  .card:hover > .glow, .card:hover > .shine { opacity: 1; }
+}
+.card:focus-within > .shine { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .glow, .shine { transition: none; }
+  .card { --glow-x: 50% !important; --glow-y: 50% !important; }
+}
