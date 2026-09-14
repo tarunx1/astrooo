@@ -1,61 +1,18 @@
-import Image from "next/image";
-import { MessageCircle, Phone, Video } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, MessageCircle, Phone, Video } from "lucide-react";
 import { Section, SectionHeader } from "@/components/layout/primitives";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardFooter } from "@/components/ui/card";
-import { astrologers } from "@/data/home";
-
-export function ConsultationSection() {
-  return (
-    <Section id="consultations">
-      <SectionHeader
-        action={<Button href="/consultations" variant="secondary">Book Consultation</Button>}
-        title="Consult verified astrologers"
-        text="The consultation surface is designed for service discovery first: expertise, language, mode, availability and transparent pricing can all become sortable attributes."
-      />
-      <div className="grid gap-4 lg:grid-cols-3">
-        {astrologers.map((astrologer) => (
-          <Card equalHeight padding="lg" variant="glass" spotlight={true} key={astrologer.name}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="relative size-16 overflow-hidden rounded-full border border-premium/70 shadow-md">
-                <Image
-                  src={astrologer.avatar}
-                  alt={astrologer.name}
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                />
-              </div>
-              <Badge variant="success">
-                <span className="size-1.5 rounded-full bg-success animate-pulse" />
-                Online
-              </Badge>
-            </div>
-            <CardBody className="mt-5 gap-2">
-              <h3 className="heading-md">{astrologer.name}</h3>
-              <p className="body-sm text-foreground-secondary">{astrologer.skill}</p>
-              <p className="body-sm text-foreground-muted">{astrologer.language} · {astrologer.sessions} sessions</p>
-            </CardBody>
-            <CardFooter className="grid grid-cols-3 gap-2">
-              {[
-                { Icon: Phone, label: "Call" },
-                { Icon: MessageCircle, label: "Chat with" },
-                { Icon: Video, label: "Video call" },
-              ].map(({ Icon, label }) => (
-                <button
-                  aria-label={`${label} ${astrologer.name}`}
-                  className="grid min-h-11 place-items-center rounded-md border border-white/10 bg-background/60 text-premium transition hover:border-premium hover:bg-background"
-                  key={label}
-                  type="button"
-                >
-                  <Icon aria-hidden="true" size={18} />
-                </button>
-              ))}
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    </Section>
-  );
+import { Card } from "@/components/ui/card";
+import { ContentImage } from "@/components/ui/content-image";
+import { listDirectory } from "@/lib/consultations/directory";
+import { RatingDisplay } from "@/components/consultations/pandit-card";
+import { CelestialArt } from "@/components/home/celestial-art";
+import styles from "@/components/home/home-experience.module.css";
+const modes={CHAT:{label:"Chat",Icon:MessageCircle},VOICE_CALL:{label:"Call",Icon:Phone},VIDEO_CALL:{label:"Video",Icon:Video}};
+export async function ConsultationSection() {
+  const result=await listDirectory({pageSize:3}).catch(()=>null);
+  return <Section id="consultations"><div className={styles.networkHeader}><SectionHeader title="A human perspective" text="Meet verified practitioners. Find the expertise, language and consultation format that feels right for you." action={<Button href="/consultations" variant="text">Meet the astrologers <ArrowRight size={16}/></Button>}/><CelestialArt kind="network"/></div>
+    <div className={styles.portraits}>{result?.rows.map(person=><Card spotlight key={person.id} className={`${styles.panel} ${styles.portrait}`}><Link href={`/consultations/${person.slug}`}><div className={styles.portraitImage}>{person.profileImageUrl?<ContentImage src={person.profileImageUrl} alt={person.displayName} width={600} height={650}/>:<span>{person.displayName.slice(0,1)}</span>}</div><div className={styles.reportBody}><p className={styles.eyebrow}>{person.verified?"Verified practitioner":"Practitioner"}</p><h3 className="heading-lg mt-3">{person.displayName}</h3><p className="body-sm mt-2 text-foreground-secondary">{person.expertise.join(" · ")}</p><p className="caption mt-2 mb-3 text-foreground-muted">{person.languages.join(" · ")}</p><RatingDisplay rating={person.rating} reviewCount={person.reviewCount}/><p className="caption mt-3 text-foreground-secondary">{person.hasAvailability?"Appointment windows available":"Check appointment availability"}</p></div></Link><div className={`${styles.modes} px-6 pb-6`}>{person.services.map(service=>{const {Icon,label}=modes[service.mode];return <Link key={service.mode} href={`/consultations/${person.slug}`} aria-label={`${label} with ${person.displayName}`}><Icon size={15}/>{label}</Link>;})}</div></Card>)}</div>
+    {!result?.rows.length&&<div className={styles.empty}><p>Explore the practitioner directory for current profiles and appointment availability.</p><Button className="mt-5" href="/consultations" variant="secondary">Browse practitioners</Button></div>}
+  </Section>;
 }

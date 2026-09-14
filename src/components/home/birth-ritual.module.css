@@ -1,0 +1,10 @@
+.ritual { margin-bottom:12px; }
+.ritual svg { width:100%; max-height:110px; stroke:#c7ab70; stroke-width:.8; fill:none; }
+.ring { opacity:.3; transition:opacity 450ms, transform 650ms; }
+.ring[data-ready="true"] { opacity:1; transform:rotate(8deg); }
+.ring text { fill:#c7ab70; stroke:none; font:9px sans-serif; }
+.marker { fill:#c7ab70; opacity:0; }
+.ring[data-ready="true"] .marker { opacity:1; }
+.ritual[data-pending="true"] .ring { animation:align 1.2s ease-in-out infinite alternate; opacity:1; }
+@keyframes align { to { transform:rotate(35deg) scale(.8); filter:drop-shadow(0 0 2px #c7ab70); } }
+@media(prefers-reduced-motion:reduce) { .ring { transition:none; animation:none!important; } }

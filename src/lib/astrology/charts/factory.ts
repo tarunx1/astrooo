@@ -1,5 +1,9 @@
 import type { PlanetName } from "@/config/astrology";
-import { getNavamsaDegree, getNavamsaSign } from "@/lib/astrology/charts/navamsa";
+import {
+  VARGA_DEFINITIONS,
+  calculateVarga,
+  getVargaDefinition,
+} from "@/lib/astrology/charts/varga";
 import {
   getDegreeInSign,
   getSignNumber,
@@ -109,20 +113,102 @@ export function createNavamsaChart(chart: VedicChartData): VedicChartData {
     throw new ChartDataError("A Navamsa chart needs the ascendant's exact degree, not only its sign.");
   }
 
+  // The D9 is one of the sixteen, so it goes through the same engine as the
+  // rest. Kept as a named function because callers and tests already speak of
+  // it by name, but there is no second navamsa implementation behind it.
+  return createDivisionalChart(chart, 9);
+}
+
+/**
+ * Any divisional chart, from the same longitudes as the D1.
+ *
+ * The transformation is applied to every planet and to the ascendant, and what
+ * comes out is an ordinary chart - so the renderer neither knows nor cares that
+ * it is a division. That is what lets one `<VedicChart />` draw all sixteen.
+ *
+ * Requires the ascendant's exact degree. A varga ascendant is the division of
+ * the precise rising degree, and a sign alone cannot produce it: Aries rising
+ * at 2° and at 28° give different D9 ascendants. Throwing is better than
+ * quietly charting the sign's first division as though it were the answer.
+ */
+export function createDivisionalChart(chart: VedicChartData, division: number): VedicChartData {
+  // Confirms the division exists before any work, so an unsupported one fails
+  // by name rather than by producing an empty chart.
+  const definition = getVargaDefinition(division);
+
+  if (division === 1) {
+    return { ...chart, chartType: "D1" };
+  }
+
+  if (typeof chart.ascendantLongitude !== "number") {
+    throw new ChartDataError(
+      `A ${definition.name} (D${division}) chart needs the ascendant's exact degree, not only its sign.`,
+    );
+  }
+
   return {
-    chartType: "D9",
-    ascendantSign: getNavamsaSign(chart.ascendantLongitude),
-    planets: chart.planets.map((planet) => ({
-      ...planet,
-      // The longitude is kept so the source degree stays inspectable; the sign
-      // is the navamsa one, which is what placement uses.
-      sign: getNavamsaSign(planet.longitude),
-      // The degree has to move with the sign. Left at the Rashi value it would
-      // be displayed against a sign it does not describe.
-      degreeInSign: getNavamsaDegree(planet.longitude),
-    })),
+    chartType: `D${division}`,
+    ascendantSign: calculateVarga(chart.ascendantLongitude, division).sign,
+    planets: chart.planets.map((planet) => {
+      const varga = calculateVarga(planet.longitude, division);
+
+      return {
+        ...planet,
+        // The longitude is kept so the source degree stays inspectable; the
+        // sign is the divisional one, which is what placement uses.
+        sign: varga.sign,
+        // The degree has to move with the sign. Left at the Rashi value it
+        // would be displayed against a sign it does not describe.
+        degreeInSign: varga.degreeInSign,
+      };
+    }),
     calculatedAt: chart.calculatedAt,
   };
+}
+
+export type ShodashvargaRow = {
+  planet: PlanetName;
+  /** Divisional sign number, 1-12, keyed by division. */
+  signs: Record<number, number>;
+};
+
+export type Shodashvarga = {
+  divisions: readonly { division: number; name: string; significance: string }[];
+  rows: ShodashvargaRow[];
+  /** The ascendant across the same divisions. */
+  ascendant: Record<number, number>;
+};
+
+/**
+ * Every planet across every division, as one table.
+ *
+ * Computed in a single pass rather than by building sixteen charts and reading
+ * them back, because the table only needs the sign - and an astrologer reading
+ * across a row is the main reason this view exists.
+ */
+export function createShodashvarga(chart: VedicChartData): Shodashvarga {
+  const divisions = VARGA_DEFINITIONS.map(({ division, name, significance }) => ({
+    division,
+    name,
+    significance,
+  }));
+
+  const ascendant: Record<number, number> = {};
+  if (typeof chart.ascendantLongitude === "number") {
+    for (const { division } of divisions) {
+      ascendant[division] = calculateVarga(chart.ascendantLongitude, division).sign;
+    }
+  }
+
+  const rows = chart.planets.map((planet) => {
+    const signs: Record<number, number> = {};
+    for (const { division } of divisions) {
+      signs[division] = calculateVarga(planet.longitude, division).sign;
+    }
+    return { planet: planet.planet, signs };
+  });
+
+  return { divisions, rows, ascendant };
 }
 
 /**

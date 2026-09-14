@@ -20,6 +20,8 @@ import { getKundliResult } from "@/lib/kundli/service";
 import { getCurrentUser } from "@/lib/auth/session";
 import { consumeContinuation } from "@/lib/auth/continuation";
 import { isKundliSavedByUser } from "@/lib/account/saved-kundlis";
+import { KaalSarpSummary } from "@/components/astrology/kaal-sarp-summary";
+import { createRashiChart } from "@/lib/astrology/charts/factory";
 
 export const metadata: Metadata = {
   title: "Private Kundli Result",
@@ -92,6 +94,7 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
         <section className="grid gap-6 lg:grid-cols-2">
           <DashaSummary result={result} />
           <ManglikSummary result={result} />
+          <KaalSarpSummary chart={createRashiChart({ ascendant: result.ascendant, planets: result.planets })} />
         </section>
         <InsightPreview />
         <CalculationMetadata result={result} />

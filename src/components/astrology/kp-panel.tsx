@@ -1,4 +1,5 @@
 import { HouseSystemUnavailableError } from "@/lib/astrology/engine/houses";
+import { RulingPlanetsTable } from "@/components/astrology/ruling-planets-table";
 import { computeKpChartForBirth, type KpChart } from "@/lib/astrology/kp/chart";
 import { allSignificators, type PlanetSignificators } from "@/lib/astrology/kp/significators";
 import type { KundliResult } from "@/lib/kundli/types";
@@ -55,6 +56,10 @@ export function KpPanel({ result }: { result: KundliResult }) {
 
   return (
     <div className="@container grid gap-6">
+      <section className="astro-inner-card grid gap-3 p-4 sm:p-5">
+        <RulingPlanetsTable chart={chart} />
+      </section>
+
       <section className="astro-inner-card grid gap-3 p-4 sm:p-5">
         <div>
           <h3 className="heading-sm text-foreground">Cuspal sub-lords</h3>

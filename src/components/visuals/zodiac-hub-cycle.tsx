@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SIGNS } from "@/config/astrology";
+import { SIGNS, type ZodiacSign } from "@/config/astrology";
 import { ZODIAC_HUB_ART } from "./zodiac-hub-art";
 
 /**
@@ -22,10 +22,11 @@ const HOLD_MS = 6500;
 /** Filter id. Fixed rather than generated - only one hub exists per page. */
 const NEON_FILTER = "zodiac-hub-neon";
 
-export function ZodiacHubCycle() {
+export function ZodiacHubCycle({ selectedSign }: { selectedSign?: ZodiacSign }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (selectedSign) return;
     // Reduced motion keeps the first sign rather than cycling. The sequence is
     // decoration, and decoration is not worth moving the page under someone who
     // has asked it to stop.
@@ -36,9 +37,9 @@ export function ZodiacHubCycle() {
     }, HOLD_MS);
 
     return () => window.clearInterval(id);
-  }, []);
+  }, [selectedSign]);
 
-  const sign = SIGNS[index];
+  const sign = selectedSign ?? SIGNS[index];
   const path = ZODIAC_HUB_ART[sign];
 
   return (

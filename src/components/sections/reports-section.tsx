@@ -1,70 +1,19 @@
-import styles from "./home-cards.module.css";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { Section, SectionHeader } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardFooter, GlassCard } from "@/components/ui/card";
-import { PriceDisplay } from "@/components/ui/price-display";
-import { ResponsiveGrid, Section, SectionHeader } from "@/components/layout/primitives";
-import { reports } from "@/data/home";
-
-export function ReportsSection() {
-  return (
-    <Section id="reports">
-      <SectionHeader
-        action={<Button href="/reports" variant="text">View all reports</Button>}
-        title="Featured astrology reports"
-        text="Digital report commerce uses one product model with clear job states: payment, calculation, interpretation, rendering and secure delivery."
-      />
-      <ResponsiveGrid min="13.5rem">
-        {reports.map((report) => (
-          <Card spotlight
-            className={`group overflow-hidden ${styles.card} ${styles.lift}`}
-            equalHeight
-            key={report.title}
-            variant="interactive"
-          >
-            <Link
-              className="flex h-full flex-col focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
-              href="/reports"
-              prefetch={false}
-            >
-              <div className={styles.editorialImage}>
-                <div className="absolute inset-0">
-                  <Image
-                    src={report.image}
-                    alt={report.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 640px) 90vw, 320px"
-                  />
-                </div>
-              </div>
-              <CardBody className="gap-3 p-5">
-                <p className="caption text-premium">Personal astrology</p>
-                <h3 className="heading-md">{report.title}</h3>
-                <p className="body-sm text-foreground-secondary">{report.text}</p>
-                <CardFooter className="pt-2">
-                  <PriceDisplay amount={report.price} meta="Digital report" size="sm" />
-                </CardFooter>
-              </CardBody>
-            </Link>
-          </Card>
-        ))}
-      </ResponsiveGrid>
-      <GlassCard
-        variant="glass-premium"
-        spotlight={true}
-        className={`${styles.card} mt-10 grid items-center gap-8 p-7 md:grid-cols-[1fr_auto]`}
-      >
-        <div>
-          <h3 className="heading-xl text-premium">Kundli Matching</h3>
-          <p className="mt-2 body text-foreground-secondary">Discover compatibility with a focused form flow for two birth profiles.</p>
-        </div>
-        <Button href="/kundli-matching" variant="premium">
-          Check Compatibility <ArrowRight size={17} />
-        </Button>
-      </GlassCard>
-    </Section>
-  );
+import { Card } from "@/components/ui/card";
+import { listActiveReportDefinitions, formatMoneyMinor } from "@/lib/reports/catalog";
+import { CelestialArt, type CelestialArtKind } from "@/components/home/celestial-art";
+import styles from "@/components/home/home-experience.module.css";
+function reportArt(name:string):CelestialArtKind { if (/complete|dasha/i.test(name)) return "timeline"; if (/career|finance/i.test(name)) return "career"; if (/love|marriage|compatib/i.test(name)) return "matching"; if (/health|well/i.test(name)) return "balance"; if (/dasha/i.test(name)) return "timeline"; return "clock"; }
+export async function ReportsSection() {
+  const catalogue = await listActiveReportDefinitions().catch(()=>[]);
+  const featuredSlugs = ["year-forecast", "career", "love-marriage", "finance", "complete-life", "health", "dasha"];
+  const reports = featuredSlugs.flatMap(slug => catalogue.filter(report => report.slug === slug));
+  return <Section id="reports"><SectionHeader title="The report library" text="Thoughtful perspectives on your year, your relationships and the chapters ahead." action={<Button href="/reports" variant="text">All reports <ArrowRight size={16}/></Button>}/>
+    <div className={styles.reports}>{reports.slice(0,6).map(report=><Card spotlight key={report.id} className={`${styles.panel} ${styles.report}`}><Link href={`/reports/${report.slug}`}><div className={styles.reportArt}><CelestialArt kind={reportArt(report.name)}/></div><div className={styles.reportBody}><p className={styles.eyebrow}>Personal astrology</p><h3>{report.name}</h3><p className="body-sm text-foreground-secondary">{report.shortDescription}</p><p className="mt-4 font-semibold">{formatMoneyMinor(report.priceMinor,report.currency)}</p><span className={styles.reportExplore}>Explore report <ArrowRight size={15}/></span></div></Link></Card>)}</div>
+    {!reports.length&&<p className={styles.empty}>The report library is being updated. Please check the catalogue for available reports.</p>}
+    <div className={styles.matching}><CelestialArt kind="matching"/><div><p className={styles.eyebrow}>Two charts. One conversation.</p><h2 className="heading-xl mt-4">The compatibility chamber</h2><p className="body text-foreground-secondary mt-4">Explore Ashtakoota compatibility with both birth profiles. Your matching score appears only after calculation.</p><Button className="mt-6" href="/kundli-matching" variant="premium">Compare your charts <ArrowRight size={16}/></Button></div></div>
+  </Section>;
 }

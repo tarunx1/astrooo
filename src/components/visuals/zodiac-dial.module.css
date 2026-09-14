@@ -1,0 +1,61 @@
+.instrument { position: relative; width: 100%; aspect-ratio: 1; color: #c7ab70; }
+.dial { width: 100%; height: 100%; overflow: visible; }
+.plate { fill: #10182a; stroke: #9d8553; stroke-width: .7; }
+.rim { filter: drop-shadow(0 0 2px #c7ab7080); fill: none; stroke: currentColor; stroke-width: .8; }
+.hairline { fill: none; stroke: currentColor; stroke-width: .55; opacity: .38; }
+.tick { stroke: currentColor; stroke-width: .5; opacity: .5; }
+.major { stroke: currentColor; stroke-width: .9; opacity: .9; }
+.star, .jewel { fill: currentColor; opacity: .65; }
+.recess { fill: #0b1221; stroke: #655634; stroke-width: .8; }
+.center { fill: #080f1d; stroke: #625337; stroke-width: .65; }
+.divider { stroke: currentColor; stroke-width: .6; opacity: .25; }
+.glyph { fill: none; stroke: #e0c58b; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; transition: translate 300ms ease, filter 300ms ease; }
+.label { fill: currentColor; font: 5.5px var(--font-sans); letter-spacing: 1.25px; opacity: .8; }
+.hit { fill: transparent; cursor: pointer; transition: fill 300ms ease; }
+.sector { cursor: pointer; outline: none; }
+.sector:hover .hit, .sector:focus-visible .hit { fill: #d6b56d14; }
+.sector:hover .glyph, .sector:focus-visible .glyph { translate: 0 -3px; filter: drop-shadow(0 0 2px #d6b56d70); }
+.sector[aria-pressed="true"] .hit { fill: #d6b56d0c; }
+.sector:focus-visible .hit { stroke: currentColor; stroke-width: .7; }
+.track { fill: none; stroke: currentColor; stroke-width: .5; opacity: .3; }
+.planet { fill: #ead6a7; filter: drop-shadow(0 0 4px #c7ab70a0); }
+.planetSmall { fill: #899bb9; }
+.pointer { fill: #e0c58b; filter: drop-shadow(0 0 3px #e0c58b80); }
+.degrees, .orbits { transform-origin: 300px 300px; }
+.degrees { animation: revolve 120s linear infinite; }
+.orbits { animation: revolve 150s linear infinite; pointer-events: none; }
+@keyframes revolve { to { transform: rotate(360deg); } }
+.instrument :global(.zodiac-hub-sign) { animation: appear 900ms ease both; }
+.instrument :global(.zodiac-hub-neon-core) { stroke: #efdbac; stroke-width: 1.1; animation: trace 1950ms ease both; }
+.instrument :global(.zodiac-hub-neon-tube) { stroke: #c7ab70; stroke-width: 2.6; opacity: .8; }
+@keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+@keyframes trace { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@media (max-width: 639px) {
+  .degrees, .label, .orbits, .jewel { display: none; }
+  .glyph { stroke-width: 3.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .degrees, .orbits { animation: none; }
+  .glyph, .hit { transition: none; }
+  .instrument :global(.zodiac-hub-sign), .instrument :global(.zodiac-hub-neon-core) { animation: none; opacity: 1; stroke-dashoffset: 0; }
+}
+
+.instrument::before {
+  content: "";
+  position: absolute;
+  inset: 3.5%;
+  border-radius: 50%;
+  box-shadow: 0 0 28px rgb(199 171 112 / 9%), 0 0 65px rgb(199 171 112 / 4%);
+  pointer-events: none;
+}
+.glint { fill: #f4e4bd; opacity: .12; filter: drop-shadow(0 0 2px #ead6a7); animation: glimmer 13s ease-in-out infinite; pointer-events: none; }
+.star:nth-of-type(3n) { animation: glimmer 11s ease-in-out -4s infinite; }
+.star:nth-of-type(3n + 1) { animation: glimmer 15s ease-in-out -8s infinite; }
+@keyframes glimmer {
+  0%, 30%, 70%, 100% { opacity: .12; }
+  46% { opacity: .9; }
+  55% { opacity: .45; }
+}
+@media (max-width: 639px), (prefers-reduced-motion: reduce) {
+  .glint, .star { animation: none; }
+}

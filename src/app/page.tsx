@@ -8,7 +8,7 @@ import { ServicesSection } from "@/components/sections/services-section";
 import { ShopSection } from "@/components/sections/shop-section";
 import { TrustSection } from "@/components/sections/trust-section";
 import { createOrganizationJsonLd, createWebsiteJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
-import { ZodiacReveal, ZodiacRevealProvider } from "@/components/visuals/zodiac-reveal";
+import { HomeChapter } from "@/components/home/home-chapter";
 
 export const metadata: Metadata = {
   title: "Tarun Astro",
@@ -27,29 +27,13 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <HeroSection />
-      {/* Each wrapped section permanently reserves a gutter - right, then left,
-          and on down the page - and the sign forms in it. Nothing shifts. */}
-      <ZodiacRevealProvider>
-        <ZodiacReveal index={0}>
-          <ServicesSection />
-        </ZodiacReveal>
-        <ZodiacReveal index={1}>
-          <CalculatorAndPanchang />
-        </ZodiacReveal>
-        <ZodiacReveal index={2}>
-          <ReportsSection />
-        </ZodiacReveal>
-        <ZodiacReveal index={3}>
-          <ShopSection />
-        </ZodiacReveal>
-        <ZodiacReveal index={4}>
-          <ConsultationSection />
-        </ZodiacReveal>
-        <ZodiacReveal index={5}>
-          <TrustSection />
-        </ZodiacReveal>
-        <InsightsSection />
-      </ZodiacRevealProvider>
+      <HomeChapter><ServicesSection /></HomeChapter>
+      <HomeChapter tone="deep"><CalculatorAndPanchang /></HomeChapter>
+      <HomeChapter reveal="report"><ReportsSection /></HomeChapter>
+      <HomeChapter tone="surface" reveal="commerce"><ShopSection /></HomeChapter>
+      <HomeChapter tone="deep" reveal="portrait"><ConsultationSection /></HomeChapter>
+      <HomeChapter><TrustSection /></HomeChapter>
+      <HomeChapter tone="surface"><InsightsSection /></HomeChapter>
     </>
   );
 }

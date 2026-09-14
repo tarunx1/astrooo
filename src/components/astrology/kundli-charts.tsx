@@ -5,7 +5,18 @@ import { KpPanel } from "@/components/astrology/kp-panel";
 import { PlanetPositionTable } from "@/components/astrology/planet-position-table";
 import { VedicChart } from "@/components/astrology/vedic-chart";
 import { Card } from "@/components/ui/card";
-import { createChartsFromKundli } from "@/lib/astrology/charts/factory";
+import { AshtakavargaPanel } from "@/components/astrology/ashtakavarga-panel";
+import { BalaPanel } from "@/components/astrology/bala-panel";
+import { JaiminiPanel } from "@/components/astrology/jaimini-panel";
+import { YogasPanel } from "@/components/astrology/yogas-panel";
+import { RelationshipsPanel } from "@/components/astrology/relationships-panel";
+import { DivisionalCharts } from "@/components/astrology/divisional-charts";
+import {
+  createChartsFromKundli,
+  createDivisionalChart,
+  createShodashvarga,
+} from "@/lib/astrology/charts/factory";
+import { VARGA_DEFINITIONS } from "@/lib/astrology/charts/varga";
 import { getSignNumberFromName } from "@/lib/astrology/charts/signs";
 import type { KundliResult } from "@/lib/kundli/types";
 
@@ -27,8 +38,23 @@ export function KundliCharts({ result }: { result: KundliResult }) {
   const { rashi, navamsa, moon, warnings } = createChartsFromKundli(result);
   const moonSign = getSignNumberFromName(result.moonSign);
 
+  // All sixteen are calculated here, on the server, from the stored longitudes.
+  // They are a few numbers each; the cost that matters is rendering them, which
+  // the divisional view defers by drawing one at a time.
+  const shodashvarga = createShodashvarga(rashi);
+  const divisional =
+    typeof rashi.ascendantLongitude === "number"
+      ? VARGA_DEFINITIONS.map(({ division, name, significance }) => ({
+          division,
+          name,
+          significance,
+          data: createDivisionalChart(rashi, division),
+        }))
+      : [];
+
   const tabs = [
     {
+      group: "Charts",
       id: "d1",
       label: "D1 Rashi",
       content: (
@@ -41,6 +67,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
     ...(navamsa
       ? [
           {
+            group: "Charts",
             id: "d9",
             label: "D9 Navamsa",
             content: (
@@ -53,6 +80,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
         ]
       : []),
     {
+      group: "Charts",
       id: "moon",
       label: "Moon",
       content: (
@@ -62,7 +90,51 @@ export function KundliCharts({ result }: { result: KundliResult }) {
         </div>
       ),
     },
+    // Offered only when the ascendant's exact degree is known, for the same
+    // reason the Navamsa is: every varga ascendant is a division of the rising
+    // degree, and a sign alone cannot produce one.
+    ...(divisional.length > 0
+      ? [
+          {
+            group: "Charts",
+            id: "divisional",
+            label: "Divisional",
+            content: <DivisionalCharts charts={divisional} table={shodashvarga} />,
+          },
+        ]
+      : []),
     {
+      group: "Strength",
+      id: "ashtakavarga",
+      label: "Ashtakavarga",
+      content: <AshtakavargaPanel chart={rashi} />,
+    },
+    {
+      group: "Strength",
+      id: "bala",
+      label: "Strength",
+      content: <BalaPanel chart={rashi} />,
+    },
+    {
+      group: "Advanced",
+      id: "relationships",
+      label: "Relationships",
+      content: <RelationshipsPanel chart={rashi} />,
+    },
+    {
+      group: "Jaimini",
+      id: "jaimini",
+      label: "Jaimini",
+      content: <JaiminiPanel chart={rashi} />,
+    },
+    {
+      group: "Yogas",
+      id: "yogas",
+      label: "Yogas",
+      content: <YogasPanel chart={rashi} />,
+    },
+    {
+      group: "Transits",
       id: "gochar",
       label: "Gochar",
       content: (
@@ -72,6 +144,7 @@ export function KundliCharts({ result }: { result: KundliResult }) {
       ),
     },
     {
+      group: "KP",
       id: "kp",
       label: "KP",
       content: <KpPanel result={result} />,

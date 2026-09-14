@@ -48,7 +48,7 @@ export const featuredServices = [
     title: "Muhurat Consultation",
     type: "Consultation",
     text: "Human review for important timing decisions with clear next steps.",
-    href: "/consultations/muhurat",
+    href: "/consultations?expertise=Muhurat",
     icon: CalendarDays,
   },
 ] as const;
@@ -59,14 +59,6 @@ export const calculators = [
   { title: "Nakshatra", text: "Know your birth star and its qualities.", icon: Star },
   { title: "Sade Sati", text: "Track Saturn influence with context.", icon: Orbit },
   { title: "Lucky Number", text: "Numerology fixture for name and date.", icon: Sparkles },
-] as const;
-
-export const panchangRows = [
-  ["Tithi", "Shukla Paksha Dashami"],
-  ["Nakshatra", "Rohini"],
-  ["Yoga", "Siddhi"],
-  ["Rahu Kaal", "10:42 AM - 12:18 PM"],
-  ["Abhijit Muhurat", "11:54 AM - 12:46 PM"],
 ] as const;
 
 export const reports = [

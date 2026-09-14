@@ -1,77 +1,18 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck } from "lucide-react";
 import { Section, SectionHeader } from "@/components/layout/primitives";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { storeCategories } from "@/data/home";
-
-export function ShopSection() {
-  return (
-    <Section className="pt-0" id="shop">
-      <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
-        <div>
-          <SectionHeader
-            className="mb-7"
-            title="Gemstones & spiritual store"
-            text="Product pages separate verified specifications from traditional astrological associations, which keeps trust high and claims responsible."
-          />
-          <div className="grid gap-3">
-            {storeCategories.map((category) => (
-                <Card spotlight
-                  key={category.title}
-                  variant="interactive"
-                  className="group"
-                >
-                  <Link
-                    className="flex items-center justify-between gap-4 p-4 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ring"
-                    href={category.href}
-                    prefetch={false}
-                  >
-                    <span className="flex items-center gap-4">
-                      <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-border">
-                        <Image
-                          src={category.image}
-                          alt={category.title}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      </div>
-                      <span>
-                        <span className="block text-sm font-semibold text-foreground">{category.title}</span>
-                        <span className="block body-sm text-foreground-muted">{category.text}</span>
-                      </span>
-                    </span>
-                    <ArrowRight className="text-foreground-muted group-hover:text-premium transition-colors" size={17} />
-                  </Link>
-                </Card>
-            ))}
-          </div>
-        </div>
-
-        <Card spotlight variant="premium" className="relative overflow-hidden p-6 sm:p-7">
-          <div className="relative max-w-xl">
-            <Badge variant="premium">
-              <BadgeCheck aria-hidden="true" size={14} />
-              Verified commerce
-            </Badge>
-            <h2 className="mt-5 heading-xl">Built for high-trust commerce</h2>
-            <p className="mt-4 body text-foreground-secondary">
-              Gemstones can carry carat, origin, treatment, lab certificate, SKU, inventory, care
-              instructions, related products, reviews, shipping and authenticity fields in the same
-              commerce model as digital reports and consultations.
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {["Lab certificate", "Authenticity guarantee", "Inventory variants", "Responsible belief copy"].map((item) => (
-                <Card spotlight className="rounded-lg border border-border bg-surface-raised p-4 body-sm font-semibold text-foreground" key={item}>
-                  {item}
-                </Card>
-              ))}
-            </div>
-          </div>
-        </Card>
-      </div>
-    </Section>
-  );
+import { ContentImage } from "@/components/ui/content-image";
+import { listProducts } from "@/lib/shop/catalog";
+import { formatMoneyMinor } from "@/lib/shop/pricing";
+import { CelestialArt } from "@/components/home/celestial-art";
+import styles from "@/components/home/home-experience.module.css";
+export async function ShopSection() {
+  const products=await listProducts({categorySlug:"gemstones",limit:3}).catch(()=>[]);
+  return <Section id="shop"><SectionHeader title="The gemstone vault" text="Discover the material, the craftsmanship and the details behind each piece." action={<Button href="/shop" variant="text">Visit the collection <ArrowRight size={16}/></Button>}/>
+    <div className={styles.specimens}>{products.map(product=><Card spotlight key={product.id} className={`${styles.panel} ${styles.specimen}`}><Link href={`/product/${product.slug}`}><div className={styles.specimenImage}>{product.imageUrl?<ContentImage src={product.imageUrl} alt={product.imageAlt} width={600} height={600}/>:<CelestialArt kind="gem"/>}</div><div className={styles.reportBody}><p className={styles.eyebrow}>{product.categoryName??"The collection"}</p><h3 className="heading-lg mt-3">{product.title}</h3><p className="mt-3">{formatMoneyMinor(product.priceMinor,product.currency)}</p>{product.certified&&<span className={styles.certified}><BadgeCheck size={15}/> Certificate details available</span>}<span className={styles.reportExplore}>View piece <ArrowRight size={15}/></span></div></Link></Card>)}</div>
+    {!products.length&&<p className={styles.empty}>New pieces are being prepared for the collection. Browse the shop for current availability.</p>}
+    <div className="mt-9 flex flex-wrap gap-x-8 gap-y-3 caption text-foreground-secondary"><span>Origin & treatment details</span><span>Certificates where supplied</span><span>Care information</span><span>Clear product specifications</span></div>
+  </Section>;
 }

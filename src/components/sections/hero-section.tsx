@@ -3,22 +3,22 @@ import { PageContainer } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ZodiacDial } from "@/components/visuals/zodiac-dial";
-import { ZodiacHubCycle } from "@/components/visuals/zodiac-hub-cycle";
+import styles from "./hero-section.module.css";
 import { quickServices } from "@/data/home";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-transparent">
+    <section className={`relative overflow-hidden ${styles.hero}`}>
       <PageContainer className="relative py-16">
-        <div className="grid min-h-[clamp(520px,calc(100vh-var(--header-height)-18rem),760px)] items-center gap-12 lg:grid-cols-[0.82fr_1fr]">
-          <div className="relative z-10 max-w-2xl">
-            <h1 className="display-xl">
+        <div className={styles.layout}>
+          <div className={`relative z-10 ${styles.copy}`}>
+            <h1 className={styles.headline}>
               <span className="block">Ancient</span>
               <span className="block">Wisdom.</span>
               <span className="block text-premium">Personalized</span>
               <span className="block text-premium">for You.</span>
             </h1>
-            <p className="mt-7 max-w-xl body-lg text-foreground-secondary">
+            <p className="mt-7 max-w-[520px] body-lg text-foreground-secondary">
               Tarun Astro blends authentic Vedic astrology structure with modern commerce,
               secure accounts and expert review so guidance feels clear, calm and usable.
             </p>
@@ -40,19 +40,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* The wheel turns, so it is centred by a wrapper and rotated by the
-              child: one element cannot hold both transforms. The halo, the
-              sheen and the signs in the hub are stacked on that same wrapper so
-              they share its centre - and so the signs stay upright while the
-              wheel turns around them. */}
-          <div className="relative min-h-[360px] sm:min-h-[420px] lg:min-h-[520px]">
-            <div className="zodiac-orbit-frame pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[108%] -translate-x-1/2 -translate-y-1/2 sm:w-[96%]">
-              {/* Every layer is positioned, so they paint in source order: halo
-                  behind, then the wheel, then the sign. A static wheel here
-                  would be painted under the halo. */}
-              <div aria-hidden="true" className="zodiac-wheel-halo absolute -inset-[12%]" />
+          <div className={styles.visual}>
+            <div className={`zodiac-orbit-frame ${styles.frame}`}>
               <ZodiacDial />
-              <ZodiacHubCycle />
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { DashaFormulaPanel } from "@/components/astrology/dasha-formula-panel";
 import { buildDashaTimeline, formatBalance } from "@/lib/astrology/engine/dasha";
+import { YoginiDashaTable } from "@/components/astrology/yogini-dasha-table";
 import { HouseSystemUnavailableError } from "@/lib/astrology/engine/houses";
 import { computeKpChartForBirth, type KpChart } from "@/lib/astrology/kp/chart";
 import { significatorsFor } from "@/lib/astrology/kp/significators";
@@ -79,6 +80,8 @@ export function DashaTable({ result }: { result: KundliResult }) {
         abbreviated in the trail: Su Sun, Mo Moon, Ma Mars, Me Mercury, Ju Jupiter, Ve Venus, Sa Saturn, Ra Rahu,
         Ke Ketu.
       </p>
+
+      <YoginiDashaTable birthISO={chart.instant.toISOString()} moonLongitude={moon.longitude} />
     </section>
   );
 }

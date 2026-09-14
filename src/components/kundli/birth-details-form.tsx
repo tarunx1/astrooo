@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import type { BirthDetailsFormState } from "@/app/kundli/actions";
 import { submitBirthDetails } from "@/app/kundli/actions";
@@ -31,6 +31,7 @@ type BirthDetailsFormProps = {
   defaults?: BirthDetailsFormDefaults;
   hiddenFields?: Record<string, string>;
   compact?: boolean;
+  decoration?: ReactNode;
 };
 
 export function BirthDetailsForm({
@@ -40,6 +41,7 @@ export function BirthDetailsForm({
   defaults,
   hiddenFields,
   compact = false,
+  decoration,
 }: BirthDetailsFormProps = {}) {
   const [state, action] = useActionState<BirthDetailsFormState, FormData>(formAction, birthDetailsInitialState);
   const safeState = state ?? birthDetailsInitialState;
@@ -48,6 +50,7 @@ export function BirthDetailsForm({
 
   return (
     <form action={action} className={cn("grid", compact ? "gap-3.5" : "gap-5")} noValidate>
+      {decoration}
       {safeState.formErrors.length ? (
         <div className="rounded-md border border-danger/50 bg-background p-4 body-sm text-danger" role="alert">
           {safeState.formErrors.join(" ")}

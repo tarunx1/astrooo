@@ -1,0 +1,55 @@
+{
+  "purpose": "Reference charts for the classical rule layer - vargas, dasha and ashtakavarga - computed on top of longitudes that are already independently validated against JPL Horizons in astronomy-engine.test.ts. This file answers a different question from that one: not 'is the planet where we say it is' but 'does the tradition's arithmetic on that position match what an authority produces'.",
+  "howToAdd": [
+    "1. Obtain a chart from a source you trust: an astrologer's own working, or software whose methodology matches docs/astrology-methodology.md (sidereal, Lahiri, whole-sign).",
+    "2. Fill in birth, location and the expected values you have. Every expected block is optional - a fixture with only an ascendant still earns its place.",
+    "3. Set verified to true and name the source. Only verified fixtures are asserted.",
+    "4. Never scrape a commercial site to populate this. Values are transcribed by a person who has checked them.",
+    "5. If a value disagrees with the engine, do not edit the fixture to match. Decide which is wrong first - that is the entire point of the file."
+  ],
+  "tolerances": {
+    "longitudeDegrees": 0.02,
+    "note": "Longitudes are compared numerically, never as formatted strings. Signs, nakshatras and varga placements are exact matches - they are labels, not measurements. 0.02 degrees is 1.2 arcminutes, which is looser than the engine's agreement with Horizons and allows for a reference rounded to arcminutes."
+  },
+  "charts": [
+    {
+      "id": "example-pending",
+      "verified": false,
+      "source": "PENDING - replace with a real reference and set verified to true.",
+      "note": "A worked template showing every supported expectation block. It is ignored while verified is false, so it cannot assert anything wrong.",
+      "birth": {
+        "dateOfBirth": "2001-11-27",
+        "timeOfBirth": "20:30"
+      },
+      "location": {
+        "city": "Batala",
+        "latitude": 31.75063,
+        "longitude": 75.75562,
+        "timezone": "Asia/Kolkata"
+      },
+      "expected": {
+        "ascendant": {
+          "sign": "Gemini",
+          "degree": 26.25
+        },
+        "planetLongitudes": {
+          "Sun": 221.56
+        },
+        "vargaSigns": {
+          "Sun": {
+            "9": null,
+            "30": null,
+            "60": null
+          }
+        },
+        "vimshottari": {
+          "birthLord": null,
+          "balanceYears": null
+        },
+        "ashtakavarga": {
+          "sarva": null
+        }
+      }
+    }
+  ]
+}

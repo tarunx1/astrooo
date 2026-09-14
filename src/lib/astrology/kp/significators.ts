@@ -1,6 +1,7 @@
 import { SIGNS, type PlanetName, type ZodiacSign } from "@/config/astrology";
 import type { KpChart, KpPlanet } from "@/lib/astrology/kp/chart";
 import { PLANET_SIGN_RULERSHIPS, getSignLord } from "@/lib/astrology/kp/vimshottari";
+import { aspectsSign } from "@/lib/astrology/charts/aspects";
 
 /**
  * KP significators: which houses each planet speaks for.
@@ -62,28 +63,15 @@ export type PlanetSignificators = {
 const signNumber = (sign: ZodiacSign) => SIGNS.indexOf(sign) + 1;
 
 /**
- * Vedic aspects, as offsets in signs.
+ * Whether `from` casts a Vedic aspect onto the sign `target` sits in.
  *
- * Every planet aspects the seventh from itself. Mars, Jupiter and Saturn have
- * their own additional aspects. The nodes are given none: KP reads what
- * aspects *them*, not what they aspect.
+ * The aspect table itself lives in `charts/aspects.ts` and is shared with the
+ * Parashari view, so the two cannot drift into disagreeing about who aspects
+ * whom. KP reads what aspects the nodes rather than what they aspect, which is
+ * the same rule that module encodes.
  */
-const SPECIAL_ASPECTS: Partial<Record<PlanetName, number[]>> = {
-  Mars: [3, 7],
-  Jupiter: [4, 8],
-  Saturn: [2, 9],
-};
-
-function aspectOffsets(planet: PlanetName): number[] {
-  if (planet === "Rahu" || planet === "Ketu") return [];
-  return [6, ...(SPECIAL_ASPECTS[planet] ?? [])];
-}
-
-/** Whether `from` casts a Vedic aspect onto the sign `target` sits in. */
 function aspects(from: KpPlanet, target: KpPlanet): boolean {
-  const fromSign = signNumber(from.sign);
-  const targetSign = signNumber(target.sign);
-  return aspectOffsets(from.planet).some((offset) => ((fromSign - 1 + offset) % 12) + 1 === targetSign);
+  return aspectsSign(from.planet, signNumber(from.sign), signNumber(target.sign));
 }
 
 /** Houses a planet owns, by the Placidus cusps rather than by sign. */
