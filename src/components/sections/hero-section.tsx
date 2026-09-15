@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ZodiacDial } from "@/components/visuals/zodiac-dial";
 import styles from "./hero-section.module.css";
+import glass from "@/components/home/glass-surface.module.css";
 import { quickServices } from "@/data/home";
 
 export function HeroSection() {
@@ -54,7 +55,7 @@ export function HeroSection() {
               <GlassCard
                 variant="glass"
                 spotlight={true}
-                className="flex min-h-24 items-center gap-3 p-4 transition-all duration-300 hover:-translate-y-0.5"
+                className={`${glass.surface} flex min-h-24 items-center gap-3 p-4 hover:-translate-y-0.5`}
                 href={service.href}
                 key={service.title}
               >
