@@ -142,7 +142,10 @@
     --star-warm: rgb(214 181 109 / 0.55);
     --globe-panel: #081026;
     --globe-ocean: #dbeafe;
-    --globe-land: rgb(21 33 55 / 0.94);
+    /* Hex, not rgb() with a slash alpha: three.js cannot parse CSS Color 4
+       syntax and silently falls back to white, which made the land dots
+       invisible against the pale ocean. See tests/globe-tokens.test.ts. */
+    --globe-land: #152137;
     --globe-route: #6f95ff;
     --globe-label: #10182d;
     --globe-label-foreground: #f7f9ff;
@@ -210,7 +213,10 @@
   --star-warm: rgb(214 181 109 / 0.55);
   --globe-panel: #081026;
   --globe-ocean: #dbeafe;
-  --globe-land: rgb(21 33 55 / 0.94);
+  /* Hex, not rgb() with a slash alpha: three.js cannot parse CSS Color 4
+       syntax and silently falls back to white, which made the land dots
+       invisible against the pale ocean. See tests/globe-tokens.test.ts. */
+    --globe-land: #152137;
   --globe-route: #6f95ff;
   --globe-label: #10182d;
   --globe-label-foreground: #f7f9ff;

@@ -78,8 +78,36 @@ export default async function KundliResultPage({ params }: { params: Promise<{ i
         />
         <FixtureNotice result={result} />
         <CoreAstrologySummary result={result} />
-        <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <div className="min-w-0"><KundliCharts result={result} /></div>
+        {/*
+          The chart stays put while the tables are read.
+
+          Sticky rather than a scroll container on the data column: one page
+          scrollbar instead of two, find-in-page still reaches the tables, and
+          nothing needs a tabindex to be keyboard-reachable.
+
+          Sticky alone was not enough. Seven banded tab rows, a 28rem chart and
+          a nine-row position table make this card roughly half again the height
+          of a laptop viewport, and a sticky box taller than the viewport
+          scrolls away like any other - the chart was gone by the time the dasha
+          was on screen. Capping the column at the viewport and letting it
+          scroll inside is what actually keeps it there. The cap is `lg:` only,
+          so the stacked phone layout is untouched.
+
+          `min-w-0` on both columns, and `astro-layout-guard` for everything
+          nested inside them, is what stops either one's contents from setting
+          the grid track's width - a grid or flex item will not otherwise shrink
+          below its content, which is what put the tables over the chart. The
+          guard is needed as well as the two `min-w-0`s because the panels nest
+          several grids deep and every level re-introduces the default; see the
+          rule in globals.css.
+        */}
+        <section className="astro-layout-guard grid items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          {/* The max-height is the viewport less the header and this column's
+              own sticky offset, so a tall tab (Ashtakavarga, KP) scrolls inside
+              the pinned card rather than dragging the chart off the top. */}
+          <div className="min-w-0 lg:sticky lg:top-[calc(var(--header-height)+1.5rem)] lg:max-h-[calc(100dvh-var(--header-height)-3rem)] lg:self-start lg:overflow-y-auto">
+            <KundliCharts result={result} />
+          </div>
           {/* The positions table is short and the charts beside it are tall, so
               the dasha sits under it rather than leaving that column empty
               half way down the page. The transit chart follows for the same

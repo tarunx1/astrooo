@@ -351,6 +351,36 @@ section {
   background-position: 0 0, 37px 19px, 74px 36px;
 }
 
+/**
+ * Stops a wide child from widening the column it sits in.
+ *
+ * A grid or flex item defaults to `min-width: auto`, which refuses to shrink
+ * below its content. Nothing in this subtree wants that: a panel is a stack of
+ * cards, tables and chip rows, and every one of those is wider than the narrow
+ * chart column at some viewport. Without this, such an item takes its
+ * content's min-content width, the grid track grows to match, and the card
+ * bleeds over the data column beside it. `max-width` cannot prevent it -
+ * `min-width` wins over `max-width` - and neither can an `overflow-x: auto`
+ * wrapper *inside* the item, because the item is sized from that wrapper's
+ * content before the wrapper gets to scroll it.
+ *
+ * Layout containers only. `table` is deliberately excluded so the tables keep
+ * their `min-w-[42rem]` and scroll inside their own wrapper rather than
+ * squashing their columns.
+ *
+ * In `@layer components`, for the reason given above `@layer base`: unlayered,
+ * this would beat every `min-w-*` utility in the subtree - `min-w-[10rem]` on
+ * the transit switcher's fields among them - because an unlayered rule wins
+ * over a layered one whatever its specificity. Layered, it is a default that a
+ * utility can still override, which is what it should be. `:where()` keeps it
+ * at zero specificity on top of that.
+ */
+@layer components {
+  .astro-layout-guard :where(div, section, article, figure, form, ul, ol, li, p, h1, h2, h3, h4) {
+    min-width: 0;
+  }
+}
+
   .astro-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -546,4 +576,31 @@ section {
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/**
+ * The footer band.
+ *
+ * A deliberate solid ground the page rests on, reversing an earlier choice to
+ * keep the footer transparent for seamlessness with the starfield above.
+ *
+ * It is dark in **both** themes. Rather than correct every element for light
+ * mode, the footer redefines the foreground tokens for its own subtree: every
+ * utility inside it - text-foreground-secondary, border-border and the rest -
+ * then resolves against these values on its own. One declaration block instead
+ * of an override on each descendant.
+ */
+.footer-band {
+  --background: #050814;
+  --surface: #0a1020;
+  --foreground: #f7f9ff;
+  --foreground-secondary: #aab5d1;
+  --foreground-muted: #74809b;
+  --border: #1e2942;
+  --border-strong: #31405f;
+  --premium: #d6b56d;
+  --premium-muted: #8f7744;
+
+  background-color: var(--background);
+  color: var(--foreground);
 }

@@ -58,12 +58,22 @@ export function DivisionalCharts({
   ];
 
   return (
-    <div className="grid gap-6">
-      <div>
-        {/* A scrolling row of chips rather than a select: the divisions are a
-            known, ordered set and an astrologer moves between neighbours. */}
-        <div className="-mx-1 overflow-x-auto px-1 pb-1">
-          <div className="flex w-max gap-2">
+    <div className="grid min-w-0 gap-6">
+      <div className="min-w-0">
+        {/* A row of chips rather than a select: the divisions are a known,
+            ordered set and an astrologer moves between neighbours.
+
+            It wraps. This row used to be a single `w-max` line inside an
+            `overflow-x-auto` wrapper, which reads well but cannot survive this
+            column: `width: max-content` makes the row's *min-content*
+            contribution its full width, the grid item above it takes that
+            width, and sixteen chips then pushed the whole card over the dasha
+            tables beside it. Wrapping removes the max-content box altogether,
+            so there is no width left to leak. Sixteen short chips cost two
+            lines here and stay visible at once, which beats scrolling to find
+            D60. */}
+        <div className="-mx-1 min-w-0 px-1 pb-1">
+          <div className="flex flex-wrap gap-2">
             {charts.map((chart) => {
               const active = chart.division === selected.division;
               return (
@@ -106,7 +116,7 @@ export function DivisionalCharts({
         data={selected.data}
       />
 
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <h3 className="heading-sm">Shodashvarga</h3>
         <p className="body-sm text-foreground-secondary">
           Each planet&apos;s sign in every division. Scroll sideways to read across.

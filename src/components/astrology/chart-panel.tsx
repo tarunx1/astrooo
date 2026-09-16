@@ -71,9 +71,19 @@ export function ChartPanel({ tabs, className }: { tabs: ChartTab[]; className?: 
 
   return (
     <div className={cn("grid gap-5", className)}>
-      <div className="-mx-1 grid max-w-full gap-2 px-1 pb-1">
+      {/*
+        `min-w-0` on the rows is load-bearing, not tidying.
+
+        A grid or flex item defaults to `min-width: auto`, which refuses to
+        shrink below its content. Ten tab buttons and a group label are wider
+        than this card's column, so without it the row pushed the card - and the
+        whole grid track - past its share of the page, and the chart beneath
+        spilled under the column beside it. `overflow-x-auto` cannot save a row
+        that was never allowed to be narrower than its contents.
+      */}
+      <div className="-mx-1 grid min-w-0 max-w-full gap-2 px-1 pb-1">
         {bands.map((band) => (
-          <div className="flex items-center gap-2 overflow-x-auto" key={band.name ?? "ungrouped"}>
+          <div className="flex min-w-0 items-center gap-2 overflow-x-auto" key={band.name ?? "ungrouped"}>
             {band.name ? (
               <span className="shrink-0 caption uppercase tracking-[0.14em] text-foreground-muted">
                 {band.name}
@@ -89,6 +99,9 @@ export function ChartPanel({ tabs, className }: { tabs: ChartTab[]; className?: 
       {tabs.map((tab) => (
         <div
           aria-labelledby={`${groupId}-tab-${tab.id}`}
+          // Same reason as the tab rows: a panel holding a wide table must be
+          // able to be narrower than it, or the table sets the card's width.
+          className="min-w-0"
           hidden={tab.id !== active}
           id={`${groupId}-${tab.id}`}
           key={tab.id}
