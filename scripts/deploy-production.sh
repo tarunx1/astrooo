@@ -49,7 +49,9 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 # 2. Dependency Installation
-echo "==> Step 2: Installing dependencies with frozen lockfile..."
+echo "==> Step 2: Cleaning corrupted dependencies and reinstalling..."
+rm -rf node_modules .pnpm-store pnpm-lock.yaml 2>/dev/null || true
+pnpm store prune || true
 CI=true pnpm install --frozen-lockfile
 
 # 3. Prisma Schema & Migrations
