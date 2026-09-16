@@ -50,9 +50,9 @@ fi
 
 # 2. Dependency Installation
 echo "==> Step 2: Cleaning corrupted dependencies and reinstalling..."
-rm -rf node_modules .pnpm-store pnpm-lock.yaml 2>/dev/null || true
+rm -rf node_modules .pnpm-store 2>/dev/null || true
 pnpm store prune || true
-CI=true pnpm install --frozen-lockfile
+CI=true pnpm install --no-frozen-lockfile
 
 # 3. Prisma Schema & Migrations
 echo "==> Step 3: Validating Prisma and applying database migrations..."
