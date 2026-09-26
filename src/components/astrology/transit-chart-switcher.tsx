@@ -62,7 +62,8 @@ export function TransitChartSwitcher({
    * from, rather than set at the top of the effect - a synchronous setState in
    * an effect body costs a render pass before the work has even begun.
    */
-  const requestKey = mode === "gochar" ? `${date}|${referenceSign}` : null;
+  const [attempt, setAttempt] = useState(0);
+  const requestKey = mode === "gochar" ? `${date}|${referenceSign}|${attempt}` : null;
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const loading = requestKey !== null && loadedKey !== requestKey;
 
@@ -70,30 +71,59 @@ export function TransitChartSwitcher({
     if (requestKey === null) return;
 
     let cancelled = false;
+    const timeout = window.setTimeout(() => {
+      cancelled = true;
+      setChart(null);
+      setAtISO(null);
+      setError("The transit request took too long. Please try again.");
+      setLoadedKey(requestKey);
+    }, 20_000);
 
     async function run() {
-      const result = await loadGocharChartAction({ date, reference, referenceSign });
+      try {
+        const result = await loadGocharChartAction({ date, reference, referenceSign });
 
-      // A slower earlier request must not overwrite a newer one's answer.
-      if (cancelled) return;
+        // A slower earlier request must not overwrite a newer one's answer.
+        if (cancelled) return;
 
-      if (!result.ok) {
+        if (!result.ok) {
+          setChart(null);
+          setAtISO(null);
+          setError(result.message);
+        } else {
+          setChart(result.chart);
+          setAtISO(result.atISO);
+          setError(null);
+        }
+      } catch {
+        /**
+         * The action rejected rather than returning an outcome.
+         *
+         * It returns `{ ok: false }` for every failure it anticipates, so
+         * reaching here means the call itself did not complete: the server
+         * threw before it could answer, the deploy moved under a tab that was
+         * already open, or the network dropped. Without this branch the
+         * spinner below simply ran forever - `loading` is derived from
+         * `loadedKey`, and nothing ever set it.
+         */
+        if (cancelled) return;
         setChart(null);
         setAtISO(null);
-        setError(result.message);
-      } else {
-        setChart(result.chart);
-        setAtISO(result.atISO);
-        setError(null);
+        setError("The transit calculation could not be completed. Please try again.");
+      } finally {
+        window.clearTimeout(timeout);
+        // Marks the request answered whatever the outcome, so `loading` can
+        // always come back down. Skipped when cancelled, because a newer
+        // request now owns the state.
+        if (!cancelled) setLoadedKey(requestKey);
       }
-
-      setLoadedKey(requestKey);
     }
 
     void run();
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timeout);
     };
   }, [requestKey, date, reference, referenceSign]);
 
@@ -189,10 +219,18 @@ export function TransitChartSwitcher({
               stored, so it never changes.
             </p>
           </div>
-        ) : error ? (
-          <p className="rounded-md border border-warning/40 p-3 body-sm text-foreground-secondary" role="alert">
-            {error}
-          </p>
+        ) : error && !loading ? (
+          <div className="grid justify-items-start gap-3 rounded-md border border-warning/40 p-3" role="alert">
+            <p className="body-sm text-foreground-secondary">{error}</p>
+            <button
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-md border border-border px-3 caption font-semibold text-foreground-secondary transition hover:border-border-strong hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-cyan"
+              onClick={() => setAttempt((count) => count + 1)}
+              type="button"
+            >
+              <RotateCcw aria-hidden="true" size={13} />
+              Try again
+            </button>
+          </div>
         ) : chart === null ? (
           <p className="flex items-center gap-2 py-8 body-sm text-foreground-muted">
             <Loader2 aria-hidden="true" className="animate-spin" size={15} />

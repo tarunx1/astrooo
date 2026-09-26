@@ -211,6 +211,19 @@ describe("production store selection", () => {
   it("never silently falls back to the in-process store in production", () => {
     expect(() => getRateLimitStore({ NODE_ENV: "production" } as NodeJS.ProcessEnv)).toThrow();
 
+    /**
+     * The *type* matters, not just that it throws.
+     *
+     * `checkRateLimit` turns a `RateLimitStoreError` into a decision and
+     * rethrows anything else. While this was a plain `Error` it escaped the
+     * policy entirely and rejected the calling server action, which is what
+     * left the Gochar panel spinning with no message: a missing Redis URL, not
+     * a failed calculation.
+     */
+    expect(() => getRateLimitStore({ NODE_ENV: "production" } as NodeJS.ProcessEnv)).toThrow(
+      RateLimitStoreError,
+    );
+
     const configured = getRateLimitStore({
       NODE_ENV: "production",
       UPSTASH_REDIS_REST_URL: "https://example.upstash.io",

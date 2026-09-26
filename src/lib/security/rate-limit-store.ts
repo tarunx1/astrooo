@@ -165,8 +165,14 @@ export function getRateLimitStore(env: NodeJS.ProcessEnv = process.env): RateLim
   if (env.NODE_ENV === "production") {
     // Falling back to a per-instance Map in production would quietly multiply
     // every limit by the number of running instances, which is worse than an
-    // obvious failure at boot.
-    throw new Error(
+    // obvious failure.
+    //
+    // `RateLimitStoreError`, not a plain `Error`, because this is exactly the
+    // "store unusable" condition each namespace already declares a policy for.
+    // Thrown bare it escaped `checkRateLimit` entirely, bypassed that policy,
+    // and rejected whatever server action was calling - which is how a missing
+    // Redis URL turned into a Gochar spinner that never stopped.
+    throw new RateLimitStoreError(
       "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set in production for distributed rate limiting.",
     );
   }

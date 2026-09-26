@@ -139,7 +139,9 @@ describe("store failure policy", () => {
     const store = new BrokenStore();
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    for (const namespace of ["payment:order-create", "payment:verify", "ai:generate", "astrology:calculate"] as const) {
+    // `astrology:calculate` is deliberately not here any more: calculation moved
+    // in-process, so an outage has no third-party spend to protect.
+    for (const namespace of ["payment:order-create", "payment:verify", "ai:generate"] as const) {
       expect(RATE_LIMITS[namespace].fail).toBe("closed");
       const decision = await checkRateLimit({ namespace, identifier: "user:z", store });
       expect(decision.allowed).toBe(false);
@@ -151,11 +153,46 @@ describe("store failure policy", () => {
     const store = new BrokenStore();
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    for (const namespace of ["auth:sign-in", "admin:mutation", "cart:mutation"] as const) {
+    for (const namespace of ["auth:sign-in", "admin:mutation", "cart:mutation", "astrology:calculate"] as const) {
       expect(RATE_LIMITS[namespace].fail).toBe("open");
       const decision = await checkRateLimit({ namespace, identifier: "user:z", store });
       expect(decision.allowed).toBe(true);
       expect(decision.degraded).toBe(true);
+    }
+  });
+
+  it("returns a decision, never a rejection, when production has no Redis configured", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const original = process.env.NODE_ENV;
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    // No `store` override, so the real selection path runs - the one that
+    // refuses an in-memory store in production.
+    Object.assign(process.env, { NODE_ENV: "production" });
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    try {
+      /**
+       * A rejection here is the Gochar hang.
+       *
+       * `loadGocharChartAction` calls this first and returns
+       * `{ ok: false, message }` for everything it anticipates. When this threw
+       * instead, the action rejected, the client never set its loaded key, and
+       * "Calculating transits" ran forever with no error to show.
+       */
+      const decision = await checkRateLimit({
+        namespace: "astrology:calculate",
+        identifier: "anon:test",
+      });
+
+      expect(decision.degraded).toBe(true);
+      expect(decision.allowed).toBe(true);
+    } finally {
+      Object.assign(process.env, { NODE_ENV: original });
+      if (url !== undefined) process.env.UPSTASH_REDIS_REST_URL = url;
+      if (token !== undefined) process.env.UPSTASH_REDIS_REST_TOKEN = token;
     }
   });
 

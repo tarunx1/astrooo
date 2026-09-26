@@ -190,8 +190,22 @@ export const RATE_LIMITS: Record<RateLimitNamespace, LimitRule> = {
   "astrology:calculate": {
     limit: 20,
     windowMs: 10 * MINUTE,
-    fail: "closed",
-    rationale: "The astrology provider's free tier allows 5 requests a minute; unmetered use would exhaust it for everyone.",
+    /**
+     * Open, unlike the other cost-bearing namespaces.
+     *
+     * This was closed when the figures came from a metered third party on a
+     * free tier, where one unbilled request really did take something from
+     * everyone else. That is no longer true: `getAstrologyToolsProvider()`
+     * returns `NativeAstrologyToolsProvider` and nothing else, so a transit or
+     * a Panchang is arithmetic on this server. There is no quota left to
+     * exhaust - only CPU, which the limit above still caps in normal operation.
+     *
+     * Closed, an unreachable store took the free Kundli tools offline for every
+     * visitor to protect a quota that no longer exists. That is the same
+     * trade-off auth makes just above, and it goes the same way here.
+     */
+    fail: "open",
+    rationale: "Calculation is local, so a store outage has no cost to protect against; the limit still caps CPU in normal operation.",
   },
 };
 
@@ -256,13 +270,17 @@ export async function checkRateLimit(input: {
 }): Promise<RateLimitDecision> {
   const rule = RATE_LIMITS[input.namespace];
   const now = input.now ?? Date.now();
-  const store = input.store ?? getRateLimitStore();
 
   // The identifier is hashed into the key by the caller's choice of value; the
   // key itself never leaves this module.
   const key = `rl:${input.namespace}:${input.identifier}`;
 
   try {
+    // Selecting the store is inside the try because it can fail for the same
+    // reason using it can - in production it refuses to hand back an in-memory
+    // store. Outside, that refusal skipped the policy below and propagated to
+    // the caller as a rejected promise.
+    const store = input.store ?? getRateLimitStore();
     const hit = await store.increment(key, rule.windowMs);
     const allowed = hit.count <= rule.limit;
     const retryAfterSeconds = Math.max(0, Math.ceil((hit.resetAt - now) / 1000));
