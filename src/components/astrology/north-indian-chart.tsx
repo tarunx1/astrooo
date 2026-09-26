@@ -8,7 +8,7 @@ import {
   SIGN_CLEARANCE,
   signAnchorFor,
 } from "@/lib/astrology/charts/layouts/north-indian";
-import type { VedicChartData } from "@/lib/astrology/charts/types";
+import type { ChartHouse, VedicChartData } from "@/lib/astrology/charts/types";
 
 /**
  * North Indian chart.
@@ -24,6 +24,8 @@ import type { VedicChartData } from "@/lib/astrology/charts/types";
  */
 export type NorthIndianChartProps = {
   data: VedicChartData;
+  /** Explicit cusp-based placements; omitted for whole-sign charts. */
+  houses?: ChartHouse[];
   showDegrees?: boolean;
   showRetrograde?: boolean;
   showAscendant?: boolean;
@@ -33,13 +35,14 @@ export type NorthIndianChartProps = {
 
 export function NorthIndianChart({
   data,
+  houses: suppliedHouses,
   showDegrees = false,
   showRetrograde = true,
   showAscendant = true,
   planetLabelMode = "short",
   titleId,
 }: NorthIndianChartProps) {
-  const houses = buildHouses(data);
+  const houses = suppliedHouses ?? buildHouses(data);
 
   return (
     <svg

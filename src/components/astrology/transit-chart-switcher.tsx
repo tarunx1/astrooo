@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { CalendarDays, Loader2, RotateCcw } from "lucide-react";
 import { VedicChart } from "@/components/astrology/vedic-chart";
 import { getSignName } from "@/lib/astrology/charts/signs";
@@ -21,7 +21,7 @@ import type { VedicChartData } from "@/lib/astrology/charts/types";
  * a different transit date must never re-derive or overwrite the birth chart,
  * which is immutable by design.
  */
-type Mode = "lagna" | "gochar";
+type Mode = "lagna" | "kp" | "gochar";
 type Reference = "lagna" | "moon";
 
 /** Bounds mirrored from the action, which enforces them regardless. */
@@ -40,10 +40,12 @@ export function TransitChartSwitcher({
   natal,
   natalLagnaSign,
   natalMoonSign,
+  kpChart,
 }: {
   natal: VedicChartData;
   natalLagnaSign: number;
   natalMoonSign: number;
+  kpChart: ReactNode;
 }) {
   const [mode, setMode] = useState<Mode>("lagna");
   const [reference, setReference] = useState<Reference>("lagna");
@@ -154,6 +156,7 @@ export function TransitChartSwitcher({
         </h3>
         <div className="flex flex-wrap gap-2">
           {tab("lagna", "Lagna", "The birth chart, from the stored calculation")}
+          {tab("kp", "KP", "The birth chart using Placidus house cusps")}
           {tab("gochar", "Gochar", "Where the planets are on a date you choose")}
         </div>
       </div>
@@ -219,6 +222,8 @@ export function TransitChartSwitcher({
               stored, so it never changes.
             </p>
           </div>
+        ) : mode === "kp" ? (
+          kpChart
         ) : error && !loading ? (
           <div className="grid justify-items-start gap-3 rounded-md border border-warning/40 p-3" role="alert">
             <p className="body-sm text-foreground-secondary">{error}</p>
